@@ -1,0 +1,255 @@
+.controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid #333;
+    min-width: 400px;
+}
+
+.controls-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.control-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* View Cards Button */
+.view-cards-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: 2px solid #4CAF50;
+}
+
+.view-cards-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+/* Blind Bet Button */
+.blind-bet-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    color: white;
+    border: 2px solid #FF9800;
+}
+
+.blind-bet-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #F57C00 0%, #FF9800 100%);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+}
+
+/* Regular Action Buttons */
+.fold-btn {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    border: 2px solid #f44336;
+}
+
+.fold-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+}
+
+.check-btn {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    border: 2px solid #2196F3;
+}
+
+.check-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1976D2 0%, #2196F3 100%);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+}
+
+.call-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: 2px solid #4CAF50;
+}
+
+.call-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.raise-btn {
+    background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+    color: white;
+    border: 2px solid #9C27B0;
+}
+
+.raise-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7B1FA2 0%, #9C27B0 100%);
+    box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
+}
+
+.all-in-btn {
+    background: linear-gradient(135deg, #FF5722 0%, #E64A19 100%);
+    color: white;
+    border: 2px solid #FF5722;
+}
+
+.all-in-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #E64A19 0%, #FF5722 100%);
+    box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+}
+
+/* Quick Bet Buttons */
+.quick-bet-btn {
+    background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);
+    color: white;
+    border: 2px solid #607D8B;
+    padding: 8px 16px;
+    font-size: 12px;
+    min-width: 60px;
+}
+
+.quick-bet-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #455A64 0%, #607D8B 100%);
+    box-shadow: 0 5px 15px rgba(96, 125, 139, 0.4);
+}
+
+/* Action Buttons Row */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Quick Bet Row */
+.quick-bet-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+/* Raise Slider */
+.raise-slider-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.raise-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #333;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.raise-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #9C27B0;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.raise-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #9C27B0;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.raise-amount-display {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Blind Status Indicator */
+.blind-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 152, 0, 0.2);
+    border: 1px solid #FF9800;
+    border-radius: 6px;
+    color: #FF9800;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.blind-status .blind-icon {
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .controls {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        min-width: auto;
+        padding: 15px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .control-btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .quick-bet-row {
+        flex-wrap: wrap;
+    }
+    
+    .quick-bet-btn {
+        flex: 1;
+        min-width: 60px;
+    }
+}

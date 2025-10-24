@@ -1,0 +1,77 @@
+/* Reports & Analytics */
+.reports { min-height: calc(100vh - 60px); background: #0F1419; margin-top: 60px; }
+.reports-content { padding: 32px; }
+
+.reports-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.reports-title { color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 6px 0; }
+.reports-subtitle { color: #9CA3AF; font-size: 14px; margin: 0; }
+
+.reports-actions { display: flex; align-items: center; gap: 12px; }
+.reports-select { position: relative; }
+.reports-select-input { appearance: none; padding: 12px 40px 12px 14px; background: #131622; border: 1px solid #2A2F3F; border-radius: 10px; color: #ffffff; }
+.reports-select-caret { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #9CA3AF; pointer-events: none; }
+.reports-export { display: inline-flex; align-items: center; gap: 8px; background: #F59E0B; color: #0B0F17; border: none; border-radius: 10px; padding: 12px 14px; font-weight: 700; cursor: pointer; }
+
+.reports-metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.reports-metric-card { background: #131622; border: 1px solid #2A2F3F; border-radius: 12px; padding: 22px; }
+.reports-metric-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.reports-metric-title { color: #9CA3AF; font-size: 14px; }
+.reports-metric-value { color: #ffffff; font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+.reports-metric-foot { display: flex; align-items: center; gap: 8px; color: #9CA3AF; }
+.reports-trend-icon { color: #F59E0B; }
+.reports-delta { color: #F59E0B; font-weight: 700; }
+.reports-note { color: #9CA3AF; }
+
+@media (max-width: 1024px) { .reports-content { padding: 24px; } .reports-metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .reports-content { padding: 16px; } .reports-metrics-grid { grid-template-columns: 1fr; } }
+
+/* Charts section */
+.reports-charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+.reports-chart-card { background: #131622; border: 1px solid #2A2F3F; border-radius: 12px; padding: 18px; }
+.reports-chart-header { color: #ffffff; font-weight: 700; margin-bottom: 4px; }
+.reports-chart-subtitle { color: #9CA3AF; font-size: 14px; margin-bottom: 12px; }
+.reports-chart-canvas-wrapper { position: relative; height: 320px; width: 100%; }
+.reports-chart-canvas-wrapper canvas { width: 100% !important; height: 100% !important; display: block; }
+.reports-pie-legend { display: flex; align-items: center; gap: 8px; padding: 8px 2px 2px; color: #E5E7EB; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.legend-text { margin-right: 10px; color: #ffffff !important; }
+.legend-spacer { width: 20px; }
+
+@media (max-width: 1024px) { .reports-charts-grid { grid-template-columns: 1fr; } }
+
+.reports-chart-full { margin-top: 24px; }
+.reports-chart-canvas-wrapper.large { height: 420px; }
+
+/* Top Players table */
+.reports-top-card { background: #131622; border: 1px solid #2A2F3F; border-radius: 12px; margin-top: 24px; }
+.reports-top-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #2A2F3F; }
+.reports-top-title { color: #ffffff; font-weight: 700; }
+.reports-top-subtitle { color: #9CA3AF; font-size: 13px; margin-top: 4px; }
+.reports-export-lite { display: inline-flex; align-items: center; gap: 6px; background: #0F131D; color: #E5E7EB; border: 1px solid #2A2F3F; border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.reports-top-list { padding: 8px 0; }
+.reports-top-row { display: grid; grid-template-columns: 56px 1fr 140px 80px 80px; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid rgba(42,47,63,0.7); }
+.reports-top-row:last-child { border-bottom: none; }
+.reports-rank { width: 28px; height: 28px; border-radius: 50%; background: #F59E0B; color: #0B0F17; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.reports-player { color: #E5E7EB; font-weight: 600; }
+.reports-games { color: #9CA3AF; font-size: 12px; }
+.reports-winnings { color: #F5F5F5; font-weight: 700; text-align: right; }
+.reports-winrate { color: #E5E7EB; text-align: right; }
+.reports-tier { background: #2A2F3F; color: #E5E7EB; padding: 6px 10px; border-radius: 10px; font-size: 12px; text-align: center; }
+.reports-tier.elite, .reports-tier.pro { background: #F59E0B; color: #0B0F17; }
+.reports-tier.regular { background: #2563EB; color: #FFFFFF; }
+
+/* Export Options */
+.reports-export-section { background: #131622; border: 1px solid #2A2F3F; border-radius: 12px; margin-top: 24px; padding: 18px; }
+.reports-export-title { color: #ffffff; font-weight: 700; margin-bottom: 4px; }
+.reports-export-subtitle { color: #9CA3AF; font-size: 14px; margin-bottom: 12px; }
+.reports-export-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.reports-export-card { background: #0F131D; border: 1px solid #2A2F3F; border-radius: 10px; padding: 24px; text-align: center; }
+.reports-export-icon { color: #E5E7EB; margin-bottom: 10px; }
+.reports-export-name { color: #E5E7EB; font-weight: 600; margin-bottom: 4px; }
+.reports-export-formats { color: #9CA3AF; font-size: 13px; }
+
+@media (max-width: 768px) {
+  .reports-export-grid { grid-template-columns: 1fr; }
+}
+
+

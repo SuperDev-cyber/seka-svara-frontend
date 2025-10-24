@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Browser Sessions - Seka Svara</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            color: #333;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeeba;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+            border-left: 4px solid #667eea;
+        }
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Browser Sessions</h1>
+        
+        <div class="info">
+            <strong>This will clear:</strong>
+            <ul>
+                <li>Session Storage (current user data)</li>
+                <li>Local Storage (saved preferences)</li>
+                <li>All cached game data</li>
+                <li>Current table memberships</li>
+            </ul>
+        </div>
+
+        <div id="status" class="status warning" style="display: none;">
+            Clearing data...
+        </div>
+
+        <button onclick="clearAllData()">Clear All Browser Data</button>
+        <button onclick="goToLobby()">Go to Lobby</button>
+
+        <p style="margin-top: 30px; font-size: 14px; color: #666;">
+            Click "Clear All Browser Data" before refreshing or restarting the game.
+        </p>
+    </div>
+
+    <script>
+        function clearAllData() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status warning';
+            statusDiv.textContent = 'Clearing data...';
+
+            try {
+                // Clear sessionStorage
+                const sessionKeys = Object.keys(sessionStorage);
+                console.log('SessionStorage keys to clear:', sessionKeys);
+                sessionStorage.clear();
+
+                // Clear localStorage
+                const localKeys = Object.keys(localStorage);
+                console.log('LocalStorage keys to clear:', localKeys);
+                localStorage.clear();
+
+                // Update status
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    ✅ Successfully cleared all browser data!<br>
+                    <small>Cleared ${sessionKeys.length} session items and ${localKeys.length} local items</small>
+                `;
+
+                console.log('✅ All browser storage cleared!');
+                console.log('Cleared items:', {
+                    session: sessionKeys,
+                    local: localKeys
+                });
+
+            } catch (error) {
+                statusDiv.className = 'status warning';
+                statusDiv.textContent = '⚠️ Error: ' + error.message;
+                console.error('Error clearing storage:', error);
+            }
+        }
+
+        function goToLobby() {
+            window.location.href = '/gamelobby';
+        }
+
+        // Auto-clear on page load if URL param present
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
+            setTimeout(() => {
+                clearAllData();
+                setTimeout(() => {
+                    goToLobby();
+                }, 2000);
+            }, 500);
+        }
+    </script>
+</body>
+</html>
+

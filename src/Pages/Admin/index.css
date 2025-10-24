@@ -1,0 +1,43 @@
+.admin-layout {
+    min-height: 100vh;
+    background: #0F1419;
+    color: #E5E7EB;
+}
+
+.admin-main {
+    margin-left: 240px; /* Width of sidebar */
+    margin-top: 60px; /* Height of header */
+    min-height: calc(100vh - 60px);
+}
+
+/* Placeholder pages */
+.admin-page-placeholder {
+    padding: 40px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #9CA3AF;
+    background: #1A1D29;
+    margin: 20px;
+    border-radius: 12px;
+    border: 1px solid #2A2F3F;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .admin-main {
+        margin-left: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-main {
+        margin-left: 0;
+    }
+    
+    .admin-page-placeholder {
+        margin: 10px;
+        padding: 20px;
+        font-size: 18px;
+    }
+}

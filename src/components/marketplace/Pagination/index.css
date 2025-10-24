@@ -1,0 +1,132 @@
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid #333;
+}
+
+.pagination-info {
+    color: #B0B0B0;
+    font-size: 0.9rem;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #2A2A2A;
+    border: 1px solid #444;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(.disabled) {
+    background: #3A3A3A;
+    border-color: #555;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0 1rem;
+}
+
+.page-number {
+    width: 40px;
+    height: 40px;
+    background: #2A2A2A;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-number:hover:not(.ellipsis) {
+    background: #3A3A3A;
+    border-color: #555;
+}
+
+.page-number.active {
+    background: #FFBA08;
+    border-color: #FFBA08;
+    color: #1A1A1A;
+    font-weight: 600;
+}
+
+.page-number.ellipsis {
+    cursor: default;
+    background: transparent;
+    border: none;
+    color: #B0B0B0;
+}
+
+.page-number.ellipsis:hover {
+    background: transparent;
+    border: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .pagination {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .page-numbers {
+        margin: 0 0.5rem;
+    }
+    
+    .page-number {
+        width: 35px;
+        height: 35px;
+        font-size: 0.8rem;
+    }
+    
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-numbers {
+        gap: 0.125rem;
+    }
+    
+    .page-number {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+}

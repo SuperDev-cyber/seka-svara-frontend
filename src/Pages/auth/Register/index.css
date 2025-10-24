@@ -1,0 +1,612 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+.register-page {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('../../../assets/images/signup-background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
+}
+
+.register-container {
+    max-width: 1700px;
+    margin: 0 auto;
+    height: 100vh;
+    padding: 1rem;
+    position: relative;
+}
+
+.back-button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    align-self: flex-start;
+}
+
+.back-button:hover {
+    opacity: 0.8;
+    transform: translateX(-2px);
+}
+
+.back-icon-circle {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover .back-icon-circle {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.back-icon {
+    width: 12px;
+    height: 12px;
+    color: white;
+}
+
+.back-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: white;
+}
+
+.register-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.register-header img {
+    height: 60px;
+    width: auto;
+}
+
+.register-body {
+    text-align: right;
+    width: 530px;
+    margin-left: auto;
+}
+
+.register-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.register-title h1 {
+    font-size: 2rem;
+}
+
+.register-form {
+    padding: 1.5rem 1rem 1rem 1rem;
+    border: 1px solid #375876;
+    border-radius: 20px;
+
+}
+
+.register-form h3 {
+    font-size: 1.5rem;
+    text-align: left;
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    text-align: left;
+    display: block;
+    color: white;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-input {
+    width: 100%;
+    outline: none;
+    background-color: transparent;
+    padding: 1.5rem 1rem 1.5rem 1rem;
+    border: 1px solid #375876;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.terms-text {
+    color: white;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.link {
+    color: #4A9EFF;
+    text-decoration: none;
+}
+
+.signup-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(90deg, #EA9E33, #FFD700);
+    border: none;
+    border-radius: 8px;
+    color: #323232;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.login-text {
+    color: white;
+    text-align: right;
+}
+
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #cccccc;
+    z-index: 1;
+}
+
+.divider span {
+    background-color: transparent;
+    padding: 0 1rem;
+    color: #cccccc;
+    font-size: 0.9rem;
+    z-index: 2;
+    position: relative;
+}
+
+.social-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.social-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #375876;
+    border-radius: 10px;
+    background-color: transparent;
+    outline: none;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.social-btn:hover {
+    background-color: #1a1a1a;
+    border-color: #cccccc;
+}
+
+.social-icon {
+    margin-right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.github-icon {
+    color: white;
+}
+
+.google-icon {
+    color: white;
+}
+
+.microsoft-icon {
+    color: white;
+}
+
+.footer {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.footer p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    max-width: 100%;
+    padding: 0 1rem;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+}
+
+.footer-links span {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 600px) {
+    .register-body {
+        width: 100%;
+    }
+
+    .register-header{
+        justify-content: center;
+    }
+}
+
+@media (max-width: 570px) {
+    .register-page {
+        overflow-x: hidden;
+    }
+    
+    .register-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    .back-button {
+        gap: 0.5rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .back-icon-circle {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .back-icon {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .back-text {
+        font-size: 0.9rem;
+    }
+    
+    .register-body {
+        width: 100%;
+        margin: 0;
+        text-align: center;
+    }
+    
+    .register-form {
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+    }
+    
+    .register-form h3 {
+        font-size: 1.1rem;
+    }
+    
+    .form-input {
+        padding: 0.8rem 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    .signup-btn {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .social-btn {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    .divider {
+        max-width: 100%;
+        margin: 1rem auto;
+    }
+    
+    .footer-links {
+        font-size: 0.7rem;
+        gap: 0.3rem;
+        padding: 0 0.5rem;
+    }
+}
+
+/* Mobile-first responsive design for 320px to 462px */
+@media (max-width: 462px) {
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .register-page {
+        width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .register-container {
+        max-width: 100%;
+        padding: 1rem;
+        margin: 0;
+    }
+    
+    .back-button {
+        gap: 0.4rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    .back-icon-circle {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .back-icon {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .back-text {
+        font-size: 0.8rem;
+    }
+
+    .register-body {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        text-align: center;
+    }
+
+    .register-form {
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .register-form h3 {
+        font-size: 1.2rem;
+    }
+
+    .form-input {
+        padding: 1rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .login-text {
+        font-size: 1rem;
+    }
+
+    .signup-btn {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .social-btn {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .social-icon {
+        margin-right: 0.5rem;
+    }
+
+    .divider {
+        max-width: 100%;
+        margin: 1rem auto;
+    }
+
+    .footer {
+        margin-top: 2rem;
+        padding: 0 0.5rem;
+    }
+
+    .footer p {
+        font-size: 0.7rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .footer-links {
+        font-size: 0.65rem;
+        gap: 0.25rem;
+        padding: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .footer-links a {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 375px) {
+    .register-container {
+        padding: 0.5rem;
+    }
+
+    .register-form {
+        padding: 0.75rem;
+    }
+
+    .register-form h3 {
+        font-size: 1.1rem;
+    }
+
+    .form-input {
+        padding: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .signup-btn {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .social-btn {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.75rem;
+    }
+
+    .footer-links {
+        font-size: 0.6rem;
+        gap: 0.2rem;
+    }
+}
+
+@media (max-width: 439px) {
+    .register-page {
+        width: 100vw;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .register-container {
+        max-width: 100vw;
+        padding: 0.5rem;
+        margin: 0;
+    }
+
+    .register-header {
+        display: none;
+    }
+
+    .register-body {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .register-title {
+        display: block;
+    }
+
+    .register-title h1 {
+        text-align: center;
+    }
+
+    .register-form {
+        width: 100%;
+        max-width: 100%;
+        padding: 2rem;
+        margin: 0;
+    }
+
+    .register-form h3 {
+        font-size: 1.5rem;
+    }
+
+    .form-input {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+
+    .footer {
+        padding: 0 0.25rem;
+        margin-top: 1.5rem;
+    }
+
+    .footer-links {
+        font-size: 0.6rem;
+        gap: 0.2rem;
+        padding: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .footer-links a {
+        white-space: nowrap;
+        padding: 0 0.1rem;
+    }
+}
+
+@media (max-width: 320px) {
+    .register-container {
+        padding: 0.25rem;
+    }
+
+    .register-form {
+        padding: 0.5rem;
+    }
+
+    .register-form h3 {
+        font-size: 1rem;
+    }
+
+    .form-input {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    .signup-btn {
+        padding: 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .social-btn {
+        padding: 0.5rem 0.3rem;
+        font-size: 0.7rem;
+    }
+
+    .divider {
+        width: 100%;
+    }
+
+    .footer-links {
+        font-size: 0.55rem;
+        gap: 0.15rem;
+    }
+}

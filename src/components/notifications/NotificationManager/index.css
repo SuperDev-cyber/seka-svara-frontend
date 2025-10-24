@@ -1,0 +1,77 @@
+/* Notification Manager Styles */
+.notification-manager {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.notification-manager > * {
+  pointer-events: auto;
+}
+
+/* Notification stack animation */
+@keyframes stackIn {
+  from {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes stackOut {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Notification container */
+.notification-container {
+  animation: stackIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.notification-container.leaving {
+  animation: stackOut 0.3s ease-in;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .notification-manager {
+    left: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .notification-manager {
+    /* Dark mode specific styles if needed */
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .notification-manager {
+    /* High contrast adjustments */
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .notification-container {
+    animation: none;
+  }
+  
+  .notification-container.leaving {
+    animation: none;
+  }
+}

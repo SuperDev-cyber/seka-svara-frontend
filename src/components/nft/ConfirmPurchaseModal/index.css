@@ -1,0 +1,311 @@
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+.confirm-modal {
+    background: #131622;
+    border-radius: 16px;
+    border: 1px solid #333;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    animation: slideInUp 0.4s ease-out;
+    transform-origin: center;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header */
+.confirm-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 2rem 2rem 1rem 2rem;
+}
+
+.confirm-modal-title-section {
+    flex: 1;
+}
+
+.confirm-modal-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.confirm-modal-subtitle {
+    color: #B0B0B0;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.confirm-close-button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-close-button:hover {
+    background: #333;
+}
+
+/* Purchase Details */
+.purchase-details {
+    background: #2A3342;
+    margin: 0 2rem;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #444;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.total-row {
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.total-amount {
+    color: #F2C94C;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.detail-separator {
+    height: 1px;
+    background: #444;
+    margin: 1rem 0;
+}
+
+/* Secure Transaction */
+.secure-transaction {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #2A3342;
+    border: 1px solid #F2C94C;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 2rem;
+}
+
+.secure-icon {
+    color: #F2C94C;
+    flex-shrink: 0;
+}
+
+.secure-content {
+    flex: 1;
+}
+
+.secure-title {
+    color: #F2C94C;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.secure-description {
+    color: #B0B0B0;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* Wallet Balance */
+.wallet-balance {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #2A3342;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin: 0 2rem 1.5rem 2rem;
+    border: 1px solid #444;
+}
+
+.wallet-icon {
+    color: #F2C94C;
+    flex-shrink: 0;
+}
+
+.wallet-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+}
+
+.wallet-label {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.wallet-amount {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.confirm-modal-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 2rem 2rem 2rem;
+}
+
+.confirm-back-button {
+    background: #2A2A2A;
+    color: white;
+    border: 1px solid #444;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.confirm-back-button:hover {
+    background: #3A3A3A;
+    border-color: #555;
+}
+
+.confirm-button {
+    background: #F2C94C;
+    color: #1A1A1A;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 2;
+}
+
+.confirm-button:hover {
+    background: #E5B800;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(242, 201, 76, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .confirm-modal {
+        margin: 1rem;
+        max-width: none;
+    }
+
+    .modal-header {
+        padding: 1.5rem 1.5rem 1rem 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+    }
+
+    .purchase-details,
+    .secure-transaction,
+    .wallet-balance {
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
+    }
+
+    .confirm-modal-actions {
+        padding: 1rem 1.5rem 1.5rem 1.5rem;
+        flex-direction: column;
+    }
+
+    .confirm-back-button,
+    .confirm-button {
+        width: 100%;
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .confirm-modal-overlay {
+        padding: 0.5rem;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .purchase-details,
+    .secure-transaction,
+    .wallet-balance {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+
+    .confirm-modal-actions {
+        padding: 1rem;
+    }
+}

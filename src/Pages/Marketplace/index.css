@@ -1,0 +1,439 @@
+/* ===== MARKETPLACE PAGE ===== */
+.marketplace-page {
+    min-height: 100vh;
+    background: #0A0A0A;
+    color: white;
+    padding: 2rem 0;
+}
+
+.marketplace-container {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* ===== HEADER SECTION ===== */
+.marketplace-header {
+    text-align: left;
+    margin-bottom: 2rem;
+}
+
+.marketplace-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 1rem 0;
+    line-height: 1.2;
+}
+
+.marketplace-subtitle {
+    font-size: 1rem;
+    color: #B0B0B0;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* ===== SEARCH AND FILTER BAR ===== */
+.search-filter-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #333;
+    padding: 2rem;
+    border-radius: 20px;
+    background-color: #131622;
+}
+
+.search-container {
+    flex: 1;
+    position: relative;
+    max-width: 800px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #B0B0B0;
+    z-index: 1;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #FF6B35;
+}
+
+.search-input::placeholder {
+    color: #B0B0B0;
+}
+
+.filter-dropdowns {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-select {
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+    min-width: 120px;
+}
+
+.filter-select:focus {
+    border-color: #FF6B35;
+}
+
+.filter-select option {
+    background: #1A1A1A;
+    color: white;
+}
+
+/* ===== SECONDARY FILTERS ===== */
+.secondary-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    justify-content: space-around;
+    background-color: #141A33;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border-radius: 25px;
+    color: #B0B0B0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background: transparent;
+    color: white;
+}
+
+.filter-btn:hover {
+    color: white;
+    border: none;
+}
+
+.filter-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+}
+
+/* ===== TRENDING SECTION ===== */
+.trending-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    text-align: left;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 0.5rem 0;
+    font-family: sans-serif;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: #B0B0B0;
+    margin: 0;
+    font-family: sans-serif;
+}
+
+/* ===== NFT GRID ===== */
+.nft-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* ===== NFT CARD ===== */
+.nft-card {
+    background: #1A1A1A;
+    border: 1px solid #333;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.nft-card:hover {
+    border-color: #FF6B35;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
+}
+
+.nft-image-container {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.nft-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+}
+
+.nft-likes {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(63, 30, 79, 0.8);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0px 12px 0px 12px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nft-likes svg {
+    color: white;
+    width: 14px;
+    height: 14px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.nft-details {
+    padding: 1.25rem;
+}
+
+.creator-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.creator-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #333;
+}
+
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.creator-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.nft-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 0.25rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.creator-handle {
+    font-size: 0.8rem;
+    color: #B0B0B0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.price-info {
+    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.on-sale {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.on-sale span {
+    font-size: 0.75rem;
+    color: #FFFFFF;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.price-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.eth-price-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ethereum-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.eth-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+}
+
+.usd-price {
+    font-size: 0.8rem;
+    color: #B0B0B0;
+}
+
+.buy-now-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #FFBA08;
+    color: black;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.buy-now-btn:hover {
+    background: #E55A2B;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+    .nft-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .marketplace-container {
+        padding: 0 1rem;
+    }
+
+    .marketplace-title {
+        font-size: 2.5rem;
+    }
+
+    .search-filter-bar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .search-container {
+        max-width: 100%;
+    }
+
+    .filter-dropdowns {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .filter-select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .secondary-filters {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .nft-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .marketplace-page {
+        padding: 1rem 0;
+    }
+
+    .marketplace-title {
+        font-size: 2rem;
+    }
+
+    .marketplace-subtitle {
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .nft-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-dropdowns {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .secondary-filters {
+        flex-direction: column;
+        align-items: center;
+    }
+}

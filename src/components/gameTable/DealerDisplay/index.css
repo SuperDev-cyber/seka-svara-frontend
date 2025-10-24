@@ -1,0 +1,409 @@
+/* Dealer Display - Center Stage */
+.dealer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+.dealer-display.visible {
+    opacity: 1;
+}
+
+/* Dealer Avatar Container */
+.dealer-avatar-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Animated Glow Behind Avatar */
+.dealer-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.9;
+    }
+}
+
+/* Dealer Avatar Wrapper with 3D Effect */
+.dealer-avatar-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    transform-style: preserve-3d;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotateY(0deg);
+    }
+    50% {
+        transform: translateY(-10px) rotateY(15deg);
+    }
+}
+
+.dealer-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid #FFD700;
+    box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5),
+                0 0 20px rgba(255, 215, 0, 0.8),
+                inset 0 0 10px rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+}
+
+.dealer-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #FFF;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+    animation: rotateBadge 4s linear infinite;
+}
+
+@keyframes rotateBadge {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.1);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+.dealer-icon {
+    font-size: 16px;
+}
+
+.dealer-name {
+    margin-top: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.8),
+                 0 0 20px rgba(255, 215, 0, 0.5);
+    animation: shimmerText 2s ease-in-out infinite;
+}
+
+@keyframes shimmerText {
+    0%, 100% {
+        text-shadow: 0 2px 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+    50% {
+        text-shadow: 0 2px 15px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.8);
+    }
+}
+
+.dealer-title {
+    font-size: 14px;
+    color: #FFF;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Card Deck Container with 3D Perspective */
+.card-deck-container {
+    position: relative;
+    width: 100px;
+    height: 140px;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    margin: 0 auto;
+}
+
+/* Individual Cards in Deck */
+.deck-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+    border-radius: 12px;
+    border: 2px solid #FFD700;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4),
+                inset 0 0 20px rgba(255, 215, 0, 0.2);
+    transform-style: preserve-3d;
+    transition: all 0.3s ease;
+    
+    /* Card back pattern */
+    background-image: 
+        repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 215, 0, 0.1) 10px, rgba(255, 215, 0, 0.1) 20px),
+        repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 215, 0, 0.1) 10px, rgba(255, 215, 0, 0.1) 20px);
+}
+
+/* 3D Card Dealing Animation - Cards fly to different player positions */
+.dealer-display.dealing .deck-card.flying {
+    animation-duration: 1.5s;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation-fill-mode: forwards;
+    animation-delay: var(--card-delay);
+}
+
+/* Deal cards to each of 6 positions in sequence */
+.dealer-display.dealing .deck-card.flying:nth-child(6n+1) {
+    animation-name: dealToPosition0; /* Top center */
+}
+
+.dealer-display.dealing .deck-card.flying:nth-child(6n+2) {
+    animation-name: dealToPosition1; /* Top right */
+}
+
+.dealer-display.dealing .deck-card.flying:nth-child(6n+3) {
+    animation-name: dealToPosition2; /* Bottom right */
+}
+
+.dealer-display.dealing .deck-card.flying:nth-child(6n+4) {
+    animation-name: dealToPosition3; /* Bottom center */
+}
+
+.dealer-display.dealing .deck-card.flying:nth-child(6n+5) {
+    animation-name: dealToPosition4; /* Bottom left */
+}
+
+.dealer-display.dealing .deck-card.flying:nth-child(6n+6) {
+    animation-name: dealToPosition5; /* Top left */
+}
+
+/* Position 0: Top Center */
+@keyframes dealToPosition0 {
+    0% {
+        transform: translateX(0) translateY(0) translateZ(0) rotateY(0deg) rotateZ(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateX(0) translateY(-100px) translateZ(150px) rotateY(360deg) rotateZ(180deg) scale(1.3);
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(0) translateY(-300px) translateZ(100px) rotateY(720deg) rotateZ(360deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0) translateY(-400px) translateZ(0) rotateY(1080deg) rotateZ(540deg) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* Position 1: Top Right */
+@keyframes dealToPosition1 {
+    0% {
+        transform: translateX(0) translateY(0) translateZ(0) rotateY(0deg) rotateZ(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateX(200px) translateY(-80px) translateZ(150px) rotateY(360deg) rotateZ(180deg) scale(1.3);
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(400px) translateY(-250px) translateZ(100px) rotateY(720deg) rotateZ(360deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(500px) translateY(-350px) translateZ(0) rotateY(1080deg) rotateZ(540deg) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* Position 2: Bottom Right */
+@keyframes dealToPosition2 {
+    0% {
+        transform: translateX(0) translateY(0) translateZ(0) rotateY(0deg) rotateZ(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateX(250px) translateY(50px) translateZ(150px) rotateY(360deg) rotateZ(180deg) scale(1.3);
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(450px) translateY(200px) translateZ(100px) rotateY(720deg) rotateZ(360deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(550px) translateY(300px) translateZ(0) rotateY(1080deg) rotateZ(540deg) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* Position 3: Bottom Center */
+@keyframes dealToPosition3 {
+    0% {
+        transform: translateX(0) translateY(0) translateZ(0) rotateY(0deg) rotateZ(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateX(0) translateY(100px) translateZ(150px) rotateY(360deg) rotateZ(180deg) scale(1.3);
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(0) translateY(300px) translateZ(100px) rotateY(720deg) rotateZ(360deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0) translateY(400px) translateZ(0) rotateY(1080deg) rotateZ(540deg) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* Position 4: Bottom Left */
+@keyframes dealToPosition4 {
+    0% {
+        transform: translateX(0) translateY(0) translateZ(0) rotateY(0deg) rotateZ(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateX(-250px) translateY(50px) translateZ(150px) rotateY(360deg) rotateZ(180deg) scale(1.3);
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(-450px) translateY(200px) translateZ(100px) rotateY(720deg) rotateZ(360deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(-550px) translateY(300px) translateZ(0) rotateY(1080deg) rotateZ(540deg) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* Position 5: Top Left */
+@keyframes dealToPosition5 {
+    0% {
+        transform: translateX(0) translateY(0) translateZ(0) rotateY(0deg) rotateZ(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateX(-200px) translateY(-80px) translateZ(150px) rotateY(360deg) rotateZ(180deg) scale(1.3);
+        opacity: 1;
+    }
+    70% {
+        transform: translateX(-400px) translateY(-250px) translateZ(100px) rotateY(720deg) rotateZ(360deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(-500px) translateY(-350px) translateZ(0) rotateY(1080deg) rotateZ(540deg) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* Magical Particles */
+.magic-particles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #FFD700 0%, transparent 70%);
+    border-radius: 50%;
+    animation: particleFloat 2s ease-out forwards;
+    animation-delay: var(--particle-delay);
+    opacity: 0;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--particle-x), var(--particle-y)) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Fade Out Effect After Dealing */
+.dealer-display.dealing {
+    animation: fadeOutDealer 1s ease-in-out 2.5s forwards;
+}
+
+@keyframes fadeOutDealer {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 1560px) {
+    .dealer-avatar-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .dealer-name {
+        font-size: 16px;
+    }
+    
+    .card-deck-container {
+        width: 80px;
+        height: 112px;
+    }
+}
+
+@media screen and (max-width: 891px) {
+    .dealer-avatar-wrapper {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .dealer-name {
+        font-size: 14px;
+    }
+    
+    .dealer-title {
+        font-size: 12px;
+    }
+    
+    .card-deck-container {
+        width: 60px;
+        height: 84px;
+    }
+}
+

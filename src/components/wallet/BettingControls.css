@@ -1,0 +1,363 @@
+/* Betting Controls Component Styles */
+.betting-controls-disconnected {
+  padding: 20px;
+  text-align: center;
+  background: #f8fafc00;
+  border-radius: 8px;
+}
+
+.disconnected-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.betting-controls {
+  background: #ffffff00;
+  border-radius: 12px;
+  padding: 20px 32px;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 43%);
+  border: 1px solid #c4a715;
+  outline: none;
+}
+
+.betting-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.betting-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f8fafc00;
+  border-radius: 8px;
+}
+
+.betting-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.pot-info,
+.balance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pot-label,
+.balance-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pot-value,
+.balance-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  font-family: "Courier New", monospace;
+}
+
+.pot-value {
+  color: #059669;
+}
+
+.betting-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.betting-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  height: min-content;
+  margin-top: 15px;
+}
+
+.fold-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.fold-btn:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.call-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.call-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.bet-btn {
+  background: #10b981;
+  color: white;
+}
+
+.bet-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.betting-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.slider-container {
+  position: relative;
+  padding: 0 20px;
+}
+
+.betting-slider-input {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #e5e7eb;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.betting-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.betting-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.betting-slider-input::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.betting-slider-input::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.betting-actions-secondary {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.raise-btn {
+  background: #f59e0b;
+  color: white;
+}
+
+.raise-btn:hover:not(:disabled) {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.allin-btn {
+  background: linear-gradient(45deg, #deac0e, #91c150);
+  color: white;
+}
+
+.allin-btn:hover:not(:disabled) {
+  background: #7c3aed;
+  transform: translateY(-2px);
+}
+
+.betting-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e0f2fe;
+  border-top: 2px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .betting-controls {
+    padding: 16px;
+  }
+
+  .betting-actions,
+  .betting-actions-secondary {
+    flex-direction: column;
+  }
+
+  .betting-btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .betting-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pot-info,
+  .balance-info {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* Game table specific styles */
+.betting-controls.game-table {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 2px solid #4b5563;
+  color: white;
+}
+
+.betting-controls.game-table .betting-info {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.betting-controls.game-table .pot-label,
+.betting-controls.game-table .balance-label {
+  color: #d1d5db;
+}
+
+.betting-controls.game-table .pot-value,
+.betting-controls.game-table .balance-value {
+  color: white;
+}
+
+.betting-controls.game-table .slider-header {
+  color: white;
+}
+
+.betting-controls.game-table .slider-labels {
+  color: #d1d5db;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.betting-controls {
+  animation: fadeInUp 0.3s ease;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .betting-controls {
+    background: #1f2937;
+    border-color: #374151;
+    color: white;
+  }
+
+  .betting-info {
+    background: #374151;
+  }
+
+  .pot-label,
+  .balance-label {
+    color: #d1d5db;
+  }
+
+  .pot-value,
+  .balance-value {
+    color: white;
+  }
+}

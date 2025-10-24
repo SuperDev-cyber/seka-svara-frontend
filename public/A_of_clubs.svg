@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420" viewBox="0 0 300 420">
+  <rect x="5" y="5" rx="20" ry="20" width="290" height="410" fill="white" stroke="#111" stroke-width="3"/>
+  <!-- Top-left rank/suit -->
+  <text x="28" y="56" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="40" fill="black" font-weight="700">A</text>
+  <text x="28" y="96" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="36" fill="black">♣</text>
+  <!-- Center large suit -->
+  <text x="150.0" y="228.0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="140" fill="black" text-anchor="middle" alignment-baseline="middle">♣</text>
+  <!-- Bottom-right mirrored rank/suit -->
+  <g transform="translate(272, 364) rotate(180)">
+    <text x="0" y="0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="40" fill="black" font-weight="700">A</text>
+    <text x="0" y="40" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="36" fill="black">♣</text>
+  </g>
+</svg>
