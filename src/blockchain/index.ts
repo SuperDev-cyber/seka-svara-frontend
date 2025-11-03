@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 import Seka from "./abis/Seka.json";
-import USDT from "./abis/USDT.json";
+import USDT from "./abis/usdt.json";
 import { provider } from "./provider";
 
 
