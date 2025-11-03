@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useGameActions } from '../../hooks/useGameActions';
 import apiService from '../../services/api';
 import cardBack from '../../assets/images/card.png';
-import USDTIcon from '../../assets/images/USDT-icon.png';
+import USDTIcon from '../../assets/images/usdt-icon.png';
 import tableTop from '../../assets/images/table-top-image.png';
 import Banner from '../../components/gameTable/Banner';
 import Felt from '../../components/gameTable/Felt';
