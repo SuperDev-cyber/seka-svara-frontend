@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm ci --no-audit --no-fund --prefer-online",
+  "installCommand": "npm cache clean --force && npm install --no-audit --no-fund --prefer-online --registry=https://registry.npmjs.org/ --fetch-retries=10",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
