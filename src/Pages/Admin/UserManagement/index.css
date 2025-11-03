@@ -245,6 +245,42 @@
     color: #9CA3AF;
 }
 
+/* Sekasubara Score Cell */
+.user-score-cell {
+    min-width: 160px;
+}
+
+.user-score-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: fit-content;
+}
+
+.user-score-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.user-score-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #F59E0B;
+    line-height: 1;
+}
+
+.user-score-label {
+    font-size: 11px;
+    color: #D97706;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
 .user-status-cell {
     justify-content: flex-start;
 }

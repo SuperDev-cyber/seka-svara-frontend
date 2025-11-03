@@ -1,80 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import apiService from '../../../services/api';
-import { useWallet } from '../../../contexts/WalletContext';
+
 const BalanceCard = () => {
     const { user } = useAuth();
-    const [balance, setBalance] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [sekaBalance, setSekaBalance] = useState(0);
-    const { isConnected, currentNetwork, getBalance } = useWallet();
-    const fetchSekaBalance = async () => {
-        if (isConnected && currentNetwork) {
-            try {
-                // getBalance already returns a formatted string, no need to format again
-                const balance = await getBalance(currentNetwork);
-                console.log("Seka contract balance:", balance);
-                setSekaBalance(balance);
-                
-                // ✅ SYNC CONTRACT BALANCE TO BACKEND DATABASE
-                const balanceNum = parseFloat(balance) || 0;
-                
-                if (balanceNum > 0) {
-                    try {
-                        const result = await apiService.post('/wallet/sync-balance', {
-                            contractBalance: balanceNum
-                        });
-                        
-                        console.log("✅ Balance synced to backend:", result);
-                        // Refresh balance from backend
-                        fetchBalance();
-                    } catch (syncError) {
-                        console.error("❌ Error syncing balance to backend:", syncError);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching Seka balance:", error);
-                setSekaBalance(null);
-            }
+    const [platformScore, setPlatformScore] = useState(0); // Seka-Svara Score (managed in admin)
+
+    // ✅ Sync platform score from user context (PRIMARY SOURCE)
+    // This updates in real-time via socket when balance changes
+    useEffect(() => {
+        if (user?.platformScore !== undefined && user?.platformScore !== null) {
+            console.log("💰 BalanceCard - Syncing platformScore from user context:", user.platformScore);
+            setPlatformScore(user.platformScore);
         } else {
-            setSekaBalance(null);
-        }
-    };
-
-    useEffect(() => {
-        fetchSekaBalance();
-    }, [isConnected, currentNetwork, getBalance]);
-
-    useEffect(() => {
-        if (user) {
-            fetchBalance();
+            setPlatformScore(0);
         }
     }, [user]);
 
-    const fetchBalance = async () => {
-        try {
-            setLoading(true);
-            const response = await apiService.get('/wallet/balance');
-            console.log("response", response);
-            
-            setBalance(response?.balance || user?.balance || 0);
-        } catch (error) {
-            console.error('Error fetching balance:', error);
-            setBalance(user?.balance || 0);
-        } finally {
-            setLoading(false);
+    const formatBalance = () => {
+        // This is technically correct if you want to display the platform score as an integer with the "SEKA" label.
+        // However, to be more robust, you could check for null/undefined and handle formatting edge cases:
+        if (platformScore === null || platformScore === undefined || isNaN(platformScore)) {
+            return '0 SEKA';
         }
-    };
-
-    const formatBalance = (amount) => {
-        return `${sekaBalance ? sekaBalance : '0.00'} SEKA`;
+        return `${Number(platformScore).toFixed(0)} USDT`;
     };
 
     return (
         <div className='balance-section'>
-            <p className='balance-label'>Balance</p>
+            <p className='balance-label'>BALANCE</p>
             <p className='balance-amount'>
-                {loading ? 'Loading...' : formatBalance(balance)}
+                {formatBalance()}
             </p>
         </div>
     );

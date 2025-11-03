@@ -4,7 +4,7 @@ import TronWeb from 'tronweb';
 import { useAuth } from './AuthContext';
 import { GAME_ESCROW_ABI } from '../blockchain/abi';
 import { CONTRACT_ADDRESS } from '../blockchain/config';
-import { sekaContract, usdtContract } from '../blockchain';
+import { sekaContract, USDTContract } from '../blockchain';
 import { ethers } from 'ethers';
 
 // Network configurations
@@ -19,7 +19,7 @@ const NETWORKS = {
       symbol: 'ETH',
       decimals: 18
     },
-    usdtContract: '0xe13137C700f14b5aDbdC8A63b71a282B9557Ce9d', // USDT on Base Sepolia Testnet
+    USDTContract: '0xe13137C700f14b5aDbdC8A63b71a282B9557Ce9d', // USDT on Base Sepolia Testnet
     sekaContract: '0x01BdF4098a5CD6539B8A91DB96EaF3418ed02707', // Seka on Base Sepolia Testnet
     // name: 'Binance Smart Chain',
     // chainId: '0x38', // 56 in decimal
@@ -30,7 +30,7 @@ const NETWORKS = {
     //   symbol: 'BNB',
     //   decimals: 18,
     // },
-    // usdtContract: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+    // USDTContract: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
   },
   TRC20: {
     name: 'Tron Network',
@@ -42,7 +42,7 @@ const NETWORKS = {
       symbol: 'TRX',
       decimals: 6,
     },
-    usdtContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // USDT on Tron
+    USDTContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // USDT on Tron
     sekaContract: 'TBA_ADD_YOUR_TRON_SEKA_CONTRACT_HERE', // TODO: Add Seka contract address on Tron
   },
 };
@@ -111,7 +111,7 @@ export const WalletProvider = ({ children }) => {
   const [currentNetwork, setCurrentNetwork] = useState(null);
   const [account, setAccount] = useState(null);
   const [balance, setBalance] = useState(null);
-  const [usdtBalance, setUsdtBalance] = useState(null);
+  const [USDTBalance, setUSDTBalance] = useState(null);
   const [web3, setWeb3] = useState(null);
   const [tronWeb, setTronWeb] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -174,11 +174,11 @@ export const WalletProvider = ({ children }) => {
 
 
   // Get USDT balance
-  const getUsdtBalance = useCallback(async (web3Instance, account, network) => {
-    console.log("getUsdtBalance");
+  const getUSDTBalance = useCallback(async (web3Instance, account, network) => {
+    console.log("getUSDTBalance");
     try {
       if (network === 'BEP20') {
-        const contract = new web3Instance.eth.Contract(USDT_ABI, NETWORKS.BEP20.usdtContract);
+        const contract = new web3Instance.eth.Contract(USDT_ABI, NETWORKS.BEP20.USDTContract);
         const balance = await contract.methods.balanceOf(account).call();
         console.log('balance', balance);
 
@@ -193,17 +193,17 @@ export const WalletProvider = ({ children }) => {
         } else {
           formattedBalance = parseFloat(balance) / 1e6;
         }
-        setUsdtBalance(formattedBalance);
+        setUSDTBalance(formattedBalance);
       } else if (network === 'TRC20') {
-        const contract = await web3Instance.contract(USDT_ABI, NETWORKS.TRC20.usdtContract);
+        const contract = await web3Instance.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);
         const balance = await contract.balanceOf(account).call();
         const decimals = await contract.decimals().call();
         const formattedBalance = web3Instance.fromSun(balance);
-        setUsdtBalance(formattedBalance);
+        setUSDTBalance(formattedBalance);
       }
     } catch (error) {
       console.error('Error getting USDT balance:', error);
-      setUsdtBalance('0');
+      setUSDTBalance('0');
     }
   }, []);
 
@@ -282,7 +282,7 @@ export const WalletProvider = ({ children }) => {
       setBalance(web3Instance.utils.fromWei(balance, 'ether'));
 
       // Get USDT balance
-      await getUsdtBalance(web3Instance, account, 'BEP20');
+      await getUSDTBalance(web3Instance, account, 'BEP20');
 
       setIsConnected(true);
       
@@ -297,7 +297,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, isMetaMaskInstalled, getUsdtBalance]);
+  }, [isAuthenticated, isMetaMaskInstalled, getUSDTBalance]);
 
   // Connect to TronLink for TRC20
   const connectTronLink = useCallback(async () => {
@@ -386,7 +386,7 @@ export const WalletProvider = ({ children }) => {
       setBalance(tronWebInstance.fromSun(balance));
 
       // Get USDT balance
-      await getUsdtBalance(tronWebInstance, account, 'TRC20');
+      await getUSDTBalance(tronWebInstance, account, 'TRC20');
 
       setIsConnected(true);
       
@@ -401,7 +401,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, isTronLinkInstalled, getUsdtBalance]);
+  }, [isAuthenticated, isTronLinkInstalled, getUSDTBalance]);
 
   // Disconnect wallet
   const disconnect = useCallback(() => {
@@ -409,7 +409,7 @@ export const WalletProvider = ({ children }) => {
     setCurrentNetwork(null);
     setAccount(null);
     setBalance(null);
-    setUsdtBalance(null);
+    setUSDTBalance(null);
     setWeb3(null);
     setTronWeb(null);
     setError(null);
@@ -475,7 +475,7 @@ export const WalletProvider = ({ children }) => {
   }, [account, sekaContract, tronWeb, getSigner]);
 
   // Send USDT transaction
-  const sendUsdt = useCallback(async (to, amount, network) => {
+  const sendUSDT = useCallback(async (to, amount, network) => {
     if (!isConnected) {
       throw new Error('Wallet not connected');
     }
@@ -492,8 +492,8 @@ export const WalletProvider = ({ children }) => {
         const amountWithDecimals = toBigNum(amount, 6); // USDT uses 6 decimals
         
         // Step 1: Approve USDT for Seka contract
-        const usdtWithSigner = usdtContract.connect(signer);
-        const approveTx = await usdtWithSigner.approve(NETWORKS.BEP20.sekaContract, amountWithDecimals);
+        const USDTWithSigner = USDTContract.connect(signer);
+        const approveTx = await USDTWithSigner.approve(NETWORKS.BEP20.sekaContract, amountWithDecimals);
         await approveTx.wait(); // Wait for approval to be mined
         
         // Step 2: Call deposit on Seka contract
@@ -502,11 +502,11 @@ export const WalletProvider = ({ children }) => {
         await tx.wait(); // Wait for transaction to be mined
 
         // Refresh balance after transaction
-        await getUsdtBalance(web3, account, 'BEP20');
+        await getUSDTBalance(web3, account, 'BEP20');
         
         return tx;
       } else if (network === 'TRC20' && tronWeb) {
-        const contract = await tronWeb.contract(USDT_ABI, NETWORKS.TRC20.usdtContract);
+        const contract = await tronWeb.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);
         const amountSun = tronWeb.toSun(amount);
         
         const tx = await contract.transfer(to, amountSun).send({
@@ -514,7 +514,7 @@ export const WalletProvider = ({ children }) => {
         });
 
         // Refresh balance after transaction
-        await getUsdtBalance(tronWeb, account, 'TRC20');
+        await getUSDTBalance(tronWeb, account, 'TRC20');
         
         return tx;
       } else {
@@ -526,7 +526,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isConnected, web3, tronWeb, account, getUsdtBalance]);
+  }, [isConnected, web3, tronWeb, account, getUSDTBalance]);
 
   // Approve USDT spending for GameEscrow contract
   const approveGameEscrow = useCallback(async (amount) => {
@@ -541,8 +541,8 @@ export const WalletProvider = ({ children }) => {
       const signer = await getSigner();
       const amountWithDecimals = toBigNum(amount, 6); // USDT uses 6 decimals
 
-      const usdtWithSigner = usdtContract.connect(signer);
-      const tx = await usdtWithSigner.approve(NETWORKS.BEP20.sekaContract, amountWithDecimals);
+      const USDTWithSigner = USDTContract.connect(signer);
+      const tx = await USDTWithSigner.approve(NETWORKS.BEP20.sekaContract, amountWithDecimals);
       await tx.wait();
 
       return tx;
@@ -561,7 +561,7 @@ export const WalletProvider = ({ children }) => {
     }
 
     try {
-      const allowance = await usdtContract.allowance(account, NETWORKS.BEP20.sekaContract);
+      const allowance = await USDTContract.allowance(account, NETWORKS.BEP20.sekaContract);
       // Convert from 6 decimals to regular number
       return Number(ethers.utils.formatUnits(allowance, 6));
     } catch (error) {
@@ -601,7 +601,7 @@ export const WalletProvider = ({ children }) => {
       await tx.wait();
 
       // Refresh balance after transaction
-      await getUsdtBalance(web3, account, 'BEP20');
+      await getUSDTBalance(web3, account, 'BEP20');
 
       return tx;
     } catch (error) {
@@ -610,7 +610,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isConnected, currentNetwork, web3, account, checkGameEscrowAllowance, getUsdtBalance, getSigner]);
+  }, [isConnected, currentNetwork, web3, account, checkGameEscrowAllowance, getUSDTBalance, getSigner]);
 
   // Join game room via GameEscrow contract
   const joinGameRoom = useCallback(async (roomId) => {
@@ -642,7 +642,7 @@ export const WalletProvider = ({ children }) => {
       await tx.wait();
 
       // Refresh balance after transaction
-      await getUsdtBalance(web3, account, 'BEP20');
+      await getUSDTBalance(web3, account, 'BEP20');
 
       return tx;
     } catch (error) {
@@ -651,7 +651,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isConnected, currentNetwork, web3, account, checkGameEscrowAllowance, getUsdtBalance, getSigner]);
+  }, [isConnected, currentNetwork, web3, account, checkGameEscrowAllowance, getUSDTBalance, getSigner]);
 
   // Create game room via GameEscrow contract
   const createGameRoom = useCallback(async (roomId, entryFee, maxPlayers, roomType, invitedPlayers = []) => {
@@ -685,7 +685,7 @@ export const WalletProvider = ({ children }) => {
       await tx.wait();
 
       // Refresh balance after transaction
-      await getUsdtBalance(web3, account, 'BEP20');
+      await getUSDTBalance(web3, account, 'BEP20');
 
       return tx;
     } catch (error) {
@@ -694,7 +694,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isConnected, currentNetwork, web3, account, checkGameEscrowAllowance, getUsdtBalance, getSigner]);
+  }, [isConnected, currentNetwork, web3, account, checkGameEscrowAllowance, getUSDTBalance, getSigner]);
 
   // Refresh balances
   const refreshBalances = useCallback(async () => {
@@ -704,16 +704,16 @@ export const WalletProvider = ({ children }) => {
       if (currentNetwork === 'BEP20' && web3) {
         const balance = await web3.eth.getBalance(account);
         setBalance(web3.utils.fromWei(balance, 'ether'));
-        await getUsdtBalance(web3, account, 'BEP20');
+        await getUSDTBalance(web3, account, 'BEP20');
       } else if (currentNetwork === 'TRC20' && tronWeb) {
         const balance = await tronWeb.trx.getBalance(account);
         setBalance(tronWeb.fromSun(balance));
-        await getUsdtBalance(tronWeb, account, 'TRC20');
+        await getUSDTBalance(tronWeb, account, 'TRC20');
       }
     } catch (error) {
       console.error('Error refreshing balances:', error);
     }
-  }, [isConnected, account, currentNetwork, web3, tronWeb, getUsdtBalance]);
+  }, [isConnected, account, currentNetwork, web3, tronWeb, getUSDTBalance]);
 
   // Auto-reconnect wallet on page load if previously connected
   useEffect(() => {
@@ -811,19 +811,19 @@ export const WalletProvider = ({ children }) => {
     currentNetwork,
     account,
     balance,
-    usdtBalance,
+    USDTBalance,
     loading,
     error,
     isAutoConnecting,
     networks: NETWORKS,
     sekaContract,
-    usdtContract,
+    USDTContract,
 
     // Actions
     connectMetaMask,
     connectTronLink,
     disconnect,
-    sendUsdt,
+    sendUSDT,
     refreshBalances,
     getBalance,
     // GameEscrow Actions

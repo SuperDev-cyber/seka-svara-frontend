@@ -14,10 +14,11 @@ const Header = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showDepositModal, setShowDepositModal] = useState(false);
     const [sekaBalance, setSekaBalance] = useState(null);
+    const [platformScore, setPlatformScore] = useState(0); // ✅ Platform Score (backend database)
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
-    const { isConnected, usdtBalance, balance, currentNetwork, formatAmount, getBalance } = useWallet();
+    const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance } = useWallet();
     
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
@@ -40,7 +41,8 @@ const Header = () => {
                         
                         console.log("✅ Balance synced to backend:", result);
                         
-                        // Refresh user profile to update UI
+                        // ✅ Refresh user profile to update platformScore in context
+                        // This will automatically update the UI via the useEffect hook
                         if (refreshUserProfile) {
                             await refreshUserProfile();
                         }
@@ -61,6 +63,16 @@ const Header = () => {
         fetchSekaBalance();
     }, [isConnected, currentNetwork, getBalance]);
 
+    // ✅ Sync platform score from user context (PRIMARY SOURCE)
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            console.log("🏆 Header - Syncing platformScore from user context:", user.platformScore);
+            setPlatformScore(user?.platformScore || 0);
+        } else {
+            setPlatformScore(0);
+        }
+    }, [isAuthenticated, user]);
+
     // Callback for when deposit is successful
     const handleDepositSuccess = async () => {
         console.log("✨ Deposit successful! Refreshing balances...");
@@ -69,7 +81,8 @@ const Header = () => {
             // Refresh the Seka contract balance
             await fetchSekaBalance();
             
-            // Refresh user's virtual balance from backend
+            // ✅ Refresh user profile to update platformScore in context
+            // This will automatically update the UI via the useEffect hook
             if (refreshUserProfile) {
                 await refreshUserProfile();
             }
@@ -82,17 +95,17 @@ const Header = () => {
 
     // Determine which balance to display
     const getDisplayBalance = () => {
-        const usdtAmount = parseFloat(usdtBalance || 0);
+        const USDTAmount = parseFloat(USDTBalance || 0);
         const nativeAmount = parseFloat(balance || 0);
         
         // If USDT balance is less than 0.01, show native balance instead
-        if (usdtAmount < 0.01 && nativeAmount > 0) {
+        if (USDTAmount < 0.01 && nativeAmount > 0) {
             const nativeSymbol = currentNetwork === 'BEP20' ? 'BNB' : 'TRX';
             return `${formatAmount(balance)} ${nativeSymbol}`;
         }
         
         // Otherwise show USDT
-        return `${formatAmount(usdtBalance)} USDT`;
+        return `${formatAmount(USDTBalance)} USDT`;
     };
 
     // Debug logging for authentication state
@@ -203,7 +216,7 @@ const Header = () => {
                                 <div className='user-menu-dropdown'>
                                     <div className='user-info'>
                                         <div className='user-email'>{user?.email}</div>
-                                        <div className='user-balance'>Balance: ${Number(user?.balance || 0).toFixed(2)}</div>
+                                        <div className='user-balance'>Balance: ${Number(user?.balance || 0).toFixed(0)}</div>
                                     </div>
                                     <div className='user-menu-divider'></div>
                                     <Link to="/profile" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
@@ -261,22 +274,22 @@ const Header = () => {
                             <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 {/* <button 
                                     className='my-wallet-btn' 
-                                    title={`Wallet Balance (not used for games)\nNative: ${formatAmount(balance)} ${currentNetwork === 'BEP20' ? 'ETH' : 'TRX'}\nUSDT: ${formatAmount(usdtBalance)}`}
+                                    title={`Wallet Balance (not used for games)\nNative: ${formatAmount(balance)} ${currentNetwork === 'BEP20' ? 'ETH' : 'TRX'}\nUSDT: ${formatAmount(USDTBalance)}`}
                                     style={{ opacity: 0.7 }}
                                 >
                                     💼 Wallet: {getDisplayBalance()}
                                 </button> */}
                                 <button 
                                     className='seka-balance-btn' 
-                                    title={`SEKA Points - Used for ALL game activities\nDeposit USDT to get SEKA points`}
+                                    title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
                                     style={{ 
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        background: 'linear-gradient(135deg, rgb(255 186 8) 0%, rgb(255 215 0 / 86%) 100%)',
                                         border: '2px solid #ffd700',
                                         fontWeight: 'bold',
                                         cursor: 'default'
                                     }}
                                 >
-                                    ♥️ SEKA: {sekaBalance ? formatAmount(sekaBalance) : '0.00'}
+                                    🪙 USDT: {Number(platformScore || 0).toFixed(0)}
                                 </button>
                             </div>
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
@@ -350,7 +363,7 @@ const Header = () => {
                                     <div className='mobile-user-details'>
                                         <div className='mobile-user-name'>{user?.username}</div>
                                         <div className='mobile-user-email'>{user?.email}</div>
-                                        <div className='mobile-user-balance'>Balance: ${Number(user?.balance || 0).toFixed(2)}</div>
+                                        <div className='mobile-user-balance'>Balance: ${Number(user?.balance || 0).toFixed(0)}</div>
                                     </div>
                                 </div>
                             ) : (
@@ -397,7 +410,7 @@ const Header = () => {
                                             fontWeight: 'bold'
                                         }}
                                     >
-                                        🎮 SEKA: {sekaBalance ? formatAmount(sekaBalance) : '0.00'}
+                                        🎮 SEKA: {Number(platformScore || 0).toFixed(0)}
                                     </button>
                                 </div>
                             )}

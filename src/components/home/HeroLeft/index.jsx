@@ -11,7 +11,7 @@ const HeroLeft = () => {
         currentNetwork,
         account,
         balance,
-        usdtBalance,
+        USDTBalance,
         loading,
         error,
         connectMetaMask,
@@ -121,7 +121,7 @@ const HeroLeft = () => {
                     <span className='title-text'>WIN</span>
                 </div>
                 <div className='title-line-2'>
-                    <span className='title-usdt'>REAL USDT</span>
+                    <span className='title-USDT'>REAL USDT</span>
                 </div>
             </h1>
 
@@ -253,7 +253,7 @@ const HeroLeft = () => {
                     <div className='wallet-balance'>
                         <div className='balance-item'>
                             <span className='balance-label'>USDT</span>
-                            <span className='balance-value'>{formatAmount(usdtBalance)}</span>
+                            <span className='balance-value'>{formatAmount(USDTBalance)}</span>
                         </div>
                         <div className='balance-item'>
                             <span className='balance-label'>{currentNetwork === 'BEP20' ? 'BNB' : 'TRX'}</span>

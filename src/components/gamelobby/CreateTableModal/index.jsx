@@ -5,7 +5,7 @@ import InviteFriendsModal from '../InviteFriendsModal';
 const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
     const [tableName, setTableName] = useState('');
     const [privacy, setPrivacy] = useState('public');
-    const [entryFee, setEntryFee] = useState(10);
+    const [entryFee, setEntryFee] = useState(1); // Default 10 SEKA
     const maxPlayers = 6; // Always 6 players - hardcoded
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -42,8 +42,8 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
         return result;
     };
 
-    const totalPot = entryFee * maxPlayers;
-    const platformFee = totalPot * 0.02;
+    const totalPot = entryFee * 6;
+    const platformFee = totalPot * 0.05; // ✅ 5% platform fee
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -138,20 +138,20 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
                             <div className="slider-wrapper">
                                 <div 
                                     className="slider-fill" 
-                                    style={{ width: `${((entryFee - 5) / (200 - 5)) * 100}%` }}
+                                    style={{ width: `${((entryFee - 1) / (1000 - 1)) * 100}%` }}
                                 ></div>
                                 <input
                                     type="range"
-                                    min="5"
-                                    max="200"
+                                    min="1"
+                                    max="1000"
                                     value={entryFee}
                                     onChange={(e) => setEntryFee(parseInt(e.target.value))}
                                     className="slider"
                                 />
                             </div>
                             <div className="slider-labels">
-                                <span className="slider-label">5 USDT</span>
-                                <span className="slider-label">200 USDT</span>
+                                <span className="slider-label">{entryFee} USDT</span>
+                                <span className="slider-label">1000 USDT</span>
                             </div>
                         </div>
                     </div>
@@ -187,8 +187,8 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
                             <span className="summary-value">{totalPot} USDT</span>
                         </div>
                         <div className="summary-row">
-                            <span className="summary-label">Platform Fee (2%)</span>
-                            <span className="summary-fee">{platformFee.toFixed(2)} USDT</span>
+                            <span className="summary-label">Platform Fee (5%)</span>
+                            <span className="summary-fee">{platformFee.toFixed(3)} USDT</span>
                         </div>
                     </div>
 

@@ -2,18 +2,20 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useWallet } from '../../contexts/WalletContext';
 import { useSocket } from '../../contexts/SocketContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useGameActions } from '../../hooks/useGameActions';
+import apiService from '../../services/api';
 import cardBack from '../../assets/images/card.png';
-import usdtIcon from '../../assets/images/usdt-icon.png';
+import USDTIcon from '../../assets/images/USDT-icon.png';
 import tableTop from '../../assets/images/table-top-image.png';
 import Banner from '../../components/gameTable/Banner';
 import Felt from '../../components/gameTable/Felt';
-import Controls from '../../components/gameTable/Controls';
 import WinnerModal from '../../components/gameTable/WinnerModal';
 import RightPanel from '../../components/gameTable/RightPanel';
 import WalletBalance from '../../components/wallet/WalletBalance';
 import BettingControls from '../../components/wallet/BettingControls';
-import DealerDisplay from '../../components/gameTable/DealerDisplay';
-import { useAuth } from '../../contexts/AuthContext';
+import CardDealingAnimation from '../../components/gameTable/CardDealingAnimation';
+import PlayerActionModal from '../../components/gameTable/PlayerActionModal';
 import './index.css';
 
 const GameTablePage = () => {
@@ -30,7 +32,22 @@ const GameTablePage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    const table = location?.state?.table || { id, network: 'BSC', entryFee: 10, totalPot: 60, playerCount: 6 };
+    // ✅ Read invitation table settings from sessionStorage
+    const [invitationSettings, setInvitationSettings] = useState(null);
+    useEffect(() => {
+        const pendingTableData = sessionStorage.getItem('pendingTableData');
+        if (pendingTableData) {
+            try {
+                const parsedData = JSON.parse(pendingTableData);
+                console.log('📋 Found invitation table settings:', parsedData);
+                setInvitationSettings(parsedData);
+            } catch (error) {
+                console.error('❌ Error parsing pendingTableData:', error);
+            }
+        }
+    }, []);
+    
+    const table = location?.state?.table || invitationSettings || { id, network: 'BSC', entryFee: 10, totalPot: 60, playerCount: 6 };
     
     // Game state
     const [gameStatus, setGameStatus] = useState('waiting'); // 'waiting', 'starting', 'in_progress', 'showdown', 'finished'
@@ -42,21 +59,32 @@ const GameTablePage = () => {
     const [pot, setPot] = useState(0); // Total pot amount
     const [dealerId, setDealerId] = useState(null); // Current dealer
     
-    // Dealer display and animation state
-    const [showDealerDisplay, setShowDealerDisplay] = useState(false);
+    // Card dealing animation state (NO dealer avatar - pure Canvas animation)
     const [isDealingCards, setIsDealingCards] = useState(false);
-    const [dealerInfo, setDealerInfo] = useState(null); // { email, avatar }
-    const [cardsDealt, setCardsDealt] = useState(false); // Cards only show AFTER dealer animation
+    const [cardsDealt, setCardsDealt] = useState(false); // Cards only show AFTER animation
     
     // SEKA balance from wallet (real-time)
     const [sekaBalance, setSekaBalance] = useState(null);
     
+    // ✅ Platform score (backend database) - updates immediately on win
+    const [platformScore, setPlatformScore] = useState(0);
+    
     // Track if current user has viewed their cards (to show betting controls)
     const [hasViewedCards, setHasViewedCards] = useState(false);
+    
+    // Track which players have viewed their cards (for card display in Felt)
+    const [cardViewers, setCardViewers] = useState([]);
+    
+    // ✅ NEW: Track which players have called in this round (for detecting game completion)
+    const [calledPlayers, setCalledPlayers] = useState([]);
     
     // Winner modal state
     const [showWinnerModal, setShowWinnerModal] = useState(false);
     const [winnerData, setWinnerData] = useState(null);
+    
+    // Player action notification modal
+    const [showActionModal, setShowActionModal] = useState(false);
+    const [actionData, setActionData] = useState(null);
     
     // Ready status - REMOVED (auto-start enabled)
     // Countdown timer for game start
@@ -126,9 +154,9 @@ const GameTablePage = () => {
     // Chat modal state
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [chatMessage, setChatMessage] = useState('');
-    const [chatMessages, setChatMessages] = useState([
-        { id: 1, user: 'You', message: 'God Luck', time: '11:18' }
-    ]);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [isSendingMessage, setIsSendingMessage] = useState(false);
+    const chatMessagesEndRef = useRef(null); // For auto-scroll
 
     // Slider configuration
     const minValue = 25;
@@ -163,47 +191,124 @@ const GameTablePage = () => {
     }, [isChatOpen]);
     
     const handleSendMessage = useCallback(() => {
-        if (chatMessage.trim() && socket && tableData) {
-            const messageData = {
-                tableId: tableData.id,
-                userId: user?.id || user?.userId,
-                username: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
-                message: chatMessage.trim(),
-            };
-            
-            // Emit to socket
-            socket.emit('send_table_chat', messageData);
-            
-            // Clear input
-            setChatMessage('');
+        if (!chatMessage.trim()) {
+            console.log('⚠️ Cannot send empty message');
+            return;
         }
+        
+        if (!socket || !socket.connected) {
+            console.error('❌ Socket not connected');
+            alert('Connection lost. Please refresh the page.');
+            return;
+        }
+        
+        if (!tableData || !tableData.id) {
+            console.error('❌ No table data');
+            return;
+        }
+        
+        const messageText = chatMessage.trim();
+        
+        // Validate message length
+        if (messageText.length > 500) {
+            alert('Message too long (max 500 characters)');
+            return;
+        }
+        
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('💬 SENDING CHAT MESSAGE');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('Table ID:', tableData.id);
+        console.log('User:', user?.username || user?.name || user?.email);
+        console.log('Message:', messageText);
+        
+        setIsSendingMessage(true);
+        
+        const messageData = {
+            tableId: tableData.id,
+            userId: user?.id || user?.userId,
+            username: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
+            message: messageText,
+        };
+        
+        // Emit to socket with callback
+        socket.emit('send_table_chat', messageData, (response) => {
+            console.log('📨 Chat response:', response);
+            setIsSendingMessage(false);
+            
+            if (response && response.success) {
+                console.log('✅ Message sent successfully!');
+                // Clear input only on success
+                setChatMessage('');
+            } else {
+                console.error('❌ Failed to send message:', response?.error);
+                alert(`Failed to send message: ${response?.error || 'Unknown error'}`);
+            }
+        });
+        
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     }, [chatMessage, socket, tableData, user]);
 
-    // Game action handlers
-    const handleBet = useCallback((amount) => {
-        console.log('Bet placed:', amount);
-        // In a real implementation, this would interact with the smart contract
-    }, []);
+    // ✅ CONSOLIDATED: Use custom hook for all game actions
+    const gameActions = useGameActions(socket, tableId, userId);
+    
+    // Game action handlers - now using the consolidated hook
+    const handleBet = useCallback(async (amount) => {
+        try {
+            console.log('💰 Placing bet:', amount);
+            await gameActions.raise(amount); // Bet is implemented as a raise action
+            console.log('✅ Bet successful');
+        } catch (error) {
+            console.error('❌ Bet failed:', error.message);
+            alert(`Bet failed: ${error.message}`);
+        }
+    }, [gameActions]);
 
-    const handleFold = useCallback(() => {
-        console.log('Player folded');
-        // In a real implementation, this would update the game state
-    }, []);
+    const handleFold = useCallback(async () => {
+        try {
+            await gameActions.fold();
+        } catch (error) {
+            console.error('Fold failed:', error.message);
+            alert(`Fold failed: ${error.message}`);
+        }
+    }, [gameActions]);
 
-    const handleCall = useCallback((amount) => {
-        console.log('Player called:', amount);
-        // In a real implementation, this would interact with the smart contract
-    }, []);
+    const handleCall = useCallback(async (amount) => {
+        try {
+            await gameActions.call(amount || currentBet);
+        } catch (error) {
+            console.error('Call failed:', error.message);
+            alert(`Call failed: ${error.message}`);
+        }
+    }, [gameActions, currentBet]);
 
-    const handleRaise = useCallback((amount) => {
-        console.log('Player raised:', amount);
-        // In a real implementation, this would interact with the smart contract
-    }, []);
+    const handleRaise = useCallback(async (amount) => {
+        try {
+            await gameActions.raise(amount);
+        } catch (error) {
+            console.error('Raise failed:', error.message);
+            alert(`Raise failed: ${error.message}`);
+        }
+    }, [gameActions]);
 
-    const handleAllIn = useCallback((amount) => {
-        console.log('Player went all in:', amount);
-        // In a real implementation, this would interact with the smart contract
-    }, []);
+    const handleAllIn = useCallback(async (amount) => {
+        try {
+            await gameActions.allIn(amount);
+        } catch (error) {
+            console.error('All-in failed:', error.message);
+            alert(`All-in failed: ${error.message}`);
+        }
+    }, [gameActions]);
+
+    const handleBlind = useCallback(async (amount) => {
+        try {
+            await gameActions.blindBet(amount);
+            console.log('🎲 Blind bet successful!');
+        } catch (error) {
+            console.error('Blind bet failed:', error.message);
+            alert(`Blind bet failed: ${error.message}`);
+        }
+    }, [gameActions]);
 
     // Add global mouse events when dragging
     React.useEffect(() => {
@@ -233,14 +338,23 @@ const GameTablePage = () => {
         console.log('🔗 Joining table to ensure it exists...');
         hasJoinedTable.current = true; // Set flag BEFORE emitting to prevent duplicates
         
+        // ✅ Use actual entry fee from invitation settings or fallback
+        const actualEntryFee = invitationSettings?.entryFee || table?.entryFee || 10;
+        const actualTableName = invitationSettings?.tableName || table?.tableName || 'Invited Game';
+        
+        console.log('📊 Join Table Settings:');
+        console.log('   Entry Fee:', actualEntryFee);
+        console.log('   Table Name:', actualTableName);
+        console.log('   Invitation Settings:', invitationSettings);
+        
         socket.emit('join_table', {
             tableId: tableId,
             userId: userId,
             userEmail: userEmail,
             username: userName,
             avatar: userAvatar,
-            tableName: 'Invited Game',
-            entryFee: 10
+            tableName: actualTableName,
+            entryFee: actualEntryFee
         }, (joinResponse) => {
             if (joinResponse && joinResponse.success) {
                 console.log('✅ Successfully joined/created table');
@@ -248,7 +362,7 @@ const GameTablePage = () => {
                 console.warn('⚠️ Join table response:', joinResponse);
             }
         });
-    }, [socket, socketConnected, tableId, userId, userEmail, userName, userAvatar]); // Complete dependency array
+    }, [socket, socketConnected, tableId, userId, userEmail, userName, userAvatar, invitationSettings, table]); // ✅ Added invitationSettings and table
 
     // Fetch SEKA balance from connected wallet (real-time)
     useEffect(() => {
@@ -258,9 +372,9 @@ const GameTablePage = () => {
                     const balance = await getBalance(currentNetwork);
                     const balanceNum = parseFloat(balance) || 0;
                     setSekaBalance(balanceNum);
-                    console.log('💰 SEKA Balance fetched for game table:', balanceNum);
+                    console.log('💰 USDT Balance fetched for game table:', balanceNum);
                 } catch (error) {
-                    console.error('❌ Error fetching SEKA balance:', error);
+                    console.error('❌ Error fetching USDT balance:', error);
                     setSekaBalance(null);
                 }
             } else {
@@ -276,6 +390,83 @@ const GameTablePage = () => {
         return () => clearInterval(balanceInterval);
     }, [isConnected, currentNetwork, getBalance]);
 
+    // ✅ Sync platform score from user context (PRIMARY SOURCE)
+    // This updates in real-time via socket when winner receives payout
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            console.log("🏆 GameTable - Syncing platformScore from user context:", user.platformScore);
+            setPlatformScore(user?.platformScore || 0);
+        } else {
+            setPlatformScore(0);
+        }
+    }, [isAuthenticated, user]);
+
+    // ✅ GAME STATE PERSISTENCE HELPERS
+    const saveGameState = useCallback(() => {
+        if (!tableId) return;
+        
+        const gameState = {
+            tableId,
+            userId,
+            gameStatus,
+            players,
+            playerCards,
+            pot,
+            currentBet,
+            currentTurnUserId,
+            hasViewedCards,
+            cardViewers,
+            cardsDealt,
+            showCards: false, // Don't persist showCards to prevent spoilers
+            timestamp: Date.now()
+        };
+        
+        sessionStorage.setItem(`seka_gameState_${tableId}`, JSON.stringify(gameState));
+        console.log('💾 Game state saved to sessionStorage');
+    }, [tableId, userId, gameStatus, players, playerCards, pot, currentBet, currentTurnUserId, hasViewedCards, cardViewers, cardsDealt]);
+
+    const restoreGameState = useCallback(() => {
+        if (!tableId) return false;
+        
+        const savedState = sessionStorage.getItem(`seka_gameState_${tableId}`);
+        if (!savedState) {
+            console.log('📭 No saved game state found');
+            return false;
+        }
+        
+        try {
+            const gameState = JSON.parse(savedState);
+            
+            // Check if state is not too old (within 1 hour)
+            const ageMs = Date.now() - gameState.timestamp;
+            if (ageMs > 3600000) {
+                console.log('⏰ Saved state is too old, discarding');
+                sessionStorage.removeItem(`seka_gameState_${tableId}`);
+                return false;
+            }
+            
+            console.log('📦 Restoring game state from sessionStorage:', gameState);
+            
+            // Restore state
+            setGameStatus(gameState.gameStatus || 'waiting');
+            setPlayers(gameState.players || []);
+            setPlayerCards(gameState.playerCards || {});
+            setPot(gameState.pot || 0);
+            setCurrentBet(gameState.currentBet || 0);
+            setCurrentTurnUserId(gameState.currentTurnUserId || null);
+            setHasViewedCards(gameState.hasViewedCards || false);
+            setCardViewers(gameState.cardViewers || []);
+            setCardsDealt(gameState.cardsDealt || false);
+            
+            console.log('✅ Game state restored successfully');
+            return true;
+        } catch (error) {
+            console.error('❌ Error restoring game state:', error);
+            sessionStorage.removeItem(`seka_gameState_${tableId}`);
+            return false;
+        }
+    }, [tableId]);
+
     // Update current user's balance in players array with real-time SEKA balance
     useEffect(() => {
         if (sekaBalance !== null && players.length > 0 && userId) {
@@ -288,6 +479,21 @@ const GameTablePage = () => {
             );
         }
     }, [sekaBalance, userId, userEmail]);
+
+    // ✅ Save game state whenever critical state changes
+    useEffect(() => {
+        if (gameStatus === 'in_progress' && players.length > 0) {
+            saveGameState();
+        }
+    }, [gameStatus, players, playerCards, pot, currentBet, currentTurnUserId, hasViewedCards, cardViewers, cardsDealt, saveGameState]);
+
+    // ✅ Restore game state on mount (page refresh)
+    useEffect(() => {
+        const restored = restoreGameState();
+        if (restored) {
+            console.log('🔄 Page refreshed - game state restored');
+        }
+    }, [restoreGameState]);
 
     // Fetch table data from in-memory storage via WebSocket
     useEffect(() => {
@@ -395,7 +601,7 @@ const GameTablePage = () => {
         const handleGameStarting = (data) => {
             console.log('🎮 Game is starting!', data);
             setGameStatus('starting');
-            setGameMessage(data.message || '🎮 Game is starting! Get ready...');
+            setGameMessage(Math.round(data.message) || '🎮 Game is starting! Get ready...');
             
             // Show countdown timer with duration from backend
             const countdownDuration = data.countdown || 10; // Default to 10 seconds
@@ -431,8 +637,12 @@ const GameTablePage = () => {
             // Hide countdown if still showing
             setShowCountdown(false);
             
-            // Reset card viewing state for new game
+            // ✅ FIX: Reset card viewing state for new game (both flags)
             setHasViewedCards(false);
+            setCardViewers([]); // ✅ Clear all card viewers for new round
+            setCalledPlayers([]); // ✅ Reset called players tracking for new round
+            console.log('🃏 Reset card viewing state: hasViewedCards=false, cardViewers=[]');
+            console.log('📞 Reset called players tracking: calledPlayers=[]');
             
             // NOW store table status as in_progress (allows auto-rejoin)
             sessionStorage.setItem('seka_currentTableId', tableId);
@@ -454,35 +664,19 @@ const GameTablePage = () => {
                 setGameMessage('');
             }, 3000);
             
-            // Show dealer display and animation (2-3 seconds delay)
+            // ✅ Trigger smooth card dealing animation (NO dealer avatar)
             if (data.gameState && data.gameState.dealerId) {
-                const dealer = data.gameState.players.find(p => p.userId === data.gameState.dealerId);
-                if (dealer) {
-                    // Load avatars
-                    const avatarModules = import.meta.glob('../../assets/images/users/*.{png,jpg,jpeg,webp}', { eager: true, as: 'url' });
-                    const avatarUrls = Object.values(avatarModules);
-                    const dealerAvatar = avatarUrls[0] || ''; // Get first avatar for dealer
-                    
-                    setDealerInfo({
-                        email: dealer.username || dealer.email || (dealer.userId === userId ? userEmail : `Player ${data.gameState.players.indexOf(dealer) + 1}`),
-                        avatar: dealer.avatar || dealerAvatar
-                    });
-                    
-                    // RESET card dealt state - cards should NOT show yet
-                    setCardsDealt(false);
-                    setShowCards(false);
-                    setPlayerCards({});
-                    
-                    // Show dealer after 2 seconds
-                    setTimeout(() => {
-                        setShowDealerDisplay(true);
-                        
-                        // Start dealing animation after another 1 second
-                        setTimeout(() => {
-                            setIsDealingCards(true);
-                        }, 1000);
-                    }, 2000);
-                }
+                console.log('🎴 Starting card dealing animation...');
+                
+                // RESET card dealt state - cards should NOT show yet
+                setCardsDealt(false);
+                setShowCards(false);
+                setPlayerCards({});
+                
+                // Start smooth Canvas animation after a brief delay
+                setTimeout(() => {
+                    setIsDealingCards(true);
+                }, 500);
             }
             
             // Use real game state from backend - but DON'T show cards yet!
@@ -510,6 +704,8 @@ const GameTablePage = () => {
                 
                 // Update players with hand scores and balance
                 const updatedPlayers = gameState.players.map((player, index) => {
+                    console.log("-------------------------------------->>>>>>>>>>>>", player);
+                    
                     console.log(`👤 Player ${index + 1}: ${player.userId}`);
                     console.log(`   Balance:`, player.balance);
                     console.log(`   Has Seen Cards: ${player.hasSeenCards}`);
@@ -586,6 +782,12 @@ const GameTablePage = () => {
                 console.log('🔄 Updated player data with latest balances and scores');
             }
             
+            // ✅ FIX: Update cardViewers to maintain hand score badge visibility
+            if (gameState.cardViewers) {
+                setCardViewers(gameState.cardViewers);
+                console.log('👁️ Updated cardViewers from game_state_updated:', gameState.cardViewers);
+            }
+            
             // Update game status if phase changed
             if (gameState.phase === 'showdown' || gameState.phase === 'completed') {
                 setGameStatus(gameState.phase);
@@ -596,15 +798,172 @@ const GameTablePage = () => {
 
         // Listen for player actions
         const handlePlayerActionBroadcast = (data) => {
-            console.log('🎲 Player action:', data);
-            setGameMessage(`${data.userId} performed: ${data.action}`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🎲 PLAYER ACTION BROADCAST RECEIVED');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('   Action data:', data);
+            console.log('   Current user:', userId);
+            console.log('   Is it me?:', data.userId === userId);
+            
+            // ✅ Track CALL actions to detect game completion
+            // Log the actual action to debug
+            console.log('🎯 ACTION RECEIVED:', data.action, 'from user:', data.userId);
+            
+            // Make comparison case-insensitive
+            const actionLower = data.action?.toLowerCase();
+            
+            if (actionLower === 'call' && data.userId) {
+                setCalledPlayers(prev => {
+                    if (!prev.includes(data.userId)) {
+                        const updated = [...prev, data.userId];
+                        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                        console.log('📞 PLAYER CALLED!');
+                        console.log('📞 Player:', data.userId);
+                        console.log('📞 Called players so far:', updated);
+                        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                        return updated;
+                    } else {
+                        console.log('⚠️ Player already in called list:', data.userId);
+                    }
+                    return prev;
+                });
+            } else if (actionLower === 'call') {
+                console.error('❌ CALL action but no userId!', data);
+            }
+            
+            // Reset called players if someone raises or bets (new betting round)
+            if (actionLower === 'raise' || actionLower === 'bet') {
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('🔄 RAISE/BET DETECTED - RESETTING CALLED PLAYERS');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                setCalledPlayers([]);
+            }
+            
+            // Only show modal for OTHER players' actions (not your own)
+            if (data.userId !== userId) {
+                // Find player info to display name
+                const player = players.find(p => p.userId === data.userId);
+                
+                setActionData({
+                    actionType: data.action,
+                    playerName: player?.username || player?.name,
+                    playerEmail: player?.email,
+                    amount: data.amount || 0
+                });
+                setShowActionModal(true);
+                
+                console.log('👀 Showing action modal for other player\'s action');
+            } else {
+                console.log('ℹ️  This is my own action, not showing modal');
+            }
+            
+            // Update game message for all players
+            const actionText = data.action.toUpperCase();
+            const amountText = data.amount > 0 ? ` (${Math.round(Number(data.amount) || 0)} USDT)` : '';
+            setGameMessage(`Player ${data.action}ed${amountText}`);
+            
+            // Update game state if provided
+            if (data.gameState) {
+                console.log('📊 Updating game state from action broadcast');
+                setPot(data.gameState.pot || pot);
+                setCurrentBet(data.gameState.currentBet || currentBet);
+                setCurrentTurnUserId(data.gameState.currentPlayerId);
+                
+                // Update players list
+                if (data.gameState.players) {
+                    setPlayers(data.gameState.players);
+                    
+                    // ✅ CHECK: Did everyone call? If yes, game should complete
+                    const activePlayers = data.gameState.players.filter(p => 
+                        p.isActive && !p.hasFolded && p.balance > 0
+                    );
+                    
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('🎮 CHECKING GAME COMPLETION CONDITIONS');
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('📋 Total players in game:', data.gameState.players.length);
+                    console.log('📋 Active players (not folded, balance > 0):', activePlayers.length);
+                    console.log('📞 Players who have called (state):', calledPlayers.length);
+                    console.log('📞 Current action:', data.action);
+                    console.log('📞 Current action user:', data.userId);
+                    
+                    // Calculate how many have called (including current action if it's a call)
+                    const actionIsCall = data.action?.toLowerCase() === 'call';
+                    const totalCalled = actionIsCall ? calledPlayers.length + 1 : calledPlayers.length;
+                    
+                    console.log('📊 COMPARISON:');
+                    console.log('   Active Players:', activePlayers.map(p => `${p.username || p.email} (${p.userId.substring(0, 8)})`));
+                    console.log('   Called Players:', actionIsCall ? [...calledPlayers, data.userId] : calledPlayers);
+                    console.log('   Called Count:', totalCalled);
+                    console.log('   Need:', activePlayers.length);
+                    
+                    // Check if all active players have called
+                    const allActiveCalled = activePlayers.every(p => {
+                        const hasCalled = (actionIsCall && data.userId === p.userId) || calledPlayers.includes(p.userId);
+                        console.log(`   ✓ ${p.username || p.email}: ${hasCalled ? 'CALLED ✅' : 'NOT CALLED ❌'}`);
+                        return hasCalled;
+                    });
+                    
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('🎯 ALL CALLED?:', allActiveCalled);
+                    console.log('🎯 ENOUGH PLAYERS?:', activePlayers.length > 1);
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    
+                    if (allActiveCalled && activePlayers.length > 1) {
+                        console.log('');
+                        console.log('🎉🎉🎉 ALL PLAYERS HAVE CALLED! 🎉🎉🎉');
+                        console.log('🎯 Game should complete - requesting showdown...');
+                        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                        
+                        // Request server to trigger showdown
+                        setTimeout(() => {
+                            console.log('📡 Emitting force_showdown to backend...');
+                            socket.emit('force_showdown', {
+                                tableId: id,
+                                reason: 'All players called'
+                            });
+                        }, 500);
+                    } else {
+                        console.log('⏳ Game continues - not all players have called yet');
+                        if (!allActiveCalled) {
+                            console.log('   Reason: Some players haven\'t called');
+                        }
+                        if (activePlayers.length <= 1) {
+                            console.log('   Reason: Not enough active players');
+                        }
+                        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    }
+                }
+                
+                // ✅ FIX: Update cardViewers to maintain hand score badge visibility
+                if (data.gameState.cardViewers) {
+                    setCardViewers(data.gameState.cardViewers);
+                    console.log('👁️ Updated cardViewers:', data.gameState.cardViewers);
+                }
+                
+                console.log('✅ Game state updated:');
+                console.log('   Current turn:', data.gameState.currentPlayerId);
+                console.log('   Pot:', data.gameState.pot);
+                console.log('   Current bet:', data.gameState.currentBet);
+            }
+            
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         };
 
         // Handle showdown (reveal hands and determine winner)
-        const handleShowdown = (data) => {
+        const handleShowdown = async (data) => {
             console.log('🏆 SHOWDOWN!', data);
             setGameStatus('showdown');
             setGameMessage('Showdown! Revealing hands...');
+            
+            // ✅ IMMEDIATE BALANCE UPDATE: Balance updates automatically via socket
+            // The backend sends 'balance_updated' event to winners
+            // SocketContext listener updates AuthContext.user.platformScore
+            // This component re-renders automatically when user.platformScore changes
+            const isWinner = data.winners && data.winners.includes(userId);
+            if (isWinner) {
+                console.log('🎉 YOU WON! Balance will update via socket event...');
+            }
             
             // NOW everyone sees ALL players' cards AND scores (full reveal)
             const allCards = {};
@@ -635,8 +994,20 @@ const GameTablePage = () => {
             
             // Display winner modal after a brief delay
             setTimeout(() => {
+                console.log('🏆 Setting winner data for modal:');
+                console.log('   data:', data);
+                console.log('   data.pot:', data.pot);
+                console.log('   current pot state:', pot);
+                
+                // ✅ Use current pot state if data.pot is 0 or undefined
+                const winnerInfo = {
+                    ...data,
+                    pot: data.pot || pot || 0
+                };
+                console.log('   final winnerData.pot:', winnerInfo.pot);
+                
                 setShowWinnerModal(true);
-                setWinnerData(data);
+                setWinnerData(winnerInfo);
             }, 2000);
         };
 
@@ -645,6 +1016,12 @@ const GameTablePage = () => {
             console.log('✅ Game completed!', data);
             setGameStatus('finished');
             setGameMessage('Game finished!');
+            
+            // ✅ Clear saved game state on completion
+            if (tableId) {
+                sessionStorage.removeItem(`seka_gameState_${tableId}`);
+                console.log('🧹 Cleared saved game state (game completed)');
+            }
         };
 
         // READY/START system removed - using auto-start instead
@@ -674,55 +1051,98 @@ const GameTablePage = () => {
             setCurrentTurnUserId(null);
             setPlayers(data.players);
             
-            // Reset dealer display and cards dealt state
-            setShowDealerDisplay(false);
+            // Reset card dealing animation state
             setIsDealingCards(false);
-            setDealerInfo(null);
             setCardsDealt(false);
             
-            // Reset card viewing state for new game
+            // ✅ FIX: Reset card viewing state for new game (both flags)
             setHasViewedCards(false);
+            setCardViewers([]); // ✅ Clear all card viewers for new round
+            setCalledPlayers([]); // ✅ Reset called players tracking for new round
+            console.log('🃏 Reset card viewing state: hasViewedCards=false, cardViewers=[]');
+            console.log('📞 Reset called players tracking: calledPlayers=[]');
+            
+            // ✅ Clear saved game state on reset
+            if (tableId) {
+                sessionStorage.removeItem(`seka_gameState_${tableId}`);
+                console.log('🧹 Cleared saved game state (table reset)');
+            }
+        };
+
+        // ✅ Handle game restart countdown (after all players close modal)
+        const handleGameRestartCountdown = (data) => {
+            console.log('⏰ Game restart countdown:', data);
+            setCountdown(data.secondsRemaining);
+            setShowCountdown(true);
+            setGameMessage(data.message || `Next game starting in ${data.secondsRemaining} seconds...`);
+            
+            // Hide countdown when it reaches 0
+            if (data.secondsRemaining === 0) {
+                setShowCountdown(false);
+            }
         };
 
         // Handle player seeing their cards
         const handlePlayerSeenCards = (data) => {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('👁️ PLAYER SEEN CARDS EVENT!');
+            console.log('👁️ PLAYER SEEN CARDS BROADCAST EVENT');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('   Who saw cards?', data.userId);
+            console.log('   Current user in this browser:', userId);
+            console.log('   Is it me?', data.userId === userId);
             
             if (data.gameState) {
-                const cards = {};
-                const updatedPlayers = data.gameState.players.map(player => {
-                    const isMe = player.userId === userId;
+                // ✅ CRITICAL FIX: Only update state if the broadcast is about the CURRENT user
+                // This prevents other players' VIEW CARDS clicks from affecting this browser
+                if (data.userId === userId) {
+                    console.log('✅ This broadcast is about ME! Updating my state...');
                     
-                    if (isMe && player.hasSeenCards) {
-                        // Show OUR cards after we've seen them
-                        cards[player.userId] = player.hand || [];
-                        console.log(`👁️ YOU can now see your cards:`, player.hand);
-                        console.log(`   🎯 SCORE: ${player.handScore} pts`);
-                        console.log(`   📋 HAND: ${player.handDescription}`);
-                        console.log(`   💰 Balance: ${player.balance?.availableBalance || player.balance}`);
+                    // Show cards for the current user
+                    setPlayerCards(prevCards => {
+                        const updatedCards = { ...prevCards }; // Keep existing cards
+                        const currentUserData = data.gameState.players.find(p => p.userId === userId);
                         
-                        // ✅ SHOW bottom betting controls, HIDE Controls modal
-                        setHasViewedCards(true);
-                        console.log('✅ Switching from Controls modal to bottom betting controls!');
+                        if (currentUserData && currentUserData.hasSeenCards) {
+                            updatedCards[userId] = currentUserData.hand || [];
+                            console.log(`👁️ YOU (${userId.substring(0,8)}) can now see your cards:`, currentUserData.hand);
+                            console.log(`   🎯 SCORE: ${currentUserData.handScore} pts`);
+                            console.log(`   📋 HAND: ${currentUserData.handDescription}`);
+                        }
+                        
+                        console.log('🎴 Updated playerCards state:', updatedCards);
+                        return updatedCards;
+                    });
+                    
+                    // ✅ SHOW bottom betting controls, HIDE Controls modal (only for current user)
+                    setHasViewedCards(true);
+                    console.log('✅ Switching from Controls modal to bottom betting controls!');
                     } else {
-                        // Others stay hidden
-                        cards[player.userId] = [];
+                    console.log('ℹ️  This broadcast is about another player. Not updating hasViewedCards.');
                     }
                     
-                    return {
+                // ✅ ALWAYS update players state with latest game state (includes hasSeenCards flags for ALL players)
+                // This is needed so card visibility can be determined for all players
+                const updatedPlayers = data.gameState.players.map(player => ({
                         ...player,
                         handScore: player.handScore,
                         handDescription: player.handDescription
-                    };
-                });
+                }));
                 
-                setPlayerCards(cards);
-                setPlayers(updatedPlayers); // CRITICAL: Update players with hand scores
-                setShowCards(true);
+                setPlayers(updatedPlayers);
                 
-                console.log('✅ Player list updated with scores');
+                // ✅ UPDATE: Extract and set cardViewers array from broadcast
+                if (data.gameState.cardViewers) {
+                    setCardViewers(data.gameState.cardViewers);
+                    console.log('👁️ UPDATED cardViewers STATE FROM BROADCAST:');
+                    console.log('   cardViewers:', data.gameState.cardViewers);
+                    console.log('   Total viewers:', data.gameState.cardViewers.length);
+                }
+                
+                console.log('✅ Player list updated with latest hasSeenCards flags');
+                console.log('📊 Updated players state:', updatedPlayers.map(p => ({
+                    userId: p.userId.substring(0,8),
+                    hasSeenCards: p.hasSeenCards
+                })));
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             }
         };
@@ -731,20 +1151,110 @@ const GameTablePage = () => {
             console.log('❌ Disconnected from game server');
         };
 
+        // ✅ Listen for real-time balance updates after game win
+        const handleBalanceUpdated = (data) => {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('💰 GAMETABLE: BALANCE UPDATE RECEIVED');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('   Data:', data);
+            console.log('   Current userId:', userId);
+            
+            // Update the player's balance in the players array
+            if (data.userId === userId) {
+                console.log('   ✅ This is MY balance update!');
+                console.log('   New balance:', data.platformScore);
+                
+                // Update the players array with new balance
+                setPlayers(prevPlayers => {
+                    const updated = prevPlayers.map(player => {
+                        if (player.userId === data.userId) {
+                            console.log(`   Updating player ${player.userId} balance from ${player.balance} to ${data.platformScore}`);
+                            return {
+                                ...player,
+                                balance: data.platformScore // ✅ Update in-game balance for next round
+                            };
+                        }
+                        return player;
+                    });
+                    console.log('   Updated players array:', updated);
+                    return updated;
+                });
+                
+                console.log('   ✅ Player balance updated in GameTable');
+            } else {
+                console.log(`   ⚠️ Balance update is for different user: ${data.userId}`);
+            }
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        };
+
+        // ✅ NEW: Listen for player list updates when someone joins/leaves
+        const handlePlayerListUpdated = (data) => {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('👥 PLAYER LIST UPDATED');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📋 Updated Players:', data.players);
+            
+            if (data.players) {
+                const updatedPlayers = data.players.map(player => ({
+                    ...player,
+                    userId: player.userId,
+                    email: player.email,
+                    username: player.username || player.email?.split('@')[0] || 'Player',
+                    avatar: player.avatar || player.profilePicture || null, // ✅ Ensure avatar is included
+                    balance: player.balance || 0,
+                    handScore: player.handScore,
+                    handDescription: player.handDescription
+                }));
+                
+                setPlayers(updatedPlayers);
+                console.log('✅ Player list updated with avatars');
+                console.log('👥 Updated Players:', updatedPlayers.map(p => ({ 
+                    username: p.username, 
+                    avatar: p.avatar ? '✓ Has Avatar' : '✗ No Avatar' 
+                })));
+            }
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        };
+
         // Listen for chat messages
         const handleTableChatMessage = (data) => {
-            console.log('💬 Received chat message:', data);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('💬 RECEIVED CHAT MESSAGE');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('From:', data.username);
+            console.log('User ID:', data.userId);
+            console.log('Message:', data.message);
+            console.log('Timestamp:', data.timestamp);
+            console.log('Is from me?', data.userId === (user?.id || user?.userId));
+            
             const newMessage = {
-                id: Date.now(),
+                id: Date.now() + Math.random(), // Ensure unique ID
                 user: data.userId === (user?.id || user?.userId) ? 'You' : data.username,
                 message: data.message,
                 time: new Date(data.timestamp).toLocaleTimeString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit',
                     hour12: false 
-                })
+                }),
+                isMe: data.userId === (user?.id || user?.userId)
             };
-            setChatMessages(prev => [...prev, newMessage]);
+            
+            console.log('📝 Adding message to chat:', newMessage);
+            setChatMessages(prev => {
+                const updated = [...prev, newMessage];
+                console.log('💬 Total messages:', updated.length);
+                
+                // Limit message history to prevent memory issues
+                if (updated.length > 100) {
+                    console.log('🗑️ Trimming old messages (keeping last 100)');
+                    return updated.slice(-100);
+                }
+                
+                return updated;
+            });
+            
+            console.log('✅ Message added to chat UI!');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         };
 
         // Attach all event listeners
@@ -760,7 +1270,10 @@ const GameTablePage = () => {
         socket.on('game_completed', handleGameCompleted);
         socket.on('player_removed_insufficient_balance', handlePlayerRemovedInsufficientBalance);
         socket.on('table_reset_for_new_game', handleTableResetForNewGame);
+        socket.on('game_restart_countdown', handleGameRestartCountdown); // ✅ NEW: Countdown after modal closed
+        socket.on('balance_updated', handleBalanceUpdated); // ✅ NEW: Real-time balance update for winner
         socket.on('player_seen_cards', handlePlayerSeenCards);
+        socket.on('player_list_updated', handlePlayerListUpdated); // ✅ NEW: Player list updates with avatars
         socket.on('table_chat_message', handleTableChatMessage);
         socket.on('disconnect', handleDisconnect);
 
@@ -778,12 +1291,25 @@ const GameTablePage = () => {
             socket.off('game_completed', handleGameCompleted);
             socket.off('player_removed_insufficient_balance', handlePlayerRemovedInsufficientBalance);
             socket.off('table_reset_for_new_game', handleTableResetForNewGame);
+            socket.off('game_restart_countdown', handleGameRestartCountdown); // ✅ NEW: Cleanup countdown listener
+            socket.off('balance_updated', handleBalanceUpdated); // ✅ NEW: Cleanup balance update listener
             socket.off('player_seen_cards', handlePlayerSeenCards);
+            socket.off('player_list_updated', handlePlayerListUpdated); // ✅ NEW: Cleanup player list listener
             socket.off('table_chat_message', handleTableChatMessage);
             socket.off('disconnect', handleDisconnect);
             clearInterval(heartbeatInterval);
         };
     }, [socket, socketConnected, tableId, userId]); // Removed players and tableData to prevent infinite loop!
+
+    // ✅ Auto-scroll to latest chat message
+    useEffect(() => {
+        if (chatMessagesEndRef.current && isChatOpen) {
+            chatMessagesEndRef.current.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }
+    }, [chatMessages, isChatOpen]);
 
     // CLEAR session storage when browser closes (not just navigating)
     useEffect(() => {
@@ -792,9 +1318,9 @@ const GameTablePage = () => {
             if (socket && socket.connected && tableId && userId) {
                 // Don't allow leaving if game is in progress with other players
                 if (gameStatus === 'in_progress' && players.length > 1) {
-                    e.preventDefault();
+                e.preventDefault();
                     e.returnValue = 'You are currently in a game. Please finish the game or fold before leaving.';
-                    return e.returnValue;
+                return e.returnValue;
                 }
                 
                 // If game not started (waiting) or player is alone, allow leaving
@@ -833,10 +1359,10 @@ const GameTablePage = () => {
     } : {
         id: tableId,
         network: 'BSC',
-        entryFee: 10,
-        totalPot: pot > 0 ? pot : 60, // ✅ Use dynamic pot or fallback
+        entryFee: invitationSettings?.entryFee || table?.entryFee || 10, // ✅ Use invitation settings
+        totalPot: pot > 0 ? pot : ((invitationSettings?.entryFee || table?.entryFee || 10) * (invitationSettings?.maxPlayers || 6)), // ✅ Dynamic based on entry fee
         playerCount: '0/6',
-        maxPlayers: 6,
+        maxPlayers: invitationSettings?.maxPlayers || table?.maxPlayers || 6,
         currentPlayers: 0
     };
 
@@ -934,7 +1460,7 @@ const GameTablePage = () => {
             
             <Felt 
                 totalPot={tableInfo.totalPot} 
-                usdtIconSrc={usdtIcon} 
+                USDTIconSrc={USDTIcon} 
                 cardBackSrc={cardBack} 
                 players={players}
                 maxPlayers={tableInfo.maxPlayers}
@@ -945,65 +1471,46 @@ const GameTablePage = () => {
                 dealerId={dealerId}
                 entryFee={tableInfo.entryFee}
                 isDealingCards={isDealingCards}
+                cardViewers={cardViewers}
+                setCardViewers={setCardViewers}
                 onDealingComplete={() => {
                     console.log('🎴 Card dealing animation in Felt complete!');
                     // Animation done, cards will now be visible
                 }}
             />
             
-            {/* Dealer Display with Card Dealing Animation */}
-            {showDealerDisplay && dealerInfo && (
-                <DealerDisplay
-                    dealerEmail={dealerInfo.email}
-                    dealerAvatar={dealerInfo.avatar}
-                    isDealing={isDealingCards}
-                    playerPositions={players}
-                    onDealComplete={() => {
-                        console.log('🎴 Card dealing animation complete!');
-                        console.log('✨ NOW showing player cards...');
+            {/* ✅ Smooth Canvas Card Dealing Animation (NO dealer avatar) */}
+            <CardDealingAnimation
+                players={players}
+                isDealing={isDealingCards}
+                onComplete={() => {
+                    console.log('🎴 Card dealing animation complete!');
+                    console.log('✨ NOW showing player cards...');
+                    
+                    // NOW reveal the cards - extract from players state
+                    const cards = {};
+                    players.forEach(player => {
+                        const isMe = player.userId === userId;
                         
-                        // NOW reveal the cards - extract from players state
-                        const cards = {};
-                        players.forEach(player => {
-                            const isMe = player.userId === userId;
-                            
-                            if (isMe && player.hasSeenCards) {
-                                // Current user who has seen cards
-                                cards[player.userId] = player.hand || [];
-                            } else {
-                                // Everyone else or current user who hasn't seen
-                                cards[player.userId] = [];
-                            }
-                        });
-                        
-                        setPlayerCards(cards);
-                        setShowCards(true);
-                        setCardsDealt(true);
-                        
-                        // Hide dealer display after animation
-                        setTimeout(() => {
-                            setShowDealerDisplay(false);
-                            setIsDealingCards(false);
-                        }, 1000);
-                    }}
-                />
-            )}
+                        if (isMe && player.hasSeenCards) {
+                            // Current user who has seen cards
+                            cards[player.userId] = player.hand || [];
+                        } else {
+                            // Everyone else or current user who hasn't seen
+                            cards[player.userId] = [];
+                        }
+                    });
+                    
+                    setPlayerCards(cards);
+                    setShowCards(true);
+                    setCardsDealt(true);
+                    setIsDealingCards(false);
+                    
+                    console.log('✅ Cards revealed!');
+                }}
+            />
             
-            {/* Controls modal - show AFTER cards dealt but BEFORE viewing cards */}
-            {cardsDealt && !hasViewedCards && (
-                <Controls 
-                    socket={socket}
-                    tableId={tableId}
-                    userId={userId}
-                    gameStatus={gameStatus}
-                    isMyTurn={currentTurnUserId === userId}
-                    currentBet={currentBet}
-                    myBalance={players.find(p => p.userId === userId)?.balance?.availableBalance || 0}
-                    minRaise={tableInfo.entryFee || 10}
-                    hasSeenCards={players.find(p => p.userId === userId)?.hasSeenCards || false}
-                    players={players}
-                />
-            )}
+            {/* ✅ VIEW CARDS button is now inside BettingControls component */}
             {/* <RightPanel /> */}
             
             {/* Wallet Balance Display */}
@@ -1013,23 +1520,56 @@ const GameTablePage = () => {
             <div className="chat-button">
                 <button className='chat-button-btn' onClick={handleChatToggle}>Chat</button>
             </div>
-            {/* SEKA Points-Integrated Betting Controls - Only show AFTER viewing cards */}
-            {hasViewedCards && (
-                <div className="betting-controls-container">
-                    <BettingControls
-                        onBet={handleBet}
-                        onFold={handleFold}
-                        onCall={handleCall}
-                        onRaise={handleRaise}
-                        onAllIn={handleAllIn}
-                        currentBet={25}
-                        minBet={25}
-                        maxBet={1000}
-                        potSize={tableInfo.totalPot}
-                        isPlayerTurn={true}
-                        playerBalance={parseFloat(user?.balance) || 0}
-                    />
-                </div>
+            {/* SEKA Points-Integrated Betting Controls */}
+            {/* ✅ Show when: cards dealt + game in progress (visible even when not your turn) */}
+            {cardsDealt && gameStatus === 'in_progress' && (
+            <div className="betting-controls-container">
+                <BettingControls
+                    onBet={handleBet}
+                    onFold={handleFold}
+                    onCall={handleCall}
+                    onRaise={handleRaise}
+                    onAllIn={handleAllIn}
+                    onBlind={handleBlind}
+                    currentBet={currentBet}
+                    minBet={tableInfo.entryFee || 10}
+                    maxBet={(() => {
+                        const player = players.find(p => p.userId === userId);
+                        if (!player) return 1000;
+                        const balance = typeof player.balance === "object" 
+                            ? player.balance.availableBalance 
+                            : player.balance;
+                        return Number(balance) || 1000;
+                    })()}
+                    potSize={pot || tableInfo.totalPot || 0}
+                    isPlayerTurn={currentTurnUserId === userId}
+                    playerBalance={(() => {
+                        const player = players.find(p => p.userId === userId);
+                        console.log('🔍 Finding player balance for BettingControls:');
+                        console.log('   userId:', userId);
+                        console.log('   player found:', player);
+                        console.log('   player.balance:', player?.balance);
+                        if (!player) return 0;
+                        const balance = typeof player.balance === "object" 
+                            ? player.balance.availableBalance 
+                            : player.balance;
+                        console.log('   final balance:', balance);
+                        return Number(balance) || 0;
+                    })()}
+                    hasSeenCards={cardViewers.includes(userId)}
+                    gameActions={gameActions}
+                    userId={userId}
+                    playerCards={playerCards}
+                    players={players}
+                    setPlayerCards={setPlayerCards}
+                    setPlayers={setPlayers}
+                    setHasViewedCards={setHasViewedCards}
+                    setCardsDealt={setCardsDealt}
+                    setCardViewers={setCardViewers}
+                    cardsDealt={cardsDealt}
+                    cardViewers={cardViewers}
+                />
+            </div>
             )}
             
             {/* Chat Modal */}
@@ -1045,15 +1585,26 @@ const GameTablePage = () => {
                         
                         {/* Chat Messages */}
                         <div className="chat-messages">
-                            {chatMessages.map((msg) => (
-                                <div key={msg.id} className="chat-message">
-                                    <div className="message-content">
-                                        <span className="message-user">{msg.user}:</span>
-                                        <span className="message-text">{msg.message}</span>
-                                    </div>
-                                    <div className="message-time">{msg.time}</div>
+                            {chatMessages.length === 0 ? (
+                                <div className="no-messages">
+                                    <p>No messages yet. Start the conversation!</p>
                                 </div>
-                            ))}
+                            ) : (
+                                chatMessages.map((msg) => (
+                                    <div 
+                                        key={msg.id} 
+                                        className={`chat-message ${msg.isMe ? 'my-message' : 'other-message'}`}
+                                    >
+                                        <div className="message-content">
+                                            <span className="message-user">{msg.user}:</span>
+                                            <span className="message-text">{msg.message}</span>
+                                        </div>
+                                        <div className="message-time">{msg.time}</div>
+                                    </div>
+                                ))
+                            )}
+                            {/* Auto-scroll anchor */}
+                            <div ref={chatMessagesEndRef} />
                         </div>
                         
                         {/* Chat Input */}
@@ -1064,10 +1615,16 @@ const GameTablePage = () => {
                                 placeholder="Type a message..."
                                 value={chatMessage}
                                 onChange={(e) => setChatMessage(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                onKeyPress={(e) => e.key === 'Enter' && !isSendingMessage && handleSendMessage()}
+                                disabled={isSendingMessage}
+                                maxLength={500}
                             />
-                            <button className="chat-send-btn" onClick={handleSendMessage}>
-                                Send
+                            <button 
+                                className="chat-send-btn" 
+                                onClick={handleSendMessage}
+                                disabled={isSendingMessage || !chatMessage.trim()}
+                            >
+                                {isSendingMessage ? '⏳ Sending...' : 'Send'}
                             </button>
                         </div>
                     </div>
@@ -1084,6 +1641,14 @@ const GameTablePage = () => {
                     // navigate('/gamelobby');
                 }}
                 currentUserId={userId}
+                tableId={tableId}
+            />
+            
+            {/* Player Action Notification Modal */}
+            <PlayerActionModal
+                action={actionData}
+                isVisible={showActionModal}
+                onClose={() => setShowActionModal(false)}
             />
             
             {/* Bottom Action Bar - Log, Chat, Slot, Notifications */}

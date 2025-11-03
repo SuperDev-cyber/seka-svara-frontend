@@ -38,125 +38,146 @@ const NotificationToast = ({
     }, 300);
   };
 
-  const getPositionClasses = () => {
-    switch (position) {
-      case 'top-left':
-        return 'top-4 left-4';
-      case 'top-center':
-        return 'top-4 left-1/2 transform -translate-x-1/2';
-      case 'top-right':
-        return 'top-4 right-4';
-      case 'bottom-left':
-        return 'bottom-4 left-4';
-      case 'bottom-center':
-        return 'bottom-4 left-1/2 transform -translate-x-1/2';
-      case 'bottom-right':
-        return 'bottom-4 right-4';
-      default:
-        return 'top-4 right-4';
-    }
-  };
-
   return (
     <div
-      className={`
-        fixed z-50 max-w-sm w-full mx-4
-        ${getPositionClasses()}
-        transform transition-all duration-500 ease-out
-        ${isVisible && !isLeaving ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'}
-      `}
+      className={`notification-toast-container ${isVisible && !isLeaving ? 'visible' : ''} ${isLeaving ? 'leaving' : ''}`}
+      style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10000,
+        maxWidth: '500px',
+        width: '90%'
+      }}
     >
-      {/* Glass morphism container */}
-      <div className="relative dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+      {/* Cool notification card with glassmorphism */}
+      <div className="notification-card">
+        {/* Animated background particles */}
+        <div className="particles">
+          {[...Array(20)].map((_, i) => (
+            <div 
+              key={i} 
+              className="particle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${3 + Math.random() * 2}s`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Animated border gradient */}
+        <div className="animated-border"></div>
         
-        {/* Header with premium gradient */}
-        <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                <span className="text-white text-xl">🎮</span>
-              </div>
-              <div>
-                <h3 className="text-white font-bold text-base">Game Invitation</h3>
-                <p className="text-white/90 text-sm font-medium">Seka Svara</p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              className="text-white/70 hover:text-white transition-all duration-200 hover:bg-white/10 rounded-full p-1"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        {/* Close button */}
+        <button onClick={handleClose} className="close-btn">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 8.586L3.707 2.293 2.293 3.707 8.586 10l-6.293 6.293 1.414 1.414L10 11.414l6.293 6.293 1.414-1.414L11.414 10l6.293-6.293-1.414-1.414L10 8.586z"/>
+          </svg>
+        </button>
+
+        {/* Header with game icon */}
+        <div className="notification-header">
+          <div className="game-icon">
+            <div className="icon-glow"></div>
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="18" fill="url(#gradient1)" />
+              <path d="M15 12h10a3 3 0 013 3v10a3 3 0 01-3 3H15a3 3 0 01-3-3V15a3 3 0 013-3z" fill="white" fillOpacity="0.2"/>
+              <circle cx="17" cy="18" r="2" fill="white"/>
+              <circle cx="23" cy="18" r="2" fill="white"/>
+              <path d="M14 23c0-3 2.5-5 6-5s6 2 6 5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <defs>
+                <linearGradient id="gradient1" x1="0" y1="0" x2="40" y2="40">
+                  <stop offset="0%" stopColor="#667eea"/>
+                  <stop offset="100%" stopColor="#764ba2"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div className="header-text">
+            <h3 className="notification-title">🎮 Game Invitation</h3>
+            <p className="notification-subtitle">Seka Svara Card Game</p>
           </div>
         </div>
 
-        {/* Content with premium styling */}
-        <div className="relative p-6">
-          <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white/20">
-              <span className="text-white font-bold text-lg">
-                {notification.inviterName?.charAt(0) || 'U'}
+        {/* Content */}
+        <div className="notification-content">
+          <div className="inviter-info">
+            <div className="avatar">
+              <div className="avatar-glow"></div>
+              <span className="avatar-letter">
+                {notification.inviterName?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-gray-900 dark:text-white font-semibold text-base leading-relaxed">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold">
-                  {notification.inviterName || 'Someone'}
-                </span>
-                {' '}invited you to play!
+            <div className="invite-message">
+              <p className="main-message">
+                <span className="inviter-name">{notification.inviterName || 'Someone'}</span>
+                <span className="message-text"> invited you to join the table!</span>
               </p>
-              <div className="mt-3 space-y-1">
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">Table:</span>{' '}
-                  <span className="font-semibold text-indigo-600 dark:text-indigo-400">{notification.tableName}</span>
-                </p>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  <span className="font-medium text-gray-600 dark:text-gray-300">Entry Fee:</span>{' '}
-                  <span className="font-bold text-green-600 dark:text-green-400">{notification.entryFee} USDT</span>
-                </p>
-              </div>
             </div>
           </div>
 
-          {/* Premium Action Buttons */}
-          <div className="flex space-x-3 mt-6">
-            <button
-              onClick={handleAccept}
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-sm font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl border border-emerald-400/20"
-            >
-              <span className="flex items-center justify-center space-x-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className="game-details">
+            <div className="detail-item">
+              <div className="detail-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
                 </svg>
-                <span>Accept</span>
-              </span>
-            </button>
-            <button
-              onClick={handleDecline}
-              className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-sm font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl border border-red-400/20"
-            >
-              <span className="flex items-center justify-center space-x-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </div>
+              <div className="detail-text">
+                <span className="detail-label">Table Name</span>
+                <span className="detail-value">{notification.tableName}</span>
+              </div>
+            </div>
+
+            <div className="detail-item">
+              <div className="detail-icon coin-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/>
                 </svg>
-                <span>Decline</span>
-              </span>
-            </button>
+              </div>
+              <div className="detail-text">
+                <span className="detail-label">Entry Fee</span>
+                <span className="detail-value fee">{notification.entryFee} USDT</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Animated progress bar */}
-        <div className="relative h-1 bg-gray-200/50 dark:bg-gray-700/50">
-          <div 
-            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-30000 ease-linear"
-            style={{ width: '100%' }}
-          />
+        {/* Action buttons */}
+        <div className="action-buttons">
+          <button onClick={handleAccept} className="btn btn-accept">
+            <span className="btn-shimmer"></span>
+            <span className="btn-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+            </span>
+            <span className="btn-text">Accept Invite</span>
+          </button>
+
+          <button onClick={handleDecline} className="btn btn-decline">
+            <span className="btn-shimmer"></span>
+            <span className="btn-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+            </span>
+            <span className="btn-text">Decline</span>
+          </button>
+        </div>
+
+        {/* Animated progress indicator */}
+        <div className="progress-indicator">
+          <div className="progress-bar"></div>
         </div>
       </div>
+
+      {/* Dark overlay */}
+      <div className="notification-overlay" onClick={handleClose}></div>
     </div>
   );
 };

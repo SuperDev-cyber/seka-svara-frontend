@@ -97,6 +97,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // ✅ Skip auto-auth on admin login page to allow fresh admin login
+        if (window.location.pathname === '/admin/login') {
+          console.log('🎛️ AuthContext: Skipping auto-auth on admin login page');
+          dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+          return;
+        }
+        
         console.log('🔍 AuthContext: Checking authentication on app load...');
         const hasToken = apiService.isAuthenticated();
         console.log('🔍 AuthContext: Has token:', hasToken);
@@ -225,6 +232,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ Update platform score (for real-time balance updates)
+  const updatePlatformScore = (newScore) => {
+    console.log(`💰 Updating platform score: ${newScore}`);
+    dispatch({
+      type: AUTH_ACTIONS.UPDATE_USER,
+      payload: { platformScore: newScore },
+    });
+  };
+
   // Clear error function
   const clearError = () => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
@@ -294,6 +310,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     refreshUserProfile,
+    updatePlatformScore, // ✅ Export for real-time balance updates
     clearError,
     forgotPassword,
     resetPassword,

@@ -55,7 +55,7 @@ const TransactionCard = () => {
     const getTransactionName = (type, description) => {
         if (description) return description;
         switch (type) {
-            case 'deposit': return '💰 Deposit SEKA Points';
+            case 'deposit': return '💰 Deposit USDT Points';
             case 'withdrawal': return '💸 Withdraw to Wallet';
             case 'game_bet': return '🎲 Game Bet/Wager';
             case 'game_win': return '🏆 Game Winnings';
@@ -69,13 +69,13 @@ const TransactionCard = () => {
     };
 
     const getTransactionAmount = (type, amount) => {
-        const formattedAmount = parseFloat(amount || 0).toFixed(2);
+        const formattedAmount = parseFloat(amount || 0).toFixed(0);
         // Positive transactions (money coming in)
         if (type === 'deposit' || type === 'game_win' || type === 'bonus' || type === 'game_fold') {
-            return `+${formattedAmount} SEKA`;
+            return `+${formattedAmount} USDT`;
         }
         // Negative transactions (money going out)
-        return `-${formattedAmount} SEKA`;
+        return `-${formattedAmount} USDT`;
     };
 
     const getTransactionType = (type) => {

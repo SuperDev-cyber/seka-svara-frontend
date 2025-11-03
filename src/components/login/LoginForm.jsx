@@ -47,6 +47,8 @@ const LoginForm = () => {
             if (window.showToast) {
                 window.showToast('Login successful! Welcome back!', 'success', 3000);
             }
+            
+            // Navigate to the intended destination or home page
             navigate(from, { replace: true });
         } catch (error) {
             const errorMessage = error.message || 'Login failed. Please try again.';

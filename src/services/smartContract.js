@@ -7,11 +7,11 @@
 const CONTRACT_ADDRESSES = {
   BEP20: {
     gameContract: '0x...', // Replace with actual deployed contract address
-    usdtContract: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+    USDTContract: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
   },
   TRC20: {
     gameContract: 'T...', // Replace with actual deployed contract address
-    usdtContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // USDT on Tron
+    USDTContract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // USDT on Tron
   },
 };
 
@@ -77,7 +77,7 @@ class SmartContractService {
     this.web3 = web3Instance;
     this.network = network;
     this.contractAddress = CONTRACT_ADDRESSES[network]?.gameContract;
-    this.usdtAddress = CONTRACT_ADDRESSES[network]?.usdtContract;
+    this.USDTAddress = CONTRACT_ADDRESSES[network]?.USDTContract;
     
     if (this.contractAddress && this.web3) {
       this.contract = new this.web3.eth.Contract(GAME_CONTRACT_ABI, this.contractAddress);
@@ -97,7 +97,7 @@ class SmartContractService {
 
     try {
       // First approve USDT transfer
-      await this.approveUsdtTransfer(betAmount, fromAddress);
+      await this.approveUSDTTransfer(betAmount, fromAddress);
       
       // Then join the table
       const tx = await this.contract.methods.joinTable(tableId, betAmount).send({
@@ -126,7 +126,7 @@ class SmartContractService {
     try {
       // If action requires USDT transfer, approve it first
       if (amount > 0) {
-        await this.approveUsdtTransfer(amount, fromAddress);
+        await this.approveUSDTTransfer(amount, fromAddress);
       }
 
       const tx = await this.contract.methods.makeMove(tableId, action, amount).send({
@@ -191,14 +191,14 @@ class SmartContractService {
    * @param {number} amount - Amount to approve
    * @param {string} fromAddress - Player's address
    */
-  async approveUsdtTransfer(amount, fromAddress) {
-    if (!this.web3 || !this.usdtAddress) {
+  async approveUSDTTransfer(amount, fromAddress) {
+    if (!this.web3 || !this.USDTAddress) {
       throw new Error('Web3 or USDT contract not available');
     }
 
     try {
       // USDT ABI for approve function
-      const usdtAbi = [
+      const USDTAbi = [
         {
           "constant": false,
           "inputs": [
@@ -211,10 +211,10 @@ class SmartContractService {
         }
       ];
 
-      const usdtContract = new this.web3.eth.Contract(usdtAbi, this.usdtAddress);
+      const USDTContract = new this.web3.eth.Contract(USDTAbi, this.USDTAddress);
       const amountWei = this.web3.utils.toWei(amount.toString(), 'ether');
 
-      const tx = await usdtContract.methods.approve(this.contractAddress, amountWei).send({
+      const tx = await USDTContract.methods.approve(this.contractAddress, amountWei).send({
         from: fromAddress,
       });
 
@@ -230,13 +230,13 @@ class SmartContractService {
    * @param {string} playerAddress - Player's address
    * @param {number} requiredAmount - Required amount
    */
-  async checkUsdtBalance(playerAddress, requiredAmount) {
-    if (!this.web3 || !this.usdtAddress) {
+  async checkUSDTBalance(playerAddress, requiredAmount) {
+    if (!this.web3 || !this.USDTAddress) {
       throw new Error('Web3 or USDT contract not available');
     }
 
     try {
-      const usdtAbi = [
+      const USDTAbi = [
         {
           "constant": true,
           "inputs": [{"name": "_owner", "type": "address"}],
@@ -246,11 +246,11 @@ class SmartContractService {
         }
       ];
 
-      const usdtContract = new this.web3.eth.Contract(usdtAbi, this.usdtAddress);
-      const balance = await usdtContract.methods.balanceOf(playerAddress).call();
-      const balanceInUsdt = this.web3.utils.fromWei(balance, 'ether');
+      const USDTContract = new this.web3.eth.Contract(USDTAbi, this.USDTAddress);
+      const balance = await USDTContract.methods.balanceOf(playerAddress).call();
+      const balanceInUSDT = this.web3.utils.fromWei(balance, 'ether');
 
-      return parseFloat(balanceInUsdt) >= requiredAmount;
+      return parseFloat(balanceInUSDT) >= requiredAmount;
     } catch (error) {
       console.error('Error checking USDT balance:', error);
       throw error;

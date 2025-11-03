@@ -47,7 +47,7 @@ const NFTCard = ({ nft }) => {
                             <img src={ethereumIcon} alt="Ethereum" className='ethereum-icon' />
                             <span className='eth-price'>{nft.price} ETH</span>
                         </div>
-                        <span className='usd-price'>({nft.usdPrice})</span>
+                        <span className='USDT-price'>({nft.USDTPrice})</span>
                     </div>
                 </div>
                 <button className='buy-now-btn' onClick={handleBuyNowClick}>Buy Now</button>

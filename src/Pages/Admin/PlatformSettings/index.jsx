@@ -41,11 +41,11 @@ const PlatformSettings = () => {
 
             <div className="ps-grid-2">
                 <div className="ps-field">
-                    <label className="ps-label">Minimum Withdrawal Limit (USD)</label>
+                    <label className="ps-label">Minimum Withdrawal Limit (USDT)</label>
                     <input className="ps-input" type="number" value={minWithdrawal} onChange={(e) => setMinWithdrawal(e.target.value)} />
                 </div>
                 <div className="ps-field">
-                    <label className="ps-label">Maximum Withdrawal Limit (USD)</label>
+                    <label className="ps-label">Maximum Withdrawal Limit (USDT)</label>
                     <input className="ps-input" type="number" value={maxWithdrawal} onChange={(e) => setMaxWithdrawal(e.target.value)} />
                 </div>
             </div>

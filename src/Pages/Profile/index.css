@@ -316,7 +316,7 @@
 
 .card-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 1rem;
 }
@@ -355,7 +355,7 @@
     color: #FFD700;
 }
 
-.usd-equivalent {
+.USDT-equivalent {
     color: #B0B0B0;
     font-size: 0.9rem;
     margin: 0;

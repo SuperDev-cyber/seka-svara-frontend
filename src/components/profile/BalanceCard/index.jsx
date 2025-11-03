@@ -74,11 +74,11 @@ const BalanceCard = () => {
     };
 
     const formatAmount = (amount) => {
-        return parseFloat(amount || 0).toFixed(2);
+        return parseFloat(amount || 0).toFixed(0);
     };
 
-    const formatUsdEquivalent = (amount) => {
-        return `≈ $${(parseFloat(amount || 0) * 1.0).toFixed(3)}`; // Assuming 1:1 USDT to USD
+    const formatUSDTEquivalent = (amount) => {
+        return `≈ $${(parseFloat(amount || 0) * 1.0).toFixed(0)}`; // Assuming 1:1 USDT to USDT
     };
     if (loading) {
         return (
@@ -86,11 +86,11 @@ const BalanceCard = () => {
                 <div className='balance-cards'>
                     <div className='balance-card total-balance-card'>
                         <div className='card-header'>
-                            <h3>SEKA Balance</h3>
+                            <h3>USDT Balance</h3>
                         </div>
                         <div className='card-content'>
                             <div className='main-amount gold-text'>Loading...</div>
-                            <div className='usd-equivalent'>Loading...</div>
+                            <div className='USDT-equivalent'>Loading...</div>
                         </div>
                     </div>
                 </div>
@@ -105,7 +105,7 @@ const BalanceCard = () => {
     return (
         <div className='balance-section'>
             <div className='balance-cards'>
-                <div className='balance-card total-balance-card' style={{
+                {/* <div className='balance-card total-balance-card' style={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     border: '2px solid #ffd700'
                 }}>
@@ -116,35 +116,50 @@ const BalanceCard = () => {
                         <div className='main-amount gold-text' style={{ color: '#ffd700' }}>
                             {formatAmount(totalBalance)} SEKA
                         </div>
-                        <div className='usd-equivalent'>{formatUsdEquivalent(totalBalance)}</div>
+                        <div className='USDT-equivalent'>{formatUSDTEquivalent(totalBalance)}</div>
                         <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.9 }}>
                             Used for all game activities
                         </div>
                     </div>
-                </div>
+                </div> */}
 
-                {/* <div className='balance-card network-card'>
+                <div className='balance-card network-card' style={{
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    border: '2px solid #fbbf24'
+                }}>
                     <div className='card-header'>
-                        <h3>💾 Virtual Balance</h3>
-                        <span className='network-tag'>Database</span>
+                        <h3>🏆 Seka-Svara Score</h3>
+                        {/* <span className='network-tag' style={{ 
+                            background: '#f59e0b',
+                            color: '#fff'
+                        }}>
+                            Seka-Svara-Points
+                        </span> */}
                     </div>
                     <div className='card-content'>
-                        <div className='main-amount'>{formatAmount(virtualBalance)} SEKA</div>
-                        <div className='network-name'>Backend Balance</div>
+                        <div className='main-amount' style={{ color: '#fbbf24' }}>
+                            {formatAmount(user?.platformScore || 0)} USDT
+                        </div>
+                        <div className='network-name' style={{ opacity: 0.9 }}>
+                            Mirrors your USDT balance
+                        </div>
+                        <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.8 }}>
+                            Used for admin tracking
+                        </div>
                     </div>
-                </div> */}
+                </div>
 
                 <div className='balance-card network-card'>
                     <div className='card-header'>
                         <h3>⛓️ Contract Balance</h3>
-                        <span className='network-tag' style={{ 
+                        {/* <span className='network-tag' style={{ 
                             background: isConnected ? '#22c55e' : '#666' 
                         }}>
                             {isConnected ? currentNetwork || 'Connected' : 'Not Connected'}
-                        </span>
+                        </span> */}
                     </div>
                     <div className='card-content'>
-                        <div className='main-amount'>{formatAmount(contractBalance)} SEKA</div>
+                        <div className='main-amount'>{formatAmount(contractBalance)} USDT</div>
                         <div className='network-name'>Smart Contract</div>
                     </div>
                 </div>
@@ -171,7 +186,7 @@ const BalanceCard = () => {
                     }}
                 >
                     <img src={withdraw} alt='withdraw' width={30} />
-                    Withdraw SEKA
+                    Withdraw USDT
                 </button>
             </div>
 

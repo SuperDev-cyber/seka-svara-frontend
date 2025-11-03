@@ -7,7 +7,7 @@ export const GAME_ESCROW_ABI = [
       "inputs": [
         {
           "internalType": "address",
-          "name": "_usdtAddress",
+          "name": "_USDTAddress",
           "type": "address"
         }
       ],
@@ -230,7 +230,7 @@ export const GAME_ESCROW_ABI = [
       "inputs": [
         {
           "internalType": "address",
-          "name": "newUsdtAddress",
+          "name": "newUSDTAddress",
           "type": "address"
         }
       ],
@@ -241,7 +241,7 @@ export const GAME_ESCROW_ABI = [
     },
     {
       "inputs": [],
-      "name": "usdt",
+      "name": "USDT",
       "outputs": [
         {
           "internalType": "contract IERC20",

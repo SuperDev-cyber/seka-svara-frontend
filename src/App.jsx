@@ -23,6 +23,7 @@ import NotFound from './Pages/NotFound/index.jsx';
 import Support from './Pages/Support/index.jsx';
 import GameTable from './Pages/GameTable/index.jsx';
 import Admin from './Pages/Admin/index.jsx';
+import AdminLogin from './Pages/Admin/Login/index.jsx';
 
 function App() {
   const googleClientId = '485100795433-qcoglhlidiih80k2ptc49g2fuv526lqo.apps.googleusercontent.com';
@@ -47,6 +48,7 @@ function App() {
               <Login />
             </ProtectedRoute>
           } />
+          <Route path="/admin/login" element={<AdminLogin />} />
           
           {/* Protected routes */}
           <Route path="/profile" element={

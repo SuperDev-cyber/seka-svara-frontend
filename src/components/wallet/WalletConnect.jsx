@@ -8,7 +8,7 @@ const WalletConnect = () => {
     currentNetwork,
     account,
     balance,
-    usdtBalance,
+    USDTBalance,
     loading,
     error,
     connectMetaMask,
@@ -72,7 +72,7 @@ const WalletConnect = () => {
             <div className="balance-item">
               <span className="balance-label">USDT:</span>
               <span className="balance-value">
-                {formatAmount(usdtBalance)} USDT
+                {formatAmount(USDTBalance)} USDT
               </span>
             </div>
           </div> */}

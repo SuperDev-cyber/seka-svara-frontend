@@ -3,7 +3,7 @@ import { useWallet } from '../../contexts/WalletContext';
 import { useAuth } from '../../contexts/AuthContext';
 import './WalletBalance.css';
 
-const WalletBalance = ({ showUsdtOnly = false, className = '' }) => {
+const WalletBalance = ({ showUSDTOnly = false, className = '' }) => {
   const {
     isConnected,
     currentNetwork,

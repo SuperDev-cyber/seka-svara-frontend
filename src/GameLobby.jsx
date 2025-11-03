@@ -83,12 +83,12 @@ function GameLobby() {
       setIsConnected(true);
       newSocket.emit('user_online', { userId, email: userEmail });
       
-      // Request existing active tables from server
-      newSocket.emit('get_active_tables', {}, (response) => {
+      // ✅ Request existing active tables from server WITH userId for privacy filtering
+      newSocket.emit('get_active_tables', { userId }, (response) => {
         console.log('📋 Active tables response:', response);
         if (response.success && response.tables) {
           setAvailableTables(response.tables);
-          console.log(`✅ Loaded ${response.tables.length} existing tables`);
+          console.log(`✅ Loaded ${response.tables.length} existing tables (filtered by privacy)`);
         }
       });
     });
@@ -132,7 +132,17 @@ function GameLobby() {
     // Listen for real-time table updates
     newSocket.on('table_created', (data) => {
       console.log('🎮 New table created:', data);
-      setAvailableTables(prev => [...prev, data]);
+      // ✅ Only add if: public table OR user is creator OR user is invited
+      const isPublic = !data.isPrivate && data.privacy !== 'private';
+      const isCreator = data.creatorId === userId;
+      const isInvited = data.invitedPlayers?.includes(userId);
+      
+      if (isPublic || isCreator || isInvited) {
+        console.log('✅ Adding table to lobby (access granted)');
+        setAvailableTables(prev => [...prev, data]);
+      } else {
+        console.log('🔒 Skipping private table (no access)');
+      }
     });
 
     newSocket.on('table_updated', (data) => {
@@ -590,8 +600,8 @@ function GameLobby() {
                     <label>Entry Fee (USDT)</label>
                     <input
                       type="number"
-                      min="5"
-                      max="200"
+                      min="1"
+                      max="1000"
                       value={entryFee}
                       onChange={(e) => setEntryFee(Number(e.target.value))}
                       className="form-input"
@@ -599,12 +609,12 @@ function GameLobby() {
                     <div className="range-slider">
                       <input
                         type="range"
-                        min="5"
-                        max="200"
+                        min="1"
+                        max="1000"
                         value={entryFee}
                         onChange={(e) => setEntryFee(Number(e.target.value))}
                       />
-                      <span>5 USDT - 200 USDT</span>
+                      <span>1 USDT - 1000 USDT</span>
                     </div>
                   </div>
 
@@ -644,7 +654,7 @@ function GameLobby() {
                   </div>
                   <div className="summary-item">
                     <span>Platform Fee (2%)</span>
-                    <strong>{(entryFee * maxPlayers * 0.02).toFixed(2)} USDT</strong>
+                    <strong>{(entryFee * maxPlayers * 0.02).toFixed(0)} USDT</strong>
                   </div>
                 </div>
               </div>

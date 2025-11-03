@@ -8,8 +8,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     isConnected,
     currentNetwork,
     account,
-    usdtBalance,
-    sendUsdt,
+    USDTBalance,
+    sendUSDT,
     connectMetaMask,
     connectTronLink,
     networks,
@@ -84,7 +84,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       return;
     }
 
-    const userBalance = parseFloat(usdtBalance || 0);
+    const userBalance = parseFloat(USDTBalance || 0);
     // if (userBalance < depositAmount) {
     //   setMessage(`Insufficient USDT balance. You have ${userBalance} USDT.`);
     //   setMessageType('error');
@@ -110,7 +110,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
         network: selectedNetwork,
       });
 
-      const tx = await sendUsdt(adminAddress, depositAmount, selectedNetwork);
+      const tx = await sendUSDT(adminAddress, depositAmount, selectedNetwork);
       console.log('✅ Transaction completed:', tx);
 
       // Extract transaction hash based on network
@@ -237,7 +237,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             <div className="wallet-status success">
               ✅ Wallet Connected: {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
               <br />
-              💰 Your USDT Balance: {parseFloat(usdtBalance || 0).toFixed(2)} USDT
+              💰 Your USDT Balance: {parseFloat(USDTBalance || 0).toFixed(0)} USDT
             </div>
           )}
 
@@ -281,7 +281,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             />
             {isConnected && currentNetwork === selectedNetwork && (
               <p className="input-hint">
-                Available: {parseFloat(usdtBalance || 0).toFixed(2)} USDT
+                Available: {parseFloat(USDTBalance || 0).toFixed(0)} USDT
               </p>
             )}
           </div>
@@ -314,7 +314,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           <div className="info-box" style={{ background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)', border: '2px solid #667eea' }}>
             <h4>🎮 About SEKA Points:</h4>
             <p style={{ marginBottom: '10px' }}>
-              <strong>Your USDT → SEKA Points → Play Games</strong>
+              <strong>Your USDT → SEKA USDT → Play Games</strong>
             </p>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               <li>✅ All game activities use <strong>SEKA Points</strong> (virtual balance)</li>

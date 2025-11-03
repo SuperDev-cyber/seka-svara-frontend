@@ -111,90 +111,310 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         }
     };
 
-    // NEW: Send invitation immediately when Invite button is clicked
-    const handleFriendInvite = (friendUser) => {
+    // ✅ INSTANT INVITE: Send invitation IMMEDIATELY when clicking invite button
+    const handleFriendInvite = async (friendUser) => {
         // Prevent inviting yourself
         if (friendUser.userId === (user?.id || user?.userId)) {
+            setMessage('You cannot invite yourself');
+            setMessageType('error');
+            return;
+        }
+
+        if (!tableData) {
+            setMessage('Please configure table settings first');
+            setMessageType('error');
             return;
         }
 
         if (!socket || !socket.connected) {
-            console.error('❌ Socket not connected');
             setMessage('Socket not connected');
             setMessageType('error');
             return;
         }
 
-        // Generate a pending table ID (will be created when first person joins)
-        const pendingTableId = `pending-${user?.id}-${Date.now()}`;
-
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('📤 SENDING INVITATION (immediate)');
+        console.log('🚀 INSTANT INVITE - SENDING NOW!');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('To:', friendUser.username);
+        console.log('Table:', tableData.tableName);
+        console.log('Entry Fee:', tableData.entryFee);
         
-        const inviteData = {
-            fromUserId: user?.id || user?.userId,
-            fromUsername: user?.username || user?.name || user?.email?.split('@')[0],
-            targetUserId: friendUser.userId,
-            targetUsername: friendUser.username,
-            tableName: tableData.tableName || 'Game Table',
-            tableId: pendingTableId,
-            entryFee: tableData.entryFee || 10,
-            // Include table settings so it can be created on-demand
-            tableSettings: {
-                tableName: tableData.tableName,
-                privacy: tableData.privacy,
-                entryFee: tableData.entryFee,
-                maxPlayers: tableData.maxPlayers || 6,
-                network: tableData.network
-            },
-            gameUrl: `${window.location.origin}/game/${pendingTableId}`
-        };
-
-        console.log('📤 To:', friendUser.username, '(' + friendUser.userId + ')');
-        console.log('📤 Table ID (pending):', pendingTableId);
-        console.log('📤 My socket ID:', socket.id);
+        setIsLoading(true);
         
-        socket.emit('send_game_invitation', inviteData);
-        
-        console.log('✅ Invitation sent!');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        
-        // Store pending table info for creator
-        sessionStorage.setItem('pendingTableId', pendingTableId);
-        sessionStorage.setItem('pendingTableData', JSON.stringify(tableData));
-        
-        setMessage(`Invitation sent to ${friendUser.username}!`);
-        setMessageType('success');
-        
-        // Mark as invited (visual feedback)
-        if (!selectedFriends.includes(friendUser.userId)) {
-            setSelectedFriends([...selectedFriends, friendUser.userId]);
+        try {
+            // ✅ Step 1: Create table if not already created (WITHOUT joining/navigating)
+            if (!tableData.id) {
+                console.log('📋 Creating table (without joining)...');
+                
+                // Create table via socket WITHOUT joining
+                const createTablePromise = new Promise((resolve, reject) => {
+                    socket.emit('create_table', {
+                        creatorId: user?.id || user?.userId,
+                        creatorEmail: user?.email,
+                        creatorUsername: user?.username || user?.name || user?.email?.split('@')[0],
+                        creatorAvatar: user?.avatar,
+                        tableName: tableData.tableName || 'Game Table',
+                        entryFee: tableData.entryFee || 10,
+                        maxPlayers: tableData.maxPlayers || 6,
+                        network: tableData.network || 'BSC',
+                        privacy: tableData.privacy || 'public',
+                        isPublic: tableData.privacy === 'public'
+                    }, (response) => {
+                        console.log('📥 Create table response:', response);
+                        if (response && response.success) {
+                            resolve(response);
+                        } else {
+                            reject(new Error(response?.message || 'Failed to create table'));
+                        }
+                    });
+                });
+                
+                const result = await createTablePromise;
+                
+                if (!result || !result.tableId) {
+                    throw new Error('Failed to create table');
+                }
+                
+                // Update tableData with the new ID
+                tableData.id = result.tableId;
+                console.log('✅ Table created (not joined yet):', result.tableId);
+            }
+            
+            // ✅ Step 2: Send invitation IMMEDIATELY
+            const inviteData = {
+                inviterName: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
+                fromUserId: user?.id || user?.userId,
+                fromUsername: user?.username || user?.name || user?.email?.split('@')[0],
+                fromEmail: user?.email,
+                fromAvatar: user?.avatar,
+                targetUserId: friendUser.userId,
+                targetUsername: friendUser.username,
+                tableName: tableData.tableName || 'Game Table',
+                entryFee: tableData.entryFee || 10,
+                tableId: tableData.id,
+                gameUrl: `/game/${tableData.id}`,
+                pending: false,
+            };
+            
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📤 SENDING INVITATION VIA SOCKET');
+            console.log('From:', inviteData.inviterName);
+            console.log('To:', friendUser.username, `(${friendUser.userId})`);
+            console.log('Table ID:', tableData.id);
+            console.log('Full data:', JSON.stringify(inviteData, null, 2));
+            
+            // Send via socket
+            const invitationPromise = new Promise((resolve) => {
+                socket.emit('send_game_invitation', inviteData, (response) => {
+                    console.log('📨 Invitation response:', response);
+                    resolve(response);
+                });
+            });
+            
+            const response = await invitationPromise;
+            
+            if (response && response.success) {
+                console.log('✅ Invitation delivered successfully!');
+                setMessage(`Invitation sent to ${friendUser.username}!`);
+                setMessageType('success');
+                
+                // Mark as invited
+                setSelectedFriends([...selectedFriends, friendUser.userId]);
+            } else {
+                console.error('❌ Failed to send invitation:', response?.error);
+                setMessage(`Failed to send invitation: ${response?.error || 'Unknown error'}`);
+                setMessageType('error');
+            }
+            
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+        } catch (error) {
+            console.error('❌ Error sending invitation:', error);
+            setMessage(error.message || 'Failed to send invitation');
+            setMessageType('error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    // NEW: Join button - navigate to table (will be created on-demand)
-    const handleJoinTable = () => {
-        const pendingTableId = sessionStorage.getItem('pendingTableId');
+    // ✅ NEW: Create table and navigate (invitations already sent via individual Invite buttons)
+    const handleCreateAndJoinTable = async () => {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🎮 CREATE TABLE BUTTON CLICKED!');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('Table already created?', !!tableData.id);
+        console.log('Invitations already sent:', selectedFriends.length);
         
-        if (!pendingTableId) {
-            setMessage('No pending table found. Please send an invitation first.');
+        if (!onCreateTable) {
+            console.error('❌ No onCreateTable function!');
+            setMessage('Cannot create table: No table creation function provided');
             setMessageType('error');
             return;
         }
 
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🎮 JOINING TABLE (will create if needed)');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('Table ID:', pendingTableId);
-        console.log('User:', user?.username || user?.email);
-        
-        // Navigate to table - it will be created on-demand in GameTable component
-        const gameUrl = `/game/${pendingTableId}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(tableData.tableName || 'Game Table')}`;
-        console.log('🚀 Navigating to:', gameUrl);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        
-        window.location.href = gameUrl;
+        setIsCreatingTable(true);
+        setMessage('Joining table...');
+        setMessageType('info');
+
+        try {
+            // ✅ If table already created (by individual invites), join and navigate
+            if (tableData.id) {
+                console.log('✅ Table already created:', tableData.id);
+                console.log('📍 Joining table and navigating...');
+                setMessage(`Joining table... ${selectedFriends.length} invitation(s) sent!`);
+                setMessageType('info');
+                
+                // ✅ Join the table now
+                const joinPromise = new Promise((resolve, reject) => {
+                    socket.emit('join_table', {
+                        tableId: tableData.id,
+                        userId: user?.id || user?.userId,
+                        userEmail: user?.email,
+                        username: user?.username || user?.name || user?.email?.split('@')[0],
+                        avatar: user?.avatar,
+                        tableName: tableData.tableName || 'Game Table',
+                        entryFee: tableData.entryFee || 10
+                    }, (response) => {
+                        console.log('📥 Join table response:', response);
+                        if (response && response.success) {
+                            resolve(response);
+                        } else {
+                            reject(new Error(response?.message || 'Failed to join table'));
+                        }
+                    });
+                });
+                
+                const joinResult = await joinPromise;
+                console.log('✅ Successfully joined table!');
+                
+                setMessage('Success!');
+                setMessageType('success');
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Navigate to game table
+                const gameUrl = `/game/${tableData.id}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(tableData.tableName)}`;
+                console.log('🚀 Navigating to:', gameUrl);
+                window.location.href = gameUrl;
+                
+                return;
+            }
+            
+            // ✅ Otherwise, create table now
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🎮 CREATING TABLE NOW');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('Table Data:', tableData);
+            console.log('Privacy:', tableData.privacy);
+            console.log('Creator:', user?.username || user?.name || user?.email);
+            
+            // Call the parent's onCreateTable with creator data
+            const result = await onCreateTable({
+                creatorId: user?.id || user?.userId,
+                creatorEmail: user?.email,
+                creatorUsername: user?.username || user?.name || user?.email?.split('@')[0],
+                creatorAvatar: user?.avatar,
+            });
+
+            console.log('✅ Table created successfully:', result);
+            console.log('   Table ID:', result?.id);
+            
+            // ✅ SEND INVITATIONS BEFORE CLOSING MODAL
+            if (result && result.id && selectedFriends.length > 0) {
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('📤 SENDING INVITATIONS');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.log('Selected Friends IDs:', selectedFriends);
+                console.log('Available Online Users:', onlineUsers.map(u => ({ id: u.userId, name: u.username })));
+                
+                // Get full friend data for selected friends
+                const friendsToInvite = onlineUsers.filter(u => selectedFriends.includes(u.userId));
+                
+                console.log('Friends to invite (filtered):', friendsToInvite.map(f => ({ id: f.userId, name: f.username })));
+                
+                if (friendsToInvite.length === 0) {
+                    console.error('❌ No matching friends found in online users!');
+                    console.error('   Selected IDs:', selectedFriends);
+                    console.error('   Online user IDs:', onlineUsers.map(u => u.userId));
+                }
+                
+                // Send all invitations
+                for (const friend of friendsToInvite) {
+                    const inviteData = {
+                        inviterName: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
+                        fromUserId: user?.id || user?.userId,
+                        fromUsername: user?.username || user?.name || user?.email?.split('@')[0],
+                        fromEmail: user?.email,
+                        fromAvatar: user?.avatar,
+                        targetUserId: friend.userId,
+                        targetUsername: friend.username,
+                        tableName: tableData.tableName || 'Game Table',
+                        entryFee: tableData.entryFee || 10,
+                        tableId: result.id,
+                        gameUrl: `/game/${result.id}`,
+                        pending: false,
+                    };
+                    
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('📤 SENDING INVITATION VIA SOCKET');
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log('From:', inviteData.inviterName);
+                    console.log('To:', friend.username, `(${friend.userId})`);
+                    console.log('Table ID:', result.id);
+                    console.log('Table Name:', tableData.tableName);
+                    console.log('Entry Fee:', tableData.entryFee);
+                    console.log('Game URL:', inviteData.gameUrl);
+                    console.log('Full data:', JSON.stringify(inviteData, null, 2));
+                    console.log('Socket connected:', socket.connected);
+                    console.log('Socket ID:', socket.id);
+                    
+                    // Use Promise to ensure invitation is sent
+                    const invitationPromise = new Promise((resolve) => {
+                        socket.emit('send_game_invitation', inviteData, (response) => {
+                            console.log('📨 Invitation sent response:', response);
+                            if (response) {
+                                if (response.success) {
+                                    console.log('✅ Invitation delivered successfully!');
+                                } else {
+                                    console.error('❌ Failed to send invitation:', response.error);
+                                }
+                            } else {
+                                console.warn('⚠️ No response from server');
+                            }
+                            resolve(response);
+                        });
+                    });
+                    
+                    await invitationPromise;
+                    
+                    console.log('✅ Invitation processed for:', friend.username);
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                }
+                
+                console.log('✅ All', friendsToInvite.length, 'invitation(s) sent!');
+                setMessage(`Table created! ${friendsToInvite.length} invitation(s) sent!`);
+            } else {
+                console.log('ℹ️ No invitations to send (selectedFriends:', selectedFriends.length, ')');
+                setMessage('Table created! Joining now...');
+            }
+            
+            setMessageType('success');
+
+            // ✅ Wait 1 second before closing modal to ensure invitations are sent
+            console.log('⏳ Waiting 1 second before navigation...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            console.log('✅ Closing modal and navigating to table...');
+            onClose();
+
+        } catch (error) {
+            console.error('❌ Error creating table:', error);
+            console.error('Stack:', error.stack);
+            setMessage(error.message || 'Failed to create table');
+            setMessageType('error');
+        } finally {
+            setIsCreatingTable(false);
+        }
     };
 
     const handleShareLink = () => {
@@ -354,15 +574,21 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     <button className="back-btn" onClick={onClose}>
                         Back
                     </button>
-                    {activeTab === 'friends' && selectedFriends.length > 0 && (
-                        <button 
-                            className="create-btn"
-                            onClick={handleJoinTable}
-                            disabled={isLoading}
-                        >
-                            <span>🎮</span> JOIN TABLE
-                        </button>
-                    )}
+                    <button 
+                        className="create-btn"
+                        onClick={handleCreateAndJoinTable}
+                        disabled={isCreatingTable}
+                    >
+                        {isCreatingTable ? (
+                            <>
+                                <span>⏳</span> Creating...
+                            </>
+                        ) : (
+                            <>
+                                <span>🎮</span> CREATE TABLE
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>

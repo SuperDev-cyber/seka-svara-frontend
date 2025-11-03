@@ -61,7 +61,7 @@ const Marketplace = () => {
             title: 'Layla Banks',
             creator: 'TBanks',
             price: '1.29',
-            usdPrice: '$2,574.86',
+            USDTPrice: '$2,574.86',
             likes: 887,
             image: nft1,
             onSale: true
@@ -71,7 +71,7 @@ const Marketplace = () => {
             title: 'Astronaut #1234',
             creator: 'SpaceArt',
             price: '2.45',
-            usdPrice: '$4,890.12',
+            USDTPrice: '$4,890.12',
             likes: 876,
             image: nft2,
             onSale: true
@@ -81,7 +81,7 @@ const Marketplace = () => {
             title: 'Abstract Face #567',
             creator: 'DigitalArt',
             price: '0.89',
-            usdPrice: '$1,778.34',
+            USDTPrice: '$1,778.34',
             likes: 245,
             image: nft3,
             onSale: false
@@ -91,7 +91,7 @@ const Marketplace = () => {
             title: 'Colorful Portrait',
             creator: 'ArtMaster',
             price: '3.12',
-            usdPrice: '$6,224.88',
+            USDTPrice: '$6,224.88',
             likes: 1.2,
             image: nft4,
             onSale: true
@@ -101,7 +101,7 @@ const Marketplace = () => {
             title: 'Retro Monkey',
             creator: 'VintageNFT',
             price: '1.67',
-            usdPrice: '$3,334.66',
+            USDTPrice: '$3,334.66',
             likes: 543,
             image: nft5,
             onSale: true
@@ -111,7 +111,7 @@ const Marketplace = () => {
             title: 'Wooden Stick Guy',
             creator: 'ClassicArt',
             price: '0.45',
-            usdPrice: '$898.90',
+            USDTPrice: '$898.90',
             likes: 123,
             image: nft6,
             onSale: false
@@ -121,7 +121,7 @@ const Marketplace = () => {
             title: 'Neon Portrait',
             creator: 'CyberArt',
             price: '4.33',
-            usdPrice: '$8,646.67',
+            USDTPrice: '$8,646.67',
             likes: 2.1,
             image: nft7,
             onSale: true
@@ -131,7 +131,7 @@ const Marketplace = () => {
             title: 'Hat Monkey',
             creator: 'FunnyNFTs',
             price: '0.78',
-            usdPrice: '$1,556.44',
+            USDTPrice: '$1,556.44',
             likes: 89,
             image: nft8,
             onSale: false
@@ -141,7 +141,7 @@ const Marketplace = () => {
             title: 'Pink Sunglasses',
             creator: 'StyleNFT',
             price: '2.89',
-            usdPrice: '$5,771.11',
+            USDTPrice: '$5,771.11',
             likes: 456,
             image: nft9,
             onSale: true

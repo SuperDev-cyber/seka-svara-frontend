@@ -20,10 +20,16 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await apiService.get('/admin/users');
+            // Add cache-busting timestamp to force fresh data from server
+            const timestamp = new Date().getTime();
+            const response = await apiService.get(`/admin/users?_t=${timestamp}`);
+            console.log('✅ Users data loaded:', response?.length || 0, 'users');
             setUsersData(response || []);
         } catch (error) {
             console.error('Error fetching users:', error);
+            if (window.showToast) {
+                window.showToast(`Error loading users: ${error.message || 'Unknown error'}`, 'error', 5000);
+            }
             // Fallback to static data if API fails
             setUsersData(getStaticUsersData());
         } finally {
@@ -202,6 +208,7 @@ const UserManagement = () => {
                                 </div>
                                 <div className="user-table-cell user-header-cell">User</div>
                                 <div className="user-table-cell user-header-cell">Wallet Address</div>
+                                <div className="user-table-cell user-header-cell">Sekasubara Score</div>
                                 <div className="user-table-cell user-header-cell">Status</div>
                                 <div className="user-table-cell user-header-cell">Registerd</div>
                                 <div className="user-table-cell user-header-cell">Game Played</div>
@@ -226,6 +233,15 @@ const UserManagement = () => {
                                     </div>
                                     <div className="user-table-cell user-wallet-cell">
                                         {user.walletAddress}
+                                    </div>
+                                    <div className="user-table-cell user-score-cell">
+                                        <div className="user-score-container">
+                                            <span className="user-score-icon">🏆</span>
+                                            <span className="user-score-value">
+                                                {(user.platformScore || 0).toLocaleString()}
+                                            </span>
+                                            <span className="user-score-label">pts</span>
+                                        </div>
                                     </div>
                                     <div className="user-table-cell user-status-cell">
                                         <span 

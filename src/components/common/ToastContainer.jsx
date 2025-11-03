@@ -26,13 +26,13 @@ const ToastContainer = () => {
   }, [addToast]);
 
   return (
-    <div className="toast-container">
+    <div className="toast-container" style={{ zIndex: 9999 }}>
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
           message={toast.message}
           type={toast.type}
-          duration={toast.duration}
+          // duration={toast.duration}
           onClose={() => removeToast(toast.id)}
         />
       ))}

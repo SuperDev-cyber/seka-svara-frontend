@@ -83,7 +83,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
 
         if (withdrawAmount > maxWithdrawable) {
-            setMessage(`Maximum withdrawable amount is ${maxWithdrawable.toFixed(2)} SEKA. You need to wager ${(withdrawAmount * 1.3).toFixed(2)} SEKA in games (current: ${totalWagered.toFixed(2)} SEKA wagered)`);
+            setMessage(`Maximum withdrawable amount is ${maxWithdrawable.toFixed(0)} SEKA. You need to wager ${(withdrawAmount * 1.3).toFixed(0)} SEKA in games (current: ${totalWagered.toFixed(0)} SEKA wagered)`);
             setMessageType('error');
             return;
         }
@@ -138,7 +138,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
     const handleMaxAmount = () => {
         const max = Math.min(sekaBalance, maxWithdrawable);
-        setAmount(max.toFixed(2));
+        setAmount(max.toFixed(0));
     };
 
     if (!isOpen) return null;
@@ -217,19 +217,19 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span>Total Game Activity:</span>
                                     <span style={{ fontWeight: 'bold', color: '#4ade80' }}>
-                                        {totalWagered.toFixed(2)} SEKA
+                                        {totalWagered.toFixed(0)} SEKA
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span>Max Withdrawable:</span>
                                     <span style={{ fontWeight: 'bold', color: '#ffd700' }}>
-                                        {maxWithdrawable.toFixed(2)} SEKA
+                                        {maxWithdrawable.toFixed(0)} SEKA
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span>Current SEKA Balance:</span>
                                     <span style={{ fontWeight: 'bold', color: '#60a5fa' }}>
-                                        {sekaBalance.toFixed(2)} SEKA
+                                        {sekaBalance.toFixed(0)} SEKA
                                     </span>
                                 </div>
                                 <div style={{
@@ -292,7 +292,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                         <input
                             type="number"
-                            placeholder={`Max: ${maxWithdrawable.toFixed(2)} SEKA`}
+                            placeholder={`Max: ${maxWithdrawable.toFixed(0)} SEKA`}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="amount-input"
@@ -301,7 +301,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             disabled={isProcessing || loading}
                         />
                         <div style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-                            Available: {sekaBalance.toFixed(2)} SEKA | Max Withdrawable: {maxWithdrawable.toFixed(2)} SEKA
+                            Available: {sekaBalance.toFixed(0)} SEKA | Max Withdrawable: {maxWithdrawable.toFixed(0)} SEKA
                         </div>
                     </div>
 

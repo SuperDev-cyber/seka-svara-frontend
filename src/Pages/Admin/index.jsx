@@ -5,7 +5,9 @@ import AdminSidebar from '../../components/admin/AdminSidebar/index';
 import AdminDashboard from '../../components/admin/AdminDashboard/index';
 import CommissionManagement from './CommissionManagement/index';
 import UserManagement from './UserManagement/index';
+import ScoreManagement from './ScoreManagement/index';
 import TransactionManagement from './TransactionManagement/index';
+import TableManagement from './TableManagement/index';
 import PlatformSettings from './PlatformSettings/index';
 import Reports from './Reports/index';
 import Notifications from './Notifications/index';
@@ -22,12 +24,14 @@ const Admin = () => {
             <AdminSidebar />
             <main className="admin-main">
                 <Routes>
-                    <Route path="/" element={<div style={{padding: '20px', color: 'white'}}>Admin Dashboard Test - Route Working!</div>} />
+                    <Route path="/" element={<AdminDashboard />} />
                     <Route path="/dashboard" element={<AdminDashboard />} />
                     <Route path="/commission" element={<CommissionManagement />} />
                     <Route path="/users" element={<UserManagement />} />
+                    <Route path="/scores" element={<ScoreManagement />} />
                     <Route path="/team" element={<TeamManagement />} />
                     <Route path="/transactions" element={<TransactionManagement />} />
+                    <Route path="/tables" element={<TableManagement />} />
                     <Route path="/settings" element={<PlatformSettings />} />
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/notifications" element={<Notifications />} />

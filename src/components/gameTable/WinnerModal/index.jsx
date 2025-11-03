@@ -4,8 +4,11 @@ import spadeIcon from '../../../assets/images/suits/spade.svg';
 import heartIcon from '../../../assets/images/suits/heart.svg';
 import diamondIcon from '../../../assets/images/suits/diamond.svg';
 import clubIcon from '../../../assets/images/suits/club.svg';
+import { useSocket } from '../../../contexts/SocketContext';
 
-const WinnerModal = ({ show, winnerData, onClose, currentUserId }) => {
+const WinnerModal = ({ show, winnerData, onClose, currentUserId, tableId }) => {
+    const { socket } = useSocket();
+    
     if (!show || !winnerData) return null;
 
     const isWinner = winnerData.winners.includes(currentUserId);
@@ -30,7 +33,27 @@ const WinnerModal = ({ show, winnerData, onClose, currentUserId }) => {
 
     // Helper to format currency
     const formatCurrency = (amount) => {
-        return amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        console.log('amount----------------------', amount);
+        // ✅ Parse and round to prevent decimal errors
+        const numAmount = Math.round(Number(amount) || 0);
+        console.log('numAmount----------------------', numAmount);
+        return numAmount.toLocaleString('en-US');
+    };
+
+    // ✅ Handle close - emit socket event to track modal closure
+    const handleClose = () => {
+        console.log('🎯 Player closing winner modal');
+        
+        if (socket && tableId && currentUserId) {
+            socket.emit('player_modal_closed', {
+                tableId,
+                userId: currentUserId,
+            });
+            console.log('✅ Emitted player_modal_closed event');
+        }
+        
+        // Call parent onClose handler
+        onClose();
     };
 
     return (
@@ -121,7 +144,7 @@ const WinnerModal = ({ show, winnerData, onClose, currentUserId }) => {
                         <div className="pot-row">
                             <span>🎰 Total Pot:</span>
                             <span className="pot-value" style={{ color: '#ffd700', fontWeight: 'bold' }}>
-                                {formatCurrency(winnerData.pot)} SEKA
+                                {formatCurrency(winnerData.pot)} USDT
                             </span>
                         </div>
                     </div>
@@ -188,7 +211,7 @@ const WinnerModal = ({ show, winnerData, onClose, currentUserId }) => {
                     </div>
 
                     {/* Close Button */}
-                    <button className="winner-modal-close" onClick={onClose}>
+                    <button className="winner-modal-close" onClick={handleClose}>
                         Close
                     </button>
                 </div>

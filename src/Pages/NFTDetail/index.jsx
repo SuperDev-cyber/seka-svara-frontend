@@ -47,7 +47,7 @@ const NFTDetail = () => {
         price: {
             current: 850,
             original: 1200,
-            usd: 867
+            USDT: 867
         },
         stats: {
             likes: 687,
@@ -114,7 +114,7 @@ const NFTDetail = () => {
         price: {
             current: passedNft.price?.current || passedNft.currentPrice || passedNft.price || fallbackData.price.current,
             original: passedNft.price?.original || passedNft.originalPrice || fallbackData.price.original,
-            usd: passedNft.price?.usd || passedNft.usd || fallbackData.price.usd
+            USDT: passedNft.price?.USDT || passedNft.USDT || fallbackData.price.USDT
         },
         stats: {
             likes: passedNft.likes || fallbackData.stats.likes,
@@ -381,7 +381,7 @@ const NFTDetail = () => {
                                     <span className="price-amount">{nftData.price.current} USDT</span>
                                     <span className="original-price">{nftData.price.original} USDT</span>
                                 </div>
-                                <div className="usd-price">≈ ${nftData.price.usd} USD</div>
+                                <div className="USDT-price">≈ ${nftData.price.USDT} USDT</div>
                             </div>
                             
                             <div className="action-buttons">

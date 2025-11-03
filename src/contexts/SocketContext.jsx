@@ -15,7 +15,7 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, updatePlatformScore } = useAuth();
 
   useEffect(() => {
     console.log('🔌 SocketContext: useEffect triggered, isAuthenticated:', isAuthenticated, 'user:', user);
@@ -61,6 +61,24 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('connect_error', (error) => {
         console.error('🔌 Connection error:', error);
         setIsConnected(false);
+      });
+
+      // ✅ Listen for real-time balance updates
+      newSocket.on('balance_updated', (data) => {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('💰 BALANCE UPDATE RECEIVED');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('Data:', data);
+        console.log('Current user ID:', user?.id || user?.userId);
+        
+        if (data.userId === (user?.id || user?.userId)) {
+          console.log(`✅ Updating platform score: ${data.platformScore} SEKA`);
+          console.log(`   Reason: ${data.reason}`);
+          updatePlatformScore(data.platformScore);
+        } else {
+          console.log(`⚠️ Balance update for different user: ${data.userId}`);
+        }
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       });
 
       setSocket(newSocket);

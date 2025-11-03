@@ -8,8 +8,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     isConnected,
     currentNetwork,
     account,
-    usdtBalance,
-    sendUsdt,
+    USDTBalance,
+    sendUSDT,
     connectMetaMask,
     connectTronLink,
     sekaContract,
@@ -103,7 +103,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
         network: selectedNetwork,
       });
 
-      const tx = await sendUsdt(adminAddress, depositAmount, selectedNetwork);
+      const tx = await sendUSDT(adminAddress, depositAmount, selectedNetwork);
       console.log('✅ Transaction completed:', tx);
 
       // Extract transaction hash based on network
@@ -318,7 +318,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             }}>
               ✅ Wallet Connected: {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
               <br />
-              💰 Your USDT Balance: {parseFloat(usdtBalance || 0).toFixed(2)} USDT
+              💰 Your USDT Balance: {parseFloat(USDTBalance || 0).toFixed(0)} USDT
             </div>
           )}
 
@@ -406,7 +406,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
                 marginTop: '8px',
                 margin: '8px 0 0 0'
               }}>
-                Available: {parseFloat(usdtBalance || 0).toFixed(2)} USDT
+                Available: {parseFloat(USDTBalance || 0).toFixed(0)} USDT
               </p>
             )}
           </div>
@@ -450,9 +450,9 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             borderRadius: '8px',
             marginBottom: '20px'
           }}>
-            <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#ffd700' }}>🎮 About SEKA Points:</h4>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#ffd700' }}>🎮 About SEKA USDT:</h4>
             <p style={{ marginBottom: '10px', fontSize: '14px' }}>
-              <strong>Your USDT → SEKA Points → Play Games</strong>
+              <strong>Your USDT → SEKA USDT → Play Games</strong>
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', lineHeight: '1.8' }}>
               <li>✅ All game activities use <strong>SEKA Points</strong> (virtual balance)</li>

@@ -103,10 +103,10 @@
 
     <script>
         function clearAllData() {
-            const statusDiv = document.getElementById('status');
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'status warning';
-            statusDiv.textContent = 'Clearing data...';
+            const statUSDTiv = document.getElementById('status');
+            statUSDTiv.style.display = 'block';
+            statUSDTiv.className = 'status warning';
+            statUSDTiv.textContent = 'Clearing data...';
 
             try {
                 // Clear sessionStorage
@@ -120,8 +120,8 @@
                 localStorage.clear();
 
                 // Update status
-                statusDiv.className = 'status success';
-                statusDiv.innerHTML = `
+                statUSDTiv.className = 'status success';
+                statUSDTiv.innerHTML = `
                     ✅ Successfully cleared all browser data!<br>
                     <small>Cleared ${sessionKeys.length} session items and ${localKeys.length} local items</small>
                 `;
@@ -133,8 +133,8 @@
                 });
 
             } catch (error) {
-                statusDiv.className = 'status warning';
-                statusDiv.textContent = '⚠️ Error: ' + error.message;
+                statUSDTiv.className = 'status warning';
+                statUSDTiv.textContent = '⚠️ Error: ' + error.message;
                 console.error('Error clearing storage:', error);
             }
         }

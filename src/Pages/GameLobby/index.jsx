@@ -23,7 +23,8 @@ const GameLobby = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedNetwork, setSelectedNetwork] = useState('All Network');
     const [balance] = useState('$1,247.50 USDT');
-    const [sekaBalance, setSekaBalance] = useState(0); // SEKA balance from wallet
+    const [sekaBalance, setSekaBalance] = useState(0); // SEKA balance from wallet (for reference)
+    const [platformScore, setPlatformScore] = useState(0); // ✅ Platform score from backend (for game entry validation)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [selectedTableForInvite, setSelectedTableForInvite] = useState(null);
@@ -83,7 +84,15 @@ const GameLobby = () => {
         }
     }, [isAuthenticated, user]);
 
-    // Fetch SEKA balance from connected wallet
+    // ✅ Update platform score from user context (for game entry validation)
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            setPlatformScore(user.platformScore || 0);
+            console.log('💰 Platform Score updated from user context:', user.platformScore);
+        }
+    }, [isAuthenticated, user]);
+
+    // Fetch SEKA balance from connected wallet (for reference)
     useEffect(() => {
         const fetchSekaBalance = async () => {
             if (walletConnected && currentNetwork) {
@@ -91,7 +100,7 @@ const GameLobby = () => {
                     const balance = await getBalance(currentNetwork);
                     const balanceNum = parseFloat(balance) || 0;
                     setSekaBalance(balanceNum);
-                    console.log('💰 SEKA Balance fetched:', balanceNum);
+                    console.log('💰 SEKA Contract Balance (reference):', balanceNum);
                 } catch (error) {
                     console.error('❌ Error fetching SEKA balance:', error);
                     setSekaBalance(0);
@@ -222,7 +231,7 @@ const GameLobby = () => {
         // Request active tables from memory (with small delay to ensure we're in lobby room)
         setTimeout(() => {
             console.log('📋 Requesting active tables...');
-            socket.emit('get_active_tables', {}, (response) => {
+            socket.emit('get_active_tables', { userId }, (response) => { // ✅ Send userId to filter private tables
                 if (response.success) {
                     const formattedTables = response.tables.map(table => ({
                         id: table.id,
@@ -275,10 +284,25 @@ const GameLobby = () => {
 
         // Filter by search term
         if (searchTerm) {
-            tables = tables.filter(table => 
-                table.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                table.network.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+            const lowerSearch = searchTerm.toLowerCase().trim();
+            tables = tables.filter(table => {
+                // Search by table ID or network (existing)
+                const matchesIdOrNetwork = 
+                    table.id.toLowerCase().includes(lowerSearch) ||
+                    table.network.toLowerCase().includes(lowerSearch);
+                
+                // ✅ NEW: Search by player count
+                // Supports: "2/6", "2", "3/6", etc.
+                const playerCountString = `${table.currentPlayers}/${table.maxPlayers}`;
+                const matchesPlayerCount = playerCountString.includes(lowerSearch);
+                
+                // Match if search is just a number (e.g., "2" matches tables with 2 current players)
+                const matchesCurrentPlayers = 
+                    !isNaN(lowerSearch) && 
+                    table.currentPlayers === parseInt(lowerSearch);
+                
+                return matchesIdOrNetwork || matchesPlayerCount || matchesCurrentPlayers;
+            });
         }
 
         return tables;
@@ -318,15 +342,15 @@ const GameLobby = () => {
             return;
         }
         
-        if (sekaBalance < entryFeeNum) {
+        if (platformScore < entryFeeNum) {
             alert(`❌ Insufficient SEKA Balance!\n\n` +
                 `Required: ${entryFeeNum} SEKA\n` +
-                `Your Balance: ${sekaBalance.toFixed(2)} SEKA\n\n` +
+                `Your Balance: ${platformScore.toFixed(0)} SEKA\n\n` +
                 `Please deposit more SEKA to play.`);
             return;
         }
         
-        console.log('✅ Balance check passed:', sekaBalance, '>=', entryFeeNum);
+        console.log('✅ Balance check passed:', platformScore, '>=', entryFeeNum);
         
         // First, join via WebSocket
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -380,15 +404,15 @@ const GameLobby = () => {
                 return;
             }
             
-            if (sekaBalance < entryFeeNum) {
+            if (platformScore < entryFeeNum) {
                 alert(`❌ Insufficient SEKA Balance!\n\n` +
                     `Required: ${entryFeeNum} SEKA\n` +
-                    `Your Balance: ${sekaBalance.toFixed(2)} SEKA\n\n` +
+                    `Your Balance: ${platformScore.toFixed(0)} SEKA\n\n` +
                     `Please deposit more SEKA to create a table.`);
                 return;
             }
             
-            console.log('✅ Balance check passed for table creation:', sekaBalance, '>=', entryFeeNum);
+            console.log('✅ Balance check passed for table creation:', platformScore, '>=', entryFeeNum);
 
             console.log('Creating table (IN-MEMORY) with data:', tableData);
             
@@ -397,6 +421,7 @@ const GameLobby = () => {
                 tableName: tableData.tableName,
                 entryFee: tableData.entryFee || 10,
                 maxPlayers: tableData.maxPlayers || 6,
+                privacy: tableData.privacy || 'public', // ✅ Add privacy setting
                 creatorId: userId,
                 creatorEmail: userEmail,
                 creatorUsername: userName,

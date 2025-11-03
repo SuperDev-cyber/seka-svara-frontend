@@ -55,10 +55,16 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const response = await apiService.get('/admin/dashboard-stats');
+            // Add cache-busting timestamp
+            const timestamp = new Date().getTime();
+            const response = await apiService.get(`/admin/dashboard-stats?_t=${timestamp}`);
+            console.log('✅ Dashboard data loaded:', response);
             setDashboardData(response);
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            console.error('❌ Error fetching dashboard data:', error);
+            if (window.showToast) {
+                window.showToast('Error loading dashboard data', 'error', 3000);
+            }
             // Fallback to static data if API fails
             setDashboardData(getStaticDashboardData());
         } finally {
@@ -343,87 +349,9 @@ const AdminDashboard = () => {
         }
     };
 
-    // Data tables
-    const transactionsData = [
-        {
-            id: 1,
-            userName: 'john_doe',
-            type: 'BSC',
-            date: '2024-07-01 14:32',
-            amount: '$1250',
-            status: 'Success'
-        },
-        {
-            id: 2,
-            userName: 'jane_smith',
-            type: 'MSc',
-            date: '2024-07-01 15:15',
-            amount: '$800',
-            status: 'Pending'
-        },
-        {
-            id: 3,
-            userName: 'michael_brown',
-            type: 'PhD',
-            date: '2024-07-02 09:45',
-            amount: '$1500',
-            status: 'Failed'
-        },
-        {
-            id: 4,
-            userName: 'emily_jones',
-            type: 'BSc',
-            date: '2024-07-02 10:30',
-            amount: '$600',
-            status: 'Success'
-        },
-        {
-            id: 5,
-            userName: 'emily_jones',
-            type: 'BSc',
-            date: '2024-07-02 10:30',
-            amount: '$600',
-            status: 'Success'
-        }
-    ];
-
-    const usersData = [
-        {
-            id: 1,
-            userName: 'john_doe',
-            address: '0x742d...8a1f',
-            status: 'Active',
-            date: '2025-10-05'
-        },
-        {
-            id: 2,
-            userName: 'jane_smith',
-            address: '0x9abc...7d3e',
-            status: 'Pending',
-            date: '2025-10-06'
-        },
-        {
-            id: 3,
-            userName: 'alex_johnson',
-            address: '0x3f56...2b9c',
-            status: 'Active',
-            date: '2025-10-07'
-        },
-        {
-            id: 4,
-            userName: 'mary_jones',
-            address: '0x1c34...5e7a',
-            status: 'Active',
-            date: '2025-10-08'
-        },
-        {
-            id: 5,
-            userName: 'mike_davis',
-            address: '0x0e82...4c12',
-            status: 'Blocked',
-            date: '2025-10-09'
-        }
-    ];
+    // Get dynamic data from API or fallback to empty arrays
+    const transactionsData = dashboardData?.latestTransactions || [];
+    const usersData = dashboardData?.latestUsers || [];
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -441,7 +369,7 @@ const AdminDashboard = () => {
     };
 
     // System status data
-    const systemStatusData = [
+    const systemStatUSDTata = [
         {
             id: 1,
             name: 'Binance Smart Chain',
@@ -543,8 +471,10 @@ const AdminDashboard = () => {
             <div className="admin-dashboard-content">
                 {/* Welcome Section */}
                 <div className="admin-welcome">
-                    <h1 className="admin-welcome-title">Welcome Back, Josuaa</h1>
-                    <p className="admin-welcome-subtitle">Welcome back! Here's what's happening with your platform today.</p>
+                    <h1 className="admin-welcome-title">
+                        Welcome back! {user?.username || user?.email?.split('@')[0] || 'Admin'}
+                    </h1>
+                    <p className="admin-welcome-subtitle">Here's what's happening with your platform today.</p>
                 </div>
 
                 {/* Stats Cards */}
@@ -619,23 +549,35 @@ const AdminDashboard = () => {
                             <p className="admin-table-subtitle">Recent platform transactions</p>
                         </div>
                         <div className="admin-table-content">
-                            {transactionsData.map((transaction) => (
-                                <div key={transaction.id} className="admin-table-row">
-                                    <div className="admin-table-row-left">
-                                        <div className="admin-table-row-top">
-                                            <span className="admin-table-username">{transaction.userName}</span>
-                                            <span className="admin-table-type">{transaction.type}</span>
-                                        </div>
-                                        <span className="admin-table-date">{transaction.date}</span>
-                                    </div>
-                                    <div className="admin-table-row-right">
-                                        <span className="admin-table-amount">{transaction.amount}</span>
-                                        <span className="admin-table-status" style={{ backgroundColor: getStatusColor(transaction.status) }}>
-                                            {transaction.status}
-                                        </span>
-                                    </div>
+                            {transactionsData.length === 0 ? (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '40px 20px',
+                                    color: '#9CA3AF'
+                                }}>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>💳</div>
+                                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>No Transactions Yet</div>
+                                    <div style={{ fontSize: '14px' }}>Transactions will appear here when users make deposits</div>
                                 </div>
-                            ))}
+                            ) : (
+                                transactionsData.map((transaction) => (
+                                    <div key={transaction.id} className="admin-table-row">
+                                        <div className="admin-table-row-left">
+                                            <div className="admin-table-row-top">
+                                                <span className="admin-table-username">{transaction.userName}</span>
+                                                <span className="admin-table-type">{transaction.type}</span>
+                                            </div>
+                                            <span className="admin-table-date">{transaction.date}</span>
+                                        </div>
+                                        <div className="admin-table-row-right">
+                                            <span className="admin-table-amount">{transaction.amount}</span>
+                                            <span className="admin-table-status" style={{ backgroundColor: getStatusColor(transaction.status) }}>
+                                                {transaction.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
 
@@ -645,20 +587,32 @@ const AdminDashboard = () => {
                             <p className="admin-table-subtitle">Recently joined users</p>
                         </div>
                         <div className="admin-table-content">
-                            {usersData.map((user) => (
-                                <div key={user.id} className="admin-table-row">
-                                    <div className="admin-table-row-left">
-                                        <span className="admin-table-username">{user.userName}</span>
-                                        <span className="admin-table-address">{user.address}</span>
-                                    </div>
-                                    <div className="admin-table-row-right">
-                                        <span className="admin-table-status" style={{ backgroundColor: getStatusColor(user.status) }}>
-                                            {user.status}
-                                        </span>
-                                        <span className="admin-table-date">{user.date}</span>
-                                    </div>
+                            {usersData.length === 0 ? (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '40px 20px',
+                                    color: '#9CA3AF'
+                                }}>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
+                                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>No Users Yet</div>
+                                    <div style={{ fontSize: '14px' }}>Registered users will appear here</div>
                                 </div>
-                            ))}
+                            ) : (
+                                usersData.map((user) => (
+                                    <div key={user.id} className="admin-table-row">
+                                        <div className="admin-table-row-left">
+                                            <span className="admin-table-username">{user.userName}</span>
+                                            <span className="admin-table-address">{user.address}</span>
+                                        </div>
+                                        <div className="admin-table-row-right">
+                                            <span className="admin-table-status" style={{ backgroundColor: getStatusColor(user.status) }}>
+                                                {user.status}
+                                            </span>
+                                            <span className="admin-table-date">{user.date}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -671,7 +625,7 @@ const AdminDashboard = () => {
                             <p className="admin-status-subtitle">Network and platform status</p>
                         </div>
                         <div className="admin-status-content">
-                            {systemStatusData.map((item) => (
+                            {systemStatUSDTata.map((item) => (
                                 <div key={item.id} className="admin-status-item">
                                     <div className="admin-status-indicator">
                                         <div className="admin-status-dot" style={{ backgroundColor: item.statusColor }}></div>

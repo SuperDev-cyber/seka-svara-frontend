@@ -335,7 +335,7 @@ const TransactionManagement = () => {
 
                     <div className="transaction-amount-filters">
                         <div className="transaction-amount-input-group">
-                            <label className="transaction-amount-label">Min Amount (USD)</label>
+                            <label className="transaction-amount-label">Min Amount (USDT)</label>
                             <input
                                 type="text"
                                 value={minAmount}
@@ -344,7 +344,7 @@ const TransactionManagement = () => {
                             />
                         </div>
                         <div className="transaction-amount-input-group">
-                            <label className="transaction-amount-label">Max Amount (USD)</label>
+                            <label className="transaction-amount-label">Max Amount (USDT)</label>
                             <input
                                 type="text"
                                 value={maxAmount}

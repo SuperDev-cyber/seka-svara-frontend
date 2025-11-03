@@ -20,28 +20,46 @@ const NotificationManager = () => {
       return;
     }
 
+    let timeoutId = null;
+    let retryCount = 0;
+    const MAX_RETRIES = 50; // 5 seconds (50 * 100ms)
+    let cleanupFn = null;
+
     // Wait for socket to be connected before setting up listeners
     const setupListeners = () => {
       console.log('🔌 NotificationManager: Checking socket connection...', {
         socket: !!socket,
         connected: socket?.connected,
-        id: socket?.id
+        id: socket?.id,
+        retry: retryCount
       });
       
       if (!socket.connected) {
-        console.log('🔌 NotificationManager: Socket not connected yet, waiting...');
-        setTimeout(setupListeners, 100);
+        retryCount++;
+        if (retryCount >= MAX_RETRIES) {
+          console.warn('⚠️ NotificationManager: Socket not connected after 5 seconds, giving up');
+          return;
+        }
+        console.log(`🔌 NotificationManager: Socket not connected yet, retry ${retryCount}/${MAX_RETRIES}...`);
+        timeoutId = setTimeout(setupListeners, 100);
         return;
       }
 
-      console.log('🔌 NotificationManager: Setting up socket listeners');
+      console.log('✅ NotificationManager: Setting up socket listeners');
       console.log('🔌 NotificationManager: Socket connected:', socket.connected);
       console.log('🔌 NotificationManager: Socket ID:', socket.id);
 
       const handleGameInvitation = (data) => {
-        console.log('🎯 NotificationManager: Received REAL game invitation:', data);
-        console.log('🎯 Inviter:', data.inviterName, 'Table:', data.tableName);
-        console.log('🎯 Full invitation data:', JSON.stringify(data, null, 2));
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🎯 NotificationManager: GAME INVITATION RECEIVED!');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📩 From:', data.inviterName);
+        console.log('📋 Table:', data.tableName);
+        console.log('💰 Entry Fee:', data.entryFee);
+        console.log('🆔 Table ID:', data.tableId);
+        console.log('🔗 Game URL:', data.gameUrl);
+        console.log('⏰ Pending:', data.pending);
+        console.log('📦 Full data:', JSON.stringify(data, null, 2));
         
         const notification = {
           id: `invitation-${Date.now()}-${Math.random()}`,
@@ -52,20 +70,26 @@ const NotificationManager = () => {
           tableId: data.tableId,
           entryFee: data.entryFee,
           gameUrl: data.gameUrl,
+          pending: data.pending || false, // ✅ Add pending flag
           tableSettings: data.tableSettings, // Include table settings for on-demand creation
           timestamp: new Date(),
           status: 'pending'
         };
 
-        console.log('🔔 Adding notification to state:', notification);
+        console.log('🔔 Creating notification object:', notification);
         setNotifications(prev => {
           const updated = [...prev, notification];
-          console.log('🔔 Updated notifications array:', updated);
+          console.log('🔔 Updated notifications array (count:', updated.length, ')');
+          console.log('🔔 All notifications:', updated);
           return updated;
         });
 
+        console.log('✅ Notification added to state successfully!');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
         // Auto-remove after 30 seconds if not responded
         setTimeout(() => {
+          console.log('⏰ Auto-removing notification after 30s:', notification.id);
           setNotifications(prev => prev.filter(n => n.id !== notification.id));
         }, 30000);
       };
@@ -87,15 +111,28 @@ const NotificationManager = () => {
         console.log('🔌 NotificationManager: Backend confirmed socket ID:', data);
       });
 
-      return () => {
+      cleanupFn = () => {
         console.log('🔌 NotificationManager: Cleaning up socket listeners');
         socket.off('game_invitation', handleGameInvitation);
         socket.off('notification_response', handleNotificationResponse);
+        socket.off('debug_socket_id_response');
       };
     };
 
     // Start setting up listeners
     setupListeners();
+
+    // Cleanup function to clear timeout and socket listeners
+    return () => {
+      console.log('🔌 NotificationManager: useEffect cleanup');
+      if (timeoutId) {
+        console.log('🔌 Clearing pending timeout');
+        clearTimeout(timeoutId);
+      }
+      if (cleanupFn) {
+        cleanupFn();
+      }
+    };
   }, [socket]);
 
   const handleAccept = useCallback((notificationId) => {
@@ -105,34 +142,64 @@ const NotificationManager = () => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ ACCEPTING INVITATION');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('Pending:', notification.pending);
     console.log('Table ID:', notification.tableId);
     console.log('Table Name:', notification.tableName);
     console.log('Inviter:', notification.inviterName);
     console.log('Table Settings:', notification.tableSettings);
 
-    // Send acceptance response
-    if (socket) {
-      socket.emit('respond_to_invitation', {
-        notificationId,
-        response: 'accepted',
-        tableId: notification.tableId,
-        inviterId: notification.inviterId
-      });
+    // ✅ NEW FLOW: Table already exists (inviter created it)
+    // Just join the existing table like clicking JOIN TABLE button
+    if (!notification.tableId) {
+      console.error('❌ No table ID in invitation');
+      alert('Invalid invitation: No table ID');
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      return;
     }
 
-    // Store table info (will be created on-demand when navigating)
-    sessionStorage.setItem('pendingTableId', notification.tableId);
-    if (notification.tableSettings) {
-      sessionStorage.setItem('pendingTableData', JSON.stringify(notification.tableSettings));
+    console.log('📋 Table exists - joining now...');
+    
+    if (!socket) {
+      console.error('❌ Socket not available');
+      return;
     }
-    
-    // Navigate to game table (will create table on-demand)
-    const gameUrl = `/game/${notification.tableId}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(notification.tableName)}&invited=true`;
-    console.log('🚀 Navigating to:', gameUrl);
-    console.log('   Table will be created on-demand if needed');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    window.location.href = gameUrl;
+
+    // ✅ Join the inviter's table (same as JOIN TABLE button)
+    socket.emit('join_table', {
+      tableId: notification.tableId,
+      userId: user?.id || user?.userId,
+      userEmail: user?.email,
+      username: user?.username || user?.name || user?.email?.split('@')[0],
+      avatar: user?.avatar,
+      tableName: notification.tableName,
+      entryFee: notification.entryFee
+    }, (joinResponse) => {
+      console.log('🎮 Join table response:', joinResponse);
+      
+      if (joinResponse && joinResponse.success) {
+        console.log('✅ Successfully joined inviter\'s table');
+        
+        // Send acceptance response
+        if (socket) {
+          socket.emit('respond_to_invitation', {
+            notificationId,
+            response: 'accepted',
+            tableId: notification.tableId,
+            inviterId: notification.inviterId
+          });
+        }
+        
+        // Navigate to the table
+        const gameUrl = `/game/${notification.tableId}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(notification.tableName)}&invited=true`;
+        console.log('🚀 Navigating to inviter\'s table:', gameUrl);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        window.location.href = gameUrl;
+      } else {
+        console.error('❌ Failed to join table:', joinResponse?.message);
+        alert('Failed to join table: ' + (joinResponse?.message || 'Unknown error'));
+      }
+    });
 
     // Remove notification
     setNotifications(prev => prev.filter(n => n.id !== notificationId));

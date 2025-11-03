@@ -7,7 +7,7 @@
           "inputs": [
             {
               "internalType": "address",
-              "name": "_usdtAddress",
+              "name": "_USDTAddress",
               "type": "address"
             }
           ],
@@ -254,7 +254,7 @@
           "inputs": [
             {
               "internalType": "address",
-              "name": "newUsdtAddress",
+              "name": "newUSDTAddress",
               "type": "address"
             }
           ],
@@ -265,7 +265,7 @@
         },
         {
           "inputs": [],
-          "name": "usdt",
+          "name": "USDT",
           "outputs": [
             {
               "internalType": "contract IERC20",
