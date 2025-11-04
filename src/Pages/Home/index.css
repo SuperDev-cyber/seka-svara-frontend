@@ -888,6 +888,14 @@
     .main-title {
         font-size: 2rem;
     }
+
+    .wallet-dropdown{
+        left: -63px;
+    }
+
+    .dropdown-header h3{
+        font-size: 12px;
+    }
     
     .live-tag {
         font-size: 0.8rem;
