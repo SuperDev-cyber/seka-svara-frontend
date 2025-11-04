@@ -26,7 +26,7 @@ const BalanceCard = () => {
     };
 
     return (
-        <div className='balance-section'>
+        <div className='balance-section balance-section-again'>
             <p className='balance-label'>BALANCE</p>
             <p className='balance-amount'>
                 {formatBalance()}

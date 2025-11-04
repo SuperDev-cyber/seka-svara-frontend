@@ -585,7 +585,7 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                             </>
                         ) : (
                             <>
-                                <span>🎮</span> CREATE TABLE
+                                CREATE TABLE
                             </>
                         )}
                     </button>

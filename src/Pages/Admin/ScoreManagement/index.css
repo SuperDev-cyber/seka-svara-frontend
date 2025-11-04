@@ -423,7 +423,7 @@
     border-radius: 16px;
     padding:0 32px 32px 32px;
     width: 95%;
-    max-height: 90vh;
+    max-height: max-content;
     overflow-y: auto;
 }
 
@@ -451,8 +451,8 @@
     border: none;
     color: #fff;
     font-size: 24px;
-    width: 36px;
-    height: 36px;
+    width: 55px;
+    height: 20px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;

@@ -226,7 +226,7 @@
 }
 
 .network-icon {
-    color: #F2994A;
+    background-color: transparent;
 }
 
 .gas-fee {
@@ -300,6 +300,7 @@
     
     .network-options {
         padding: 1rem 1.5rem;
+        grid-template-columns: auto !important;
     }
     
     .payment-modal-actions {
@@ -310,6 +311,10 @@
     .payment-cancel-button,
     .payment-continue-button {
         width: 100%;
+    }
+
+    .deposit-button{
+        flex-direction: column;
     }
 }
 

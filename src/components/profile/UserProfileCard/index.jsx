@@ -95,7 +95,7 @@ const UserProfileCard = () => {
                     console.log('🔑 Token from authToken:', !!localStorage.getItem('authToken'));
                     console.log('🔑 Token from token:', !!localStorage.getItem('token'));
                     
-                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
                     console.log('🌐 API URL:', apiUrl + '/users/profile');
                     
                     console.log('📤 Sending PUT request to backend...');

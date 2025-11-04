@@ -19,7 +19,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance } = useWallet();
-    
+
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
         if (isConnected && currentNetwork && isAuthenticated) {
@@ -28,19 +28,19 @@ const Header = () => {
                 const balance = await getBalance(currentNetwork);
                 console.log("Seka contract balance:", balance);
                 setSekaBalance(balance);
-                
+
                 // ✅ SYNC CONTRACT BALANCE TO BACKEND DATABASE
                 // Convert balance string (e.g., "1020.01") to number
                 const balanceNum = parseFloat(balance) || 0;
-                
+
                 if (balanceNum > 0) {
                     try {
                         const result = await apiService.post('/wallet/sync-balance', {
                             contractBalance: balanceNum
                         });
-                        
+
                         console.log("✅ Balance synced to backend:", result);
-                        
+
                         // ✅ Refresh user profile to update platformScore in context
                         // This will automatically update the UI via the useEffect hook
                         if (refreshUserProfile) {
@@ -76,17 +76,17 @@ const Header = () => {
     // Callback for when deposit is successful
     const handleDepositSuccess = async () => {
         console.log("✨ Deposit successful! Refreshing balances...");
-        
+
         try {
             // Refresh the Seka contract balance
             await fetchSekaBalance();
-            
+
             // ✅ Refresh user profile to update platformScore in context
             // This will automatically update the UI via the useEffect hook
             if (refreshUserProfile) {
                 await refreshUserProfile();
             }
-            
+
             console.log("✅ All balances refreshed successfully!");
         } catch (error) {
             console.error("❌ Error refreshing balances:", error);
@@ -97,13 +97,13 @@ const Header = () => {
     const getDisplayBalance = () => {
         const USDTAmount = parseFloat(USDTBalance || 0);
         const nativeAmount = parseFloat(balance || 0);
-        
+
         // If USDT balance is less than 0.01, show native balance instead
         if (USDTAmount < 0.01 && nativeAmount > 0) {
             const nativeSymbol = currentNetwork === 'BEP20' ? 'BNB' : 'TRX';
             return `${formatAmount(balance)} ${nativeSymbol}`;
         }
-        
+
         // Otherwise show USDT
         return `${formatAmount(USDTBalance)} USDT`;
     };
@@ -158,28 +158,28 @@ const Header = () => {
                     </Link>
                 </div>
 
-                       {/* Desktop Navigation Links */}
-                       <nav className='nav-links desktop-nav'>
-                           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
-                               <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                   <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                   <polyline points="9,22 9,12 15,12 15,22"/>
-                               </svg>
-                               Home
-                           </Link>
-                           <Link to="/marketplace" className={`nav-link ${location.pathname === '/marketplace' ? 'active' : ''}`}>
-                               <img src={marketplaceIcon} alt="Marketplace" className='nav-icon' />
-                               Marketplace
-                           </Link>
-                           <Link to="/gamelobby" className={`nav-link ${location.pathname === '/gamelobby' ? 'active' : ''}`}>
-                               <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                   <line x1="9" y1="9" x2="15" y2="9"/>
-                                   <line x1="9" y1="15" x2="15" y2="15"/>
-                               </svg>
-                               Game Lobby
-                           </Link>
-                       </nav>
+                {/* Desktop Navigation Links */}
+                <nav className='nav-links desktop-nav'>
+                    <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+                        <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                            <polyline points="9,22 9,12 15,12 15,22" />
+                        </svg>
+                        Home
+                    </Link>
+                    <Link to="/marketplace" className={`nav-link ${location.pathname === '/marketplace' ? 'active' : ''}`}>
+                        <img src={marketplaceIcon} alt="Marketplace" className='nav-icon' />
+                        Marketplace
+                    </Link>
+                    <Link to="/gamelobby" className={`nav-link ${location.pathname === '/gamelobby' ? 'active' : ''}`}>
+                        <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <line x1="9" y1="9" x2="15" y2="9" />
+                            <line x1="9" y1="15" x2="15" y2="15" />
+                        </svg>
+                        Game Lobby
+                    </Link>
+                </nav>
 
                 {/* Mobile Menu Button */}
                 <button className='mobile-menu-btn' onClick={toggleMobileMenu}>
@@ -200,18 +200,18 @@ const Header = () => {
                                         <img src={user.avatar} alt={user.username} />
                                     ) : (
                                         <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <circle cx="12" cy="9" r="3"/>
-                                            <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849"/>
+                                            <circle cx="12" cy="12" r="10" />
+                                            <circle cx="12" cy="9" r="3" />
+                                            <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
                                         </svg>
                                     )}
                                 </div>
-                                <span className='user-name'>{user?.username}</span>
+                                {/* <span className='user-name'>{user?.username}</span> */}
                                 <svg className='dropdown-icon' width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="6,9 12,15 18,9"/>
+                                    <polyline points="6,9 12,15 18,9" />
                                 </svg>
                             </button>
-                            
+
                             {showUserMenu && (
                                 <div className='user-menu-dropdown'>
                                     <div className='user-info'>
@@ -221,22 +221,22 @@ const Header = () => {
                                     <div className='user-menu-divider'></div>
                                     <Link to="/profile" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                            <circle cx="12" cy="7" r="4"/>
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                            <circle cx="12" cy="7" r="4" />
                                         </svg>
                                         Profile
                                     </Link>
                                     <Link to="/marketplace" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-6"/>
+                                            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-6" />
                                         </svg>
                                         Marketplace
                                     </Link>
                                     <button className='user-menu-item logout-item' onClick={handleLogout}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                                            <polyline points="16,17 21,12 16,7"/>
-                                            <line x1="21" y1="12" x2="9" y2="12"/>
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                            <polyline points="16,17 21,12 16,7" />
+                                            <line x1="21" y1="12" x2="9" y2="12" />
                                         </svg>
                                         Logout
                                     </button>
@@ -247,17 +247,17 @@ const Header = () => {
                         <Link to="/login" className='signin-register-link'>
                             <span className='signin-text'>Sign in / Register</span>
                             <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <circle cx="12" cy="9" r="3"/>
-                                <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849"/>
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="9" r="3" />
+                                <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
                             </svg>
                         </Link>
                     )}
                     <div className='language-selector'>
                         <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="2" y1="12" x2="22" y2="12"/>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/>
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
                         </svg>
                         Eng
                     </div>
@@ -267,7 +267,7 @@ const Header = () => {
                 <div className='action-buttons desktop-actions'>
                     {/* Show WalletConnect only when wallet is NOT connected */}
                     {!isConnected && <WalletConnect />}
-                    
+
                     {/* Show MY WALLET with balance when wallet IS connected */}
                     {isConnected ? (
                         <>
@@ -279,21 +279,21 @@ const Header = () => {
                                 >
                                     💼 Wallet: {getDisplayBalance()}
                                 </button> */}
-                                <button 
-                                    className='seka-balance-btn' 
+                                <button
+                                    className='seka-balance-btn'
                                     title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
-                                    style={{ 
-                                        background: 'linear-gradient(135deg, rgb(255 186 8) 0%, rgb(255 215 0 / 86%) 100%)',
-                                        border: '2px solid #ffd700',
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
+                                        border: '2px solid rgb(249 148 38)',
                                         fontWeight: 'bold',
                                         cursor: 'default'
                                     }}
                                 >
-                                    🪙 USDT: {Number(platformScore || 0).toFixed(0)}
+                                    USDT: {Number(platformScore || 0).toFixed(0)}
                                 </button>
                             </div>
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
-                                💰 Deposit
+                                Deposit
                             </button>
                         </>
                     ) : isAuthenticated ? (
@@ -303,17 +303,17 @@ const Header = () => {
                             </button>
                             {/* Show deposit button even without wallet connection */}
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
-                                💰 Deposit
+                                Deposit
                             </button>
                         </>
                     ) : (
                         <button className='connect-wallet-btn' onClick={() => navigate('/login')}>
-                            Connect Wallet
+                            Wallet:
                         </button>
                     )}
-                    <button className='play-now-btn' onClick={handlePlayNow}>
+                    {/* <button className='play-now-btn' onClick={handlePlayNow}>
                         Play Now
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Mobile Menu Overlay */}
@@ -322,28 +322,28 @@ const Header = () => {
                 {/* Mobile Menu */}
                 <div className={`mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
                     <div className='mobile-menu-content'>
-                               {/* Mobile Navigation Links */}
-                               <nav className='mobile-nav-links'>
-                                   <Link to="/" className={`mobile-nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                                       <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                           <polyline points="9,22 9,12 15,12 15,22"/>
-                                       </svg>
-                                       Home
-                                   </Link>
-                                   <Link to="/marketplace" className={`mobile-nav-link ${location.pathname === '/marketplace' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                                       <img src={marketplaceIcon} alt="Marketplace" className='nav-icon' />
-                                       Marketplace
-                                   </Link>
-                                   <Link to="/gamelobby" className={`mobile-nav-link ${location.pathname === '/gamelobby' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                                       <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                           <line x1="9" y1="9" x2="15" y2="9"/>
-                                           <line x1="9" y1="15" x2="15" y2="15"/>
-                                       </svg>
-                                       Game Lobby
-                                   </Link>
-                               </nav>
+                        {/* Mobile Navigation Links */}
+                        <nav className='mobile-nav-links'>
+                            <Link to="/" className={`mobile-nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                                <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9,22 9,12 15,12 15,22" />
+                                </svg>
+                                Home
+                            </Link>
+                            <Link to="/marketplace" className={`mobile-nav-link ${location.pathname === '/marketplace' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                                <img src={marketplaceIcon} alt="Marketplace" className='nav-icon' />
+                                Marketplace
+                            </Link>
+                            <Link to="/gamelobby" className={`mobile-nav-link ${location.pathname === '/gamelobby' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                                <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="9" y1="9" x2="15" y2="9" />
+                                    <line x1="9" y1="15" x2="15" y2="15" />
+                                </svg>
+                                Game Lobby
+                            </Link>
+                        </nav>
 
                         {/* Mobile Utility Links */}
                         <div className='mobile-utility-links'>
@@ -354,9 +354,9 @@ const Header = () => {
                                             <img src={user.avatar} alt={user.username} />
                                         ) : (
                                             <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <circle cx="12" cy="12" r="10"/>
-                                                <circle cx="12" cy="9" r="3"/>
-                                                <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849"/>
+                                                <circle cx="12" cy="12" r="10" />
+                                                <circle cx="12" cy="9" r="3" />
+                                                <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
                                             </svg>
                                         )}
                                     </div>
@@ -369,18 +369,18 @@ const Header = () => {
                             ) : (
                                 <Link to="/login" className='mobile-signin-link' onClick={closeMobileMenu}>
                                     <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <circle cx="12" cy="9" r="3"/>
-                                        <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849"/>
+                                        <circle cx="12" cy="12" r="10" />
+                                        <circle cx="12" cy="9" r="3" />
+                                        <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
                                     </svg>
                                     Sign in / Register
                                 </Link>
                             )}
                             <div className='mobile-language-selector'>
                                 <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="2" y1="12" x2="22" y2="12"/>
-                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/>
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
                                 </svg>
                                 English
                             </div>
@@ -394,18 +394,18 @@ const Header = () => {
                                     <WalletConnect />
                                 </div>
                             )}
-                            
+
                             {/* Show balances when connected */}
                             {isConnected && (
                                 <div style={{ width: '100%', marginBottom: '10px' }}>
                                     <button className='mobile-my-wallet-btn' title='Wallet Balance (not used for games)' style={{ opacity: 0.7, marginBottom: '5px' }}>
                                         💼 Wallet: {getDisplayBalance()}
                                     </button>
-                                    <button 
-                                        className='mobile-my-wallet-btn' 
+                                    <button
+                                        className='mobile-my-wallet-btn'
                                         title='SEKA Points - Used for ALL games'
-                                        style={{ 
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        style={{
+                                            background: 'linear-gradient(135deg, rgb(248 145 32) 0%, rgb(223 254 52) 100%)',
                                             border: '2px solid #ffd700',
                                             fontWeight: 'bold'
                                         }}
@@ -414,14 +414,14 @@ const Header = () => {
                                     </button>
                                 </div>
                             )}
-                            
+
                             {isAuthenticated ? (
                                 <>
                                     <Link to="/profile" className='mobile-connect-wallet-btn' onClick={closeMobileMenu}>
                                         Profile
                                     </Link>
                                     <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>
-                                        💰 Deposit
+                                        Deposit
                                     </button>
                                     <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
                                         Play Now
@@ -441,10 +441,10 @@ const Header = () => {
                     </div>
                 </div>
             </div>
-            
+
             {/* Deposit Modal */}
-            <DepositModal 
-                isOpen={showDepositModal} 
+            <DepositModal
+                isOpen={showDepositModal}
                 onClose={() => setShowDepositModal(false)}
                 onDepositSuccess={handleDepositSuccess}
             />

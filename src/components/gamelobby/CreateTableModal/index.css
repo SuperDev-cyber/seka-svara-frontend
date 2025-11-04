@@ -471,7 +471,7 @@
 
 .summary-label {
     color: #CCCCCC;
-    font-size: 0.9rem;
+    font-size: 12px;
 }
 
 .summary-value {
@@ -482,7 +482,7 @@
 
 .summary-fee {
     color: #F2C94C;
-    font-size: 0.9rem;
+    font-size: 12px;
 }
 
 /* ===== NEXT BUTTON ===== */

@@ -215,20 +215,20 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                     Even if you win and use those winnings to play again, that counts as wagered amount.
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span>Total Game Activity:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#4ade80' }}>
+                                    <span style={{fontSize:'12px'}}>Total Game Activity:</span>
+                                    <span style={{ fontWeight: 'bold', color: '#4ade80', fontSize:'12px' }}>
                                         {totalWagered.toFixed(0)} SEKA
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span>Max Withdrawable:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#ffd700' }}>
+                                    <span style={{fontSize:'12px'}}>Max Withdrawable:</span>
+                                    <span style={{ fontWeight: 'bold', color: '#ffd700', fontSize:'12px' }}>
                                         {maxWithdrawable.toFixed(0)} SEKA
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span>Current SEKA Balance:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#60a5fa' }}>
+                                    <span style={{fontSize:'12px'}}>Current SEKA Balance:</span>
+                                    <span style={{ fontWeight: 'bold', color: '#60a5fa', fontSize:'12px' }}>
                                         {sekaBalance.toFixed(0)} SEKA
                                     </span>
                                 </div>

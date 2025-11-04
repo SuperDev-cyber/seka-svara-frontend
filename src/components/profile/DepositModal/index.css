@@ -36,7 +36,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff7f35 0%, #dd7f48 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -85,7 +85,7 @@
 }
 
 .network-options button {
-  padding: 16px;
+  padding: 8px 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
@@ -132,11 +132,10 @@ input[type="text"],
 input[type="number"] {
   width: 100%;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(19, 22, 34);
   border-radius: 8px;
   color: #fff;
-  font-size: 16px;
+  font-size: 12px;
   outline: none;
   box-sizing: border-box;
   transition: all 0.3s;

@@ -58,7 +58,7 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
             {!showInviteModal && (
                 <div className="modal-overlay" onClick={handleOverlayClick}>
                     <div className="create-table-modal">
-                <div className="modal-header">
+                <div className="modal-header" style={{paddingRight:'75px'}}>
                     <h2 className="modal-title">Create New Table</h2>
                     <p className="modal-subtitle">Set up your game table with custom settings</p>
                     <div className="progress-indicator">

@@ -229,7 +229,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
-          }}>💰 Deposit USDT - Automated</h2>
+          }}>💰 Deposit USDT</h2>
           <button 
             onClick={handleClose} 
             disabled={isProcessing}
@@ -454,7 +454,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             <p style={{ marginBottom: '10px', fontSize: '14px' }}>
               <strong>Your USDT → SEKA USDT → Play Games</strong>
             </p>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', lineHeight: '1.8' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '12px', lineHeight: '1.8' }}>
               <li>✅ All game activities use <strong>SEKA Points</strong> (virtual balance)</li>
               <li>✅ Your actual wallet funds are <strong>NEVER touched</strong> during games</li>
               <li>✅ No gas fees for bets, antes, or raises</li>
@@ -521,7 +521,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           display: 'flex',
           gap: '12px',
           justifyContent: 'flex-end'
-        }}>
+        }} className='deposit-button'>
           <button 
             onClick={handleClose} 
             disabled={isProcessing}

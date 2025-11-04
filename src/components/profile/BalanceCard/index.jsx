@@ -124,7 +124,7 @@ const BalanceCard = () => {
                 </div> */}
 
                 <div className='balance-card network-card' style={{
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    background: 'linear-gradient(135deg, rgb(245 76 11) 0%, rgb(217, 119, 6) 100%)',
                     border: '2px solid #fbbf24'
                 }}>
                     <div className='card-header'>

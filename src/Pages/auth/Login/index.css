@@ -461,7 +461,7 @@
     }
 
     .login-form {
-        padding: 0.5rem;
+        padding: 1.5rem;
     }
 
     .login-form h3 {
@@ -474,7 +474,7 @@
     }
 
     .login-btn {
-        padding: 0.6rem;
+        padding: 15px 10px;
         font-size: 0.8rem;
     }
 

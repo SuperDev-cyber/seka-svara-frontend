@@ -19,7 +19,7 @@
 .betting-controls {
   background: #ffffff00;
   border-radius: 12px;
-  padding: 20px 32px;
+  padding: 10px 32px;
   box-shadow: 0 4px 20px rgb(0 0 0 / 43%);
   border: 1px solid #c4a715;
   outline: none;
@@ -89,7 +89,6 @@
 }
 
 .betting-btn {
-  padding: 12px 20px;
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -202,7 +201,7 @@
 .slider-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 5px;
   font-size: 12px;
   color: #6b7280;
 }

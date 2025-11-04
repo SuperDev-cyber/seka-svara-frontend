@@ -456,10 +456,10 @@ const BettingControls = ({
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center',
-              marginBottom: '10px'
+              marginBottom: '5px'
             }}>
-              <span style={{ fontSize: '14px', color: '#aaa' }}>Multiplier: {betMultiplier}x</span>
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffd700' }}>
+              <span style={{ fontSize: '12px', color: '#aaa' }}>Multiplier: {betMultiplier}x</span>
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#ffd700' }}>
                 Bet: {Math.round(betAmount)} USDT
               </span>
             </div>

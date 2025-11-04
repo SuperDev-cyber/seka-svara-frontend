@@ -37,7 +37,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  color: #4ecdc4;
+  color: #ff6b35;
 }
 
 .close-btn {
@@ -89,7 +89,7 @@
   display: block;
   margin-bottom: 12px;
   font-weight: 600;
-  color: #4ecdc4;
+  color: #ff6b35;
 }
 
 .network-options {
@@ -118,7 +118,7 @@
 }
 
 .network-btn.active {
-  border-color: #4ecdc4;
+  border-color: #ff6b35;
   background: rgba(78, 205, 196, 0.1);
 }
 
@@ -150,7 +150,7 @@
 .info-box h3,
 .info-box h4 {
   margin: 0 0 12px 0;
-  color: #4ecdc4;
+  color: #ff6b35;
   font-size: 16px;
 }
 
@@ -169,6 +169,7 @@
 
 .info-box li {
   margin-bottom: 8px;
+  font-size: 12px;
 }
 
 .generate-btn {
@@ -219,7 +220,7 @@
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 20px;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -244,6 +245,7 @@
   margin-bottom: 12px;
   font-weight: 600;
   color: #4ecdc4;
+  font-size: 12px;
 }
 
 .address-display-box {
@@ -529,6 +531,7 @@
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  font-size: 12px;
 }
 
 .warning-icon {
@@ -541,6 +544,7 @@
   color: #f39c12;
   display: block;
   margin-bottom: 12px;
+  font-size: 12px;
 }
 
 .warning-box ul {
@@ -574,7 +578,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f78359 100%);
   color: white;
 }
 

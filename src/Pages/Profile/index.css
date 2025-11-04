@@ -374,12 +374,12 @@
 
 .deposit-btn {
     flex: 1;
-    background: #FFD700;
-    color: #1A1A1A;
-    border: none;
-    padding: 1rem;
+    background: #313131;
+    color: #ffffff;
+    border: 1px solid #f99426;
+    padding: 17px 10px;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -390,7 +390,8 @@
 }
 
 .deposit-btn:hover {
-    background: #FFC107;
+    background: #313131;
+    border: 1px solid #747474cc;
     transform: translateY(-2px);
 }
 
@@ -599,7 +600,7 @@
         grid-template-columns: 1fr;
         gap: 2rem;
     }
-    
+
     .network-balances {
         grid-template-columns: 1fr;
     }
@@ -609,40 +610,44 @@
     .profile-container {
         padding: 0 1rem;
     }
-    
+
     .profile-title {
         font-size: 2rem;
     }
-    
+
     .profile-subtitle {
         font-size: 1rem;
     }
-    
+
     .profile-stats {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .balance-actions {
         flex-direction: column;
     }
-    
+
     .balance-cards {
         grid-template-columns: 1fr;
     }
-    
+
     .transaction-item {
         flex-direction: column;
         gap: 0.5rem;
         text-align: center;
     }
-    
+
     .transaction-details {
         align-items: center;
     }
-    
+
     .transaction-meta {
         justify-content: center;
+    }
+
+    .modal-subtitle{
+        display: none;
     }
 }
 
@@ -656,31 +661,31 @@
     .profile-page {
         padding: 1rem 0;
     }
-    
+
     .profile-container {
         padding: 0 0.5rem;
     }
-    
+
     .profile-card,
     .achievements-card,
     .balance-card,
     .transaction-card {
         padding: 1rem;
     }
-    
+
     .profile-title {
         font-size: 1.5rem;
     }
-    
+
     .balance-amount {
         font-size: 2rem;
     }
-    
+
     .transaction-tabs {
         flex-wrap: wrap;
         gap: 0.25rem;
     }
-    
+
     .tab {
         padding: 0.5rem 0.75rem;
         font-size: 0.8rem;
@@ -908,20 +913,20 @@
         margin: 1rem;
         max-width: calc(100vw - 2rem);
     }
-    
+
     .modal-header {
         padding: 1.5rem 1.5rem 1rem 1.5rem;
     }
-    
+
     .modal-content {
         padding: 0 1.5rem 1.5rem 1.5rem;
     }
-    
+
     .address-container {
         flex-direction: column;
         gap: 0.75rem;
     }
-    
+
     .copy-button {
         width: 100%;
     }
@@ -1003,7 +1008,7 @@
         margin: 1rem;
         max-width: calc(100vw - 2rem);
     }
-    
+
     .available-balance {
         flex-direction: column;
         gap: 0.5rem;

@@ -312,6 +312,28 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1500px) {
+  .connect-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .connect-wallet-btn {
+    padding: 11px 25px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .connect-btn {
+    display: none;
+  }
+
+  .connect-wallet-btn {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .network-selector {
     position: fixed;

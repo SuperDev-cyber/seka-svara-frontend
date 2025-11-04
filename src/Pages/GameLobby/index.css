@@ -103,7 +103,7 @@
 
 .search-input {
     width: 100%;
-    padding: 0.75rem 1rem 0.75rem 3rem;
+    padding: 14px 14px 14px 45px !important;
     background: #1A1A1A;
     border: 1px solid #333;
     border-radius: 8px;
@@ -535,13 +535,25 @@
     }
 
     .game-lobby-header {
-        flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
+    }
+    
+    .game-lobby-title{
+        font-size: 20px;
+    }
+
+    .balance-section{
+        display: block;
+    }
+
+    .balance-section-again{
+        display: none;
     }
 
     .header-right {
         align-items: flex-start;
+        margin-top: 21px;
     }
 
     .search-filter-bar {

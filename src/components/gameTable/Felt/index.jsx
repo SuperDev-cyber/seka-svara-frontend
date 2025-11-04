@@ -259,8 +259,7 @@ const Seat = ({
         <div
           style={{
             position: "relative",
-            display: "inline-block",
-            marginTop: "30px",
+            display: "inline-block"
           }}
         >
           <img
@@ -270,8 +269,8 @@ const Seat = ({
             style={{
               borderRadius: "50%",
               objectFit: "cover",
-              width: "60px",
-              height: "60px",
+              width: "35px",
+              height: "35px",
               border: "2px solid #334155",
               boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
               position: "relative",
@@ -331,7 +330,7 @@ const Seat = ({
 
         <div
           className="player-name"
-          style={{ fontSize: "16px", fontWeight: "bold", marginTop: "8px" }}
+          style={{ fontSize: "12px", fontWeight: "bold" }}
         >
           {displayName}
         </div>
@@ -342,7 +341,6 @@ const Seat = ({
             display: "flex",
             alignItems: "center",
             gap: "6px",
-            marginTop: "4px",
           }}
         >
           <span style={{ fontSize: "18px" }}>🪙</span>
@@ -364,7 +362,7 @@ const Seat = ({
         </div>
 
         {/* ENTRY PAID label */}
-        <div
+        {/* <div
           style={{
             fontSize: "11px",
             color: "#9CA3AF",
@@ -379,7 +377,7 @@ const Seat = ({
             : Number(entryFee)
                 .toFixed(0)
                 .replace(/\.?0+$/, "")}
-        </div>
+        </div> */}
 
         {/* Action status labels - RAISE, CALL, FOLD, WIN */}
         {!isFolded && winAmount > 0 && isShowdown && (
@@ -465,8 +463,8 @@ const Seat = ({
             <div
               style={{
                 position: "absolute",
-                top: "10px",
-                right: "10px",
+                top: "45px",
+                right: "-75px",
                 backgroundColor: "#22C55E",
                 color: "#FFF",
                 padding: "6px 10px",
@@ -532,8 +530,8 @@ const Seat = ({
                     justifyContent: "space-between",
                     gap: "2px",
                     color: suitColor,
-                    width: "75px",
-                    height: "115px",
+                    width: "65px",
+                    height: "95px",
                     border: "3px solid #fff",
                     animation: shouldAnimateFlip
                       ? "cardFlip 0.6s ease-out"
@@ -552,6 +550,7 @@ const Seat = ({
                       marginLeft: "-6px",
                       alignSelf: "flex-start",
                     }}
+                    className="again-text"
                   >
                     {card.rank}
                   </div>
@@ -561,33 +560,36 @@ const Seat = ({
                         src={suitIcon}
                         alt={card.suit}
                         style={{
-                          width: "18px",
-                          height: "32px",
+                          width: "15px",
+                          height: "30px",
+                          zIndex:"2",
                           objectFit: "contain",
                           filter:
                             suitColor === "#DC143C"
                               ? "brightness(0) saturate(100%) invert(21%) sepia(88%) saturate(4477%) hue-rotate(343deg) brightness(90%) contrast(88%)"
                               : "none",
                           top: "20px",
-                          left: "6px",
+                          left: "1px",
                           position: "absolute",
                         }}
+                        className="one-image"
                       />
                       <img
                         src={suitIcon}
                         alt={card.suit}
                         style={{
-                          width: "44px",
-                          height: "48px",
+                          width: "38px",
+                          height: "38px",
                           objectFit: "contain",
                           filter:
                             suitColor === "#DC143C"
                               ? "brightness(0) saturate(100%) invert(21%) sepia(88%) saturate(4477%) hue-rotate(343deg) brightness(90%) contrast(88%)"
                               : "none",
-                          top: "35px",
-                          right: "2px",
+                          top: "33px",
+                          right: "9px",
                           position: "absolute",
                         }}
+                        className="again-image"
                       />
                     </div>
                   )}
@@ -601,6 +603,7 @@ const Seat = ({
                       alignSelf: "flex-end",
                       transform: "rotate(180deg)",
                     }}
+                    className="again-text"
                   >
                     {card.rank}
                   </div>
@@ -617,8 +620,8 @@ const Seat = ({
                 src={cardBackSrc}
                 alt="card"
                 style={{
-                  width: "64px",
-                  height: "97px",
+                  width: "60px",
+                  height: "90px",
                   objectFit: "cover",
                   borderRadius: "10px",
                   flex: "0 0 auto",
@@ -630,8 +633,8 @@ const Seat = ({
                 src={cardBackSrc}
                 alt="card"
                 style={{
-                  width: "64px",
-                  height: "97px",
+                  width: "60px",
+                  height: "90px",
                   objectFit: "cover",
                   borderRadius: "10px",
                   flex: "0 0 auto",
@@ -643,8 +646,8 @@ const Seat = ({
                 src={cardBackSrc}
                 alt="card"
                 style={{
-                  width: "64px",
-                  height: "97px",
+                  width: "60px",
+                  height: "90px",
                   objectFit: "cover",
                   borderRadius: "10px",
                   flex: "0 0 auto",
@@ -876,7 +879,7 @@ const Felt = ({
           style={{
             position: "absolute",
             top: "45%",
-            left: "41%",
+            left: "50%",
             transform: "translate(-50%, -50%)",
             background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
             padding: "15px 40px",

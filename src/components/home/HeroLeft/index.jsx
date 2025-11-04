@@ -142,7 +142,7 @@ const HeroLeft = () => {
                 {/* Wallet Connection Button with Dropdown */}
                 <div className='wallet-connect-container' ref={dropdownRef}>
                     <button 
-                        className='connect-wallet-btn'
+                        className='connect-wallet'
                         onClick={() => {
                             if (!isAuthenticated) {
                                 // Show notification for unregistered users
@@ -250,7 +250,7 @@ const HeroLeft = () => {
                             {formatAddress(account)}
                         </div>
                     </div>
-                    <div className='wallet-balance'>
+                    <div className='wallet-balance'> 
                         <div className='balance-item'>
                             <span className='balance-label'>USDT</span>
                             <span className='balance-value'>{formatAmount(USDTBalance)}</span>
