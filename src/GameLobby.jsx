@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import './GameLobby.css';
 
-const API_BASE = 'http://localhost:8000/api/v1';
-const SOCKET_URL = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/v1`
+  : 'http://localhost:8000/api/v1';
+const SOCKET_URL = import.meta.env.VITE_API_URL 
+  ? import.meta.env.VITE_API_URL.replace('/api/v1', '')
+  : 'http://localhost:8000';
 
 function GameLobby() {
   // User state
