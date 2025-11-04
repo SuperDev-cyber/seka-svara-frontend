@@ -3,7 +3,9 @@
  * Handles all wallet-related API calls to the backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+import { API_CONFIG } from '../config/api.js';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 class WalletApiService {
   constructor() {

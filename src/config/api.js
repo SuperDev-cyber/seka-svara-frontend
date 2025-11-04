@@ -1,6 +1,18 @@
 // API Configuration
+// Ensure VITE_API_URL includes /api/v1 prefix
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    // If VITE_API_URL is provided, ensure it ends with /api/v1
+    const cleanUrl = envUrl.replace(/\/+$/, ''); // Remove trailing slashes
+    return `${cleanUrl}/api/v1`;
+  }
+  // Default to localhost with /api/v1
+  return 'http://localhost:8000/api/v1';
+};
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+  BASE_URL: getApiBaseUrl(),
   TIMEOUT: 10000, // 10 seconds
   RETRY_ATTEMPTS: 3,
 };
