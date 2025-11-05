@@ -621,7 +621,13 @@ const GameTablePage = () => {
 
         // Listen for game starting event (auto-triggered when table is full)
         const handleGameStarting = (data) => {
-            console.log('🎮 Game is starting!', data);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🎮 GAME_STARTING EVENT RECEIVED!');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📦 Event Data:', data);
+            console.log('   Table ID:', data.tableId);
+            console.log('   Countdown:', data.countdown);
+            console.log('   Message:', data.message);
             
             // ✅ FIX: Clear any existing countdown interval before starting new one
             if (countdownIntervalRef.current) {
@@ -630,6 +636,7 @@ const GameTablePage = () => {
                 countdownIntervalRef.current = null;
             }
             
+            console.log('✅ Setting game status to "starting"');
             setGameStatus('starting');
             setGameMessage(data.message || '🎮 Game is starting! Get ready...');
             
