@@ -216,7 +216,7 @@ const Header = () => {
                                 <div className='user-menu-dropdown'>
                                     <div className='user-info'>
                                         <div className='user-email'>{user?.email}</div>
-                                        <div className='user-balance'>Balance: ${Number(user?.balance || 0).toFixed(0)}</div>
+                                        <div className='user-balance'>Balance: ${Number(user?.platformScore || user?.balance || 0).toFixed(0)}</div>
                                     </div>
                                     <div className='user-menu-divider'></div>
                                     <Link to="/profile" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
