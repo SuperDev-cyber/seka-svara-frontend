@@ -359,6 +359,21 @@ const GameTablePage = () => {
         }, (joinResponse) => {
             if (joinResponse && joinResponse.success) {
                 console.log('✅ Successfully joined/created table');
+                
+                // ✅ FIX: Set initial player list from join response for immediate sync
+                if (joinResponse.players && joinResponse.players.length > 0) {
+                    console.log('👥 Setting initial player list from join response:', joinResponse.players);
+                    const formattedPlayers = joinResponse.players.map(player => ({
+                        ...player,
+                        username: player.username || player.email?.split('@')[0] || 'Player',
+                        avatar: player.avatar || null,
+                        balance: player.balance || 0
+                    }));
+                    setPlayers(formattedPlayers);
+                    console.log('✅ Player list initialized:', formattedPlayers.length, 'player(s)');
+                } else {
+                    console.log('⚠️ No player list in join response');
+                }
             } else {
                 console.warn('⚠️ Join table response:', joinResponse);
             }
