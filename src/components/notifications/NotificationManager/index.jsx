@@ -63,6 +63,7 @@ const NotificationManager = () => {
         
         const notification = {
           id: `invitation-${Date.now()}-${Math.random()}`,
+          invitationId: data.id, // ✅ CRITICAL: Store actual invitation ID from database
           type: 'game_invitation',
           inviterName: data.inviterName,
           inviterId: data.inviterId,
@@ -157,49 +158,71 @@ const NotificationManager = () => {
       return;
     }
 
-    console.log('📋 Table exists - joining now...');
+    console.log('📋 Table exists - accepting invitation in database first...');
     
     if (!socket) {
       console.error('❌ Socket not available');
       return;
     }
 
-    // ✅ Join the inviter's table (same as JOIN TABLE button)
-    socket.emit('join_table', {
-      tableId: notification.tableId,
-      userId: user?.id || user?.userId,
-      userEmail: user?.email,
-      username: user?.username || user?.name || user?.email?.split('@')[0],
-      avatar: user?.avatar,
-      tableName: notification.tableName,
-      entryFee: notification.entryFee
-    }, (joinResponse) => {
-      console.log('🎮 Join table response:', joinResponse);
-      
-      if (joinResponse && joinResponse.success) {
-        console.log('✅ Successfully joined inviter\'s table');
+    // ✅ CRITICAL FIX: First, mark invitation as accepted in database
+    if (notification.invitationId) {
+      console.log('📝 Marking invitation as accepted in database...');
+      socket.emit('invite_accept', {
+        invitationId: notification.invitationId,
+        userId: user?.id || user?.userId
+      }, (acceptResponse) => {
+        console.log('📥 Invite accept response:', acceptResponse);
         
-        // Send acceptance response
-        if (socket) {
-          socket.emit('respond_to_invitation', {
-            notificationId,
-            response: 'accepted',
-            tableId: notification.tableId,
-            inviterId: notification.inviterId
-          });
+        if (!acceptResponse || !acceptResponse.success) {
+          console.error('❌ Failed to accept invitation:', acceptResponse?.message);
+          alert('Failed to accept invitation: ' + (acceptResponse?.message || 'Unknown error'));
+          return;
         }
         
-        // Navigate to the table
-        const gameUrl = `/game/${notification.tableId}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(notification.tableName)}&invited=true`;
-        console.log('🚀 Navigating to inviter\'s table:', gameUrl);
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('✅ Invitation accepted in database, now joining table...');
         
-        window.location.href = gameUrl;
-      } else {
-        console.error('❌ Failed to join table:', joinResponse?.message);
-        alert('Failed to join table: ' + (joinResponse?.message || 'Unknown error'));
-      }
-    });
+        // ✅ Now join the inviter's table (same as JOIN TABLE button)
+        socket.emit('join_table', {
+          tableId: notification.tableId,
+          userId: user?.id || user?.userId,
+          userEmail: user?.email,
+          username: user?.username || user?.name || user?.email?.split('@')[0],
+          avatar: user?.avatar,
+          tableName: notification.tableName,
+          entryFee: notification.entryFee
+        }, (joinResponse) => {
+          console.log('🎮 Join table response:', joinResponse);
+          
+          if (joinResponse && joinResponse.success) {
+            console.log('✅ Successfully joined inviter\'s table');
+            
+            // Send acceptance response
+            if (socket) {
+              socket.emit('respond_to_invitation', {
+                notificationId,
+                response: 'accepted',
+                tableId: notification.tableId,
+                inviterId: notification.inviterId
+              });
+            }
+            
+            // Navigate to the table
+            const gameUrl = `/game/${notification.tableId}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(notification.tableName)}&invited=true`;
+            console.log('🚀 Navigating to inviter\'s table:', gameUrl);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            window.location.href = gameUrl;
+          } else {
+            console.error('❌ Failed to join table:', joinResponse?.message);
+            alert('Failed to join table: ' + (joinResponse?.message || 'Unknown error'));
+          }
+        });
+      });
+    } else {
+      console.error('❌ No invitation ID - cannot mark as accepted in database');
+      alert('Invalid invitation: No invitation ID');
+    }
 
     // Remove notification
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
