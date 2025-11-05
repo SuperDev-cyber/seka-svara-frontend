@@ -336,6 +336,12 @@ const GameTablePage = () => {
             return;
         }
         
+        // ✅ FIX: Check if already joined to prevent duplicate calls
+        if (hasJoinedTable.current) {
+            console.log('⏭️ Already joined table, skipping duplicate call');
+            return;
+        }
+        
         console.log('🔗 Joining table to ensure it exists...');
         hasJoinedTable.current = true; // Set flag BEFORE emitting to prevent duplicates
         
