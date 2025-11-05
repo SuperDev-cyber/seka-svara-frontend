@@ -18,8 +18,10 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        console.log('🎯 CreateTableModal: Form submitted, showing invite modal...');
         // Just show the invite modal, don't create table yet
         setShowInviteModal(true);
+        console.log('✅ showInviteModal set to true');
     };
 
     const handleInviteBack = () => {
@@ -206,9 +208,11 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
             )}
 
             {/* Invite Friends Modal */}
+            {showInviteModal && console.log('🎨 Rendering InviteFriendsModal, isOpen:', showInviteModal)}
             <InviteFriendsModal
                 isOpen={showInviteModal}
                 onClose={() => {
+                    console.log('🔙 Closing InviteFriendsModal');
                     setShowInviteModal(false);
                     onClose(); // Also close parent modal
                 }}

@@ -303,8 +303,18 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
 
     if (!isOpen) return null;
 
+    console.log('🎨 InviteFriendsModal: RENDERING! isOpen =', isOpen);
+    console.log('   Table Data:', tableData);
+    console.log('   Online Users:', onlineUsers.length);
+
     return (
-        <div className="invite-modal-overlay">
+        <div className="invite-modal-overlay" onClick={(e) => {
+            // Close modal if clicking on overlay (not the modal itself)
+            if (e.target === e.currentTarget) {
+                console.log('🖱️ Clicked overlay, closing modal');
+                onClose();
+            }
+        }}>
             <div className="invite-modal">
                 <div className="invite-modal-header">
                     <h2>Invite Friends</h2>
