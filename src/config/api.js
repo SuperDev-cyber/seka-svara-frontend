@@ -4,25 +4,31 @@ const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   
   console.log('🔧 [API Config] VITE_API_URL from env:', envUrl);
+  console.log('🔧 [API Config] Current hostname:', window.location.hostname);
+  console.log('🔧 [API Config] Is production?', window.location.hostname.includes('vercel.app'));
+  
+  // Determine base URL based on environment
+  let baseUrlWithoutPrefix;
   
   if (envUrl) {
-    // Remove trailing slashes
-    let cleanUrl = envUrl.replace(/\/+$/, '');
-    
-    // Remove /api/v1 if it exists (to avoid duplication)
-    cleanUrl = cleanUrl.replace(/\/api\/v1\/?$/, '');
-    
-    // Always append /api/v1
-    const baseUrl = `${cleanUrl}/api/v1`;
-    
-    console.log('🔧 [API Config] Final BASE_URL:', baseUrl);
-    return baseUrl;
+    // Use environment variable if provided
+    baseUrlWithoutPrefix = envUrl.replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
+    console.log('🔧 [API Config] Using env var, cleaned URL:', baseUrlWithoutPrefix);
+  } else if (window.location.hostname.includes('vercel.app')) {
+    // Production/Vercel: use Render backend
+    baseUrlWithoutPrefix = 'https://seka-svara-2.onrender.com';
+    console.warn('⚠️ [API Config] VITE_API_URL not set, auto-detecting Vercel deployment, using:', baseUrlWithoutPrefix);
+  } else {
+    // Local development
+    baseUrlWithoutPrefix = 'http://localhost:8000';
+    console.warn('⚠️ [API Config] VITE_API_URL not set, using localhost default:', baseUrlWithoutPrefix);
   }
   
-  // Default to localhost with /api/v1
-  const defaultUrl = 'http://localhost:8000/api/v1';
-  console.warn('⚠️ [API Config] VITE_API_URL not set, using default:', defaultUrl);
-  return defaultUrl;
+  // Always append /api/v1
+  const baseUrl = `${baseUrlWithoutPrefix}/api/v1`;
+  
+  console.log('🔧 [API Config] Final BASE_URL:', baseUrl);
+  return baseUrl;
 };
 
 const BASE_URL = getApiBaseUrl();
