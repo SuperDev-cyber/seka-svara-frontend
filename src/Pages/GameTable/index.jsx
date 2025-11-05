@@ -89,7 +89,8 @@ const GameTablePage = () => {
     // Ready status - REMOVED (auto-start enabled)
     // Countdown timer for game start
     const [countdown, setCountdown] = useState(null);
-    const [showCountdown, setShowCountdown] = useState(false)
+    const [showCountdown, setShowCountdown] = useState(false);
+    const countdownIntervalRef = useRef(null); // Store countdown interval to prevent duplicates
     
     // Extract tableId from params
     // The ID should already be in format: table_xxx
@@ -600,8 +601,16 @@ const GameTablePage = () => {
         // Listen for game starting event (auto-triggered when table is full)
         const handleGameStarting = (data) => {
             console.log('🎮 Game is starting!', data);
+            
+            // ✅ FIX: Clear any existing countdown interval before starting new one
+            if (countdownIntervalRef.current) {
+                console.log('⚠️ Clearing existing countdown interval');
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+            }
+            
             setGameStatus('starting');
-            setGameMessage(Math.round(data.message) || '🎮 Game is starting! Get ready...');
+            setGameMessage(data.message || '🎮 Game is starting! Get ready...');
             
             // Show countdown timer with duration from backend
             const countdownDuration = data.countdown || 10; // Default to 10 seconds
@@ -612,12 +621,13 @@ const GameTablePage = () => {
             
             // Start countdown
             let timeLeft = countdownDuration;
-            const countdownInterval = setInterval(() => {
+            countdownIntervalRef.current = setInterval(() => {
                 timeLeft--;
                 setCountdown(timeLeft);
                 
                 if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
+                    clearInterval(countdownIntervalRef.current);
+                    countdownIntervalRef.current = null;
                     setShowCountdown(false);
                 }
             }, 1000);
@@ -628,9 +638,35 @@ const GameTablePage = () => {
             }, 2000);
         };
 
+        // ✅ NEW: Listen for game start failure
+        const handleGameStartFailed = (data) => {
+            console.error('❌ Game failed to start:', data);
+            
+            // Clear countdown interval
+            if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+            }
+            
+            // Reset to waiting state
+            setGameStatus('waiting');
+            setShowCountdown(false);
+            setGameMessage('');
+            
+            // Show error message to user
+            alert(`❌ Game Failed to Start\n\n${data.message}\n\nError: ${data.error}\n\nPlease try again or leave the table.`);
+        };
+
         // Listen for game started event
         const handleGameStarted = (data) => {
             console.log('✅ Game has started!', data);
+            
+            // ✅ FIX: Clear countdown interval when game starts
+            if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+            }
+            
             setGameStatus('in_progress');
             setGameMessage('🎴 Cards dealt! Game is now in progress!');
             
@@ -1262,6 +1298,7 @@ const GameTablePage = () => {
         socket.on('table_updated', handleTableUpdated);
         socket.on('table_closed', handleTableClosed);
         socket.on('game_starting', handleGameStarting);
+        socket.on('game_start_failed', handleGameStartFailed); // ✅ NEW: Handle game start failures
         socket.on('game_started', handleGameStarted);
         socket.on('game_terminated', handleGameTerminated);
         socket.on('game_state_updated', handleGameStateUpdated);
@@ -1283,6 +1320,7 @@ const GameTablePage = () => {
             socket.off('table_updated', handleTableUpdated);
             socket.off('table_closed', handleTableClosed);
             socket.off('game_starting', handleGameStarting);
+            socket.off('game_start_failed', handleGameStartFailed); // ✅ NEW: Cleanup game start failure listener
             socket.off('game_started', handleGameStarted);
             socket.off('game_terminated', handleGameTerminated);
             socket.off('game_state_updated', handleGameStateUpdated);
@@ -1298,6 +1336,12 @@ const GameTablePage = () => {
             socket.off('table_chat_message', handleTableChatMessage);
             socket.off('disconnect', handleDisconnect);
             clearInterval(heartbeatInterval);
+            
+            // ✅ FIX: Clear countdown interval on component unmount
+            if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+            }
         };
     }, [socket, socketConnected, tableId, userId]); // Removed players and tableData to prevent infinite loop!
 
