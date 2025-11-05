@@ -26,7 +26,8 @@ import Admin from './Pages/Admin/index.jsx';
 import AdminLogin from './Pages/Admin/Login/index.jsx';
 
 function App() {
-  const googleClientId = '485100795433-qcoglhlidiih80k2ptc49g2fuv526lqo.apps.googleusercontent.com';
+  // Use environment variable with fallback for development
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '485100795433-qcoglhlidiih80k2ptc49g2fuv526lqo.apps.googleusercontent.com';
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
