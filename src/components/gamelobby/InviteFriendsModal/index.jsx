@@ -88,35 +88,92 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
             return;
         }
 
-        if (!tableData) {
-            setMessage('No table data available');
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailAddress)) {
+            setMessage('Please enter a valid email address');
+            setMessageType('error');
+            return;
+        }
+
+        if (!socket) {
+            setMessage('Connection error. Please refresh the page.');
             setMessageType('error');
             return;
         }
 
         setIsLoading(true);
-        setMessage('');
+        setMessage('Sending invitation...');
+        setMessageType('');
 
         try {
-            const gameUrl = `${window.location.origin}/game/${tableData.id}?invited=true`;
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📧 SENDING EMAIL INVITATION');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('To:', emailAddress);
+            console.log('Table Data:', tableData);
             
-            const response = await apiService.sendEmailInvite({
-                to: emailAddress,
-                tableName: tableData.tableName || tableData.name,
-                joinLink: gameUrl,
-            });
-
-            if (response.success) {
-                setMessage('Invitation sent successfully!');
-                setMessageType('success');
-                setEmailAddress('');
-            } else {
-                setMessage('Failed to send invitation. Please try again.');
-                setMessageType('error');
+            // If no table created yet, create one first
+            let tableId = createdTableId || tableData?.id;
+            
+            if (!tableId) {
+                console.log('📋 No table exists yet, creating one...');
+                
+                // Create table via create_table event
+                const createTablePromise = new Promise((resolve, reject) => {
+                    socket.emit('create_table', {
+                        tableName: tableData.tableName || 'Email Invitation Game',
+                        entryFee: tableData.entryFee || 10,
+                        maxPlayers: tableData.maxPlayers || 6,
+                        privacy: tableData.privacy || 'public',
+                        network: tableData.network || 'BEP20',
+                        creatorId: user?.id || user?.userId,
+                    }, (response) => {
+                        if (response && response.success) {
+                            resolve(response.tableId);
+                        } else {
+                            reject(new Error(response?.message || 'Failed to create table'));
+                        }
+                    });
+                });
+                
+                tableId = await createTablePromise;
+                setCreatedTableId(tableId);
+                console.log('✅ Table created:', tableId);
             }
+            
+            // Now send email invitation
+            console.log('📧 Sending email to:', emailAddress);
+            const emailPromise = new Promise((resolve, reject) => {
+                socket.emit('invite_by_email', {
+                    email: emailAddress,
+                    tableId: tableId,
+                    tableName: tableData.tableName || 'Game Table',
+                    entryFee: tableData.entryFee || 10,
+                    inviterName: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
+                    inviterUserId: user?.id || user?.userId,
+                }, (response) => {
+                    console.log('📥 Email invitation response:', response);
+                    if (response && response.success) {
+                        resolve(response);
+                    } else {
+                        reject(new Error(response?.error || 'Failed to send email'));
+                    }
+                });
+            });
+            
+            const emailResponse = await emailPromise;
+            console.log('✅ Email invitation sent successfully');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            setMessage(`✉️ Invitation sent to ${emailAddress}!`);
+            setMessageType('success');
+            setEmailAddress('');
+            
         } catch (error) {
-            console.error('Error sending email invitation:', error);
-            setMessage('Failed to send invitation. Please try again.');
+            console.error('❌ Error sending email invitation:', error);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            setMessage(error.message || 'Failed to send invitation. Please try again.');
             setMessageType('error');
         } finally {
             setIsLoading(false);
