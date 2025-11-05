@@ -106,8 +106,20 @@ class ApiService {
     };
 
     try {
+      // Ensure baseURL has /api/v1
+      if (!this.baseURL.includes('/api/v1')) {
+        console.error('❌ [API Service] ERROR: baseURL missing /api/v1!', this.baseURL);
+        throw new Error(`Invalid API baseURL: ${this.baseURL}. Must include /api/v1`);
+      }
+      
       const fullUrl = `${this.baseURL}${endpoint}`;
-      console.log('🌐 API Request:', { method: config.method || 'GET', url: fullUrl, endpoint, baseURL: this.baseURL });
+      console.log('🌐 API Request:', { 
+        method: config.method || 'GET', 
+        url: fullUrl, 
+        endpoint, 
+        baseURL: this.baseURL,
+        envVar: import.meta.env.VITE_API_URL
+      });
       const response = await fetch(fullUrl, config);
       
       // If token expired, try to refresh
