@@ -7,9 +7,17 @@ import { API_CONFIG } from '../config/api.js';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
+// Debug logging for API configuration
+console.log('🔧 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_BASE_URL: API_BASE_URL,
+  fullConfig: API_CONFIG
+});
+
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
+    console.log('🔧 ApiService initialized with baseURL:', this.baseURL);
   }
 
   /**
@@ -98,7 +106,9 @@ class ApiService {
     };
 
     try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+      const fullUrl = `${this.baseURL}${endpoint}`;
+      console.log('🌐 API Request:', { method: config.method || 'GET', url: fullUrl, endpoint, baseURL: this.baseURL });
+      const response = await fetch(fullUrl, config);
       
       // If token expired, try to refresh
       if (response.status === 401 && this.getRefreshToken()) {
