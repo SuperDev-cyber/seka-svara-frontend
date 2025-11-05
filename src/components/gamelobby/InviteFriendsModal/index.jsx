@@ -203,49 +203,24 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         }
     };
 
-    // ✅ NEW: Create table and navigate (invitations already sent via individual Invite buttons)
+    // ✅ FIXED: Join the existing table that was created during invitation
     const handleCreateAndJoinTable = async () => {
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('🎮 CREATE TABLE BUTTON CLICKED!');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('Table already created?', !!tableData.id);
+        console.log('Table ID:', tableData.id);
         console.log('Invitations already sent:', selectedFriends.length);
         
-        // If a table already exists (we sent invites with tableData.id), do NOT create another one.
+        // ✅ CRITICAL FIX: If table was created during invitation, JOIN IT (don't create new one!)
         if (tableData && tableData.id) {
             try {
                 setIsCreatingTable(true);
                 setMessage('Joining table...');
-                const gameUrl = `/game/${tableData.id}?invited=true`;
-                console.log('🔗 Navigating to existing table:', gameUrl);
-                onClose();
-                window.location.href = gameUrl;
-                return;
-            } finally {
-                setIsCreatingTable(false);
-            }
-        }
-
-        if (!onCreateTable) {
-            console.error('❌ No onCreateTable function!');
-            setMessage('Cannot create table: No table creation function provided');
-            setMessageType('error');
-            return;
-        }
-
-        setIsCreatingTable(true);
-        setMessage('Joining table...');
-        setMessageType('info');
-
-        try {
-            // ✅ If table already created (by individual invites), join and navigate
-            if (tableData.id) {
-                console.log('✅ Table already created:', tableData.id);
-                console.log('📍 Joining table and navigating...');
-                setMessage(`Joining table... ${selectedFriends.length} invitation(s) sent!`);
-                setMessageType('info');
                 
-                // ✅ Join the table now
+                console.log('✅ Table already exists - joining via WebSocket first...');
+                
+                // ✅ Step 1: JOIN the existing table via WebSocket
                 const joinPromise = new Promise((resolve, reject) => {
                     socket.emit('join_table', {
                         tableId: tableData.id,
@@ -265,23 +240,42 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     });
                 });
                 
-                const joinResult = await joinPromise;
-                console.log('✅ Successfully joined table!');
+                await joinPromise;
+                console.log('✅ Successfully joined existing table via WebSocket!');
                 
-                setMessage('Success!');
-                setMessageType('success');
-                
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Navigate to game table
+                // ✅ Step 2: NOW navigate to the game
                 const gameUrl = `/game/${tableData.id}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(tableData.tableName)}`;
-                console.log('🚀 Navigating to:', gameUrl);
-                window.location.href = gameUrl;
+                console.log('🚀 Navigating to existing table:', gameUrl);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
+                onClose();
+                window.location.href = gameUrl;
                 return;
+            } catch (error) {
+                console.error('❌ Failed to join existing table:', error);
+                setMessage(`Failed to join table: ${error.message}`);
+                setMessageType('error');
+                return;
+            } finally {
+                setIsCreatingTable(false);
             }
-            
-            // ✅ Otherwise, create table now
+        }
+
+        if (!onCreateTable) {
+            console.error('❌ No onCreateTable function!');
+            setMessage('Cannot create table: No table creation function provided');
+            setMessageType('error');
+            return;
+        }
+
+        // ✅ If we reach here, no table was created yet (no invitations sent)
+        // This is the case when user clicks CREATE TABLE without sending any invites
+        setIsCreatingTable(true);
+        setMessage('Creating table...');
+        setMessageType('info');
+
+        try {
+            // ✅ Create table now (no invitations were sent yet)
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log('🎮 CREATING TABLE NOW');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
