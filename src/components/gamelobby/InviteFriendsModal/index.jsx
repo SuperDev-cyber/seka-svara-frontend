@@ -263,135 +263,10 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
             }
         }
 
-        if (!onCreateTable) {
-            console.error('❌ No onCreateTable function!');
-            setMessage('Cannot create table: No table creation function provided');
-            setMessageType('error');
-            return;
-        }
-
-        // ✅ If we reach here, no table was created yet (no invitations sent)
-        // This is the case when user clicks CREATE TABLE without sending any invites
-        setIsCreatingTable(true);
-        setMessage('Creating table...');
-        setMessageType('info');
-
-        try {
-            // ✅ Create table now (no invitations were sent yet)
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🎮 CREATING TABLE NOW');
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('Table Data:', tableData);
-            console.log('Privacy:', tableData.privacy);
-            console.log('Creator:', user?.username || user?.name || user?.email);
-            
-            // Call the parent's onCreateTable with creator data
-            const result = await onCreateTable({
-                creatorId: user?.id || user?.userId,
-                creatorEmail: user?.email,
-                creatorUsername: user?.username || user?.name || user?.email?.split('@')[0],
-                creatorAvatar: user?.avatar,
-            });
-
-            console.log('✅ Table created successfully:', result);
-            console.log('   Table ID:', result?.id);
-            
-            // ✅ SEND INVITATIONS BEFORE CLOSING MODAL
-            if (result && result.id && selectedFriends.length > 0) {
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('📤 SENDING INVITATIONS');
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                console.log('Selected Friends IDs:', selectedFriends);
-                console.log('Available Online Users:', onlineUsers.map(u => ({ id: u.userId, name: u.username })));
-                
-                // Get full friend data for selected friends
-                const friendsToInvite = onlineUsers.filter(u => selectedFriends.includes(u.userId));
-                
-                console.log('Friends to invite (filtered):', friendsToInvite.map(f => ({ id: f.userId, name: f.username })));
-                
-                if (friendsToInvite.length === 0) {
-                    console.error('❌ No matching friends found in online users!');
-                    console.error('   Selected IDs:', selectedFriends);
-                    console.error('   Online user IDs:', onlineUsers.map(u => u.userId));
-                }
-                
-                // Send all invitations
-                for (const friend of friendsToInvite) {
-                    const inviteData = {
-                        inviterName: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
-                        fromUserId: user?.id || user?.userId,
-                        fromUsername: user?.username || user?.name || user?.email?.split('@')[0],
-                        fromEmail: user?.email,
-                        fromAvatar: user?.avatar,
-                        targetUserId: friend.userId,
-                        targetUsername: friend.username,
-                        tableName: tableData.tableName || 'Game Table',
-                        entryFee: tableData.entryFee || 10,
-                        tableId: result.id,
-                        gameUrl: `/game/${result.id}`,
-                        pending: false,
-                    };
-                    
-                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                    console.log('📤 SENDING INVITATION VIA SOCKET');
-                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                    console.log('From:', inviteData.inviterName);
-                    console.log('To:', friend.username, `(${friend.userId})`);
-                    console.log('Table ID:', result.id);
-                    console.log('Table Name:', tableData.tableName);
-                    console.log('Entry Fee:', tableData.entryFee);
-                    console.log('Game URL:', inviteData.gameUrl);
-                    console.log('Full data:', JSON.stringify(inviteData, null, 2));
-                    console.log('Socket connected:', socket.connected);
-                    console.log('Socket ID:', socket.id);
-                    
-                    // Use Promise to ensure invitation is sent
-                    const invitationPromise = new Promise((resolve) => {
-                        socket.emit('send_game_invitation', inviteData, (response) => {
-                            console.log('📨 Invitation sent response:', response);
-                            if (response) {
-                                if (response.success) {
-                                    console.log('✅ Invitation delivered successfully!');
-                                } else {
-                                    console.error('❌ Failed to send invitation:', response.error);
-                                }
-                            } else {
-                                console.warn('⚠️ No response from server');
-                            }
-                            resolve(response);
-                        });
-                    });
-                    
-                    await invitationPromise;
-                    
-                    console.log('✅ Invitation processed for:', friend.username);
-                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                }
-                
-                console.log('✅ All', friendsToInvite.length, 'invitation(s) sent!');
-                setMessage(`Table created! ${friendsToInvite.length} invitation(s) sent!`);
-            } else {
-                console.log('ℹ️ No invitations to send (selectedFriends:', selectedFriends.length, ')');
-                setMessage('Table created! Joining now...');
-            }
-            
-            setMessageType('success');
-
-            // ✅ Wait 1 second before closing modal to ensure invitations are sent
-            console.log('⏳ Waiting 1 second before navigation...');
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            console.log('✅ Closing modal and navigating to table...');
-            onClose();
-
-        } catch (error) {
-            console.error('❌ Error creating table:', error);
-            console.error('Stack:', error.stack);
-            setMessage(error.message || 'Failed to create table');
-            setMessageType('error');
-        } finally {
-            setIsCreatingTable(false);
-        }
+        // ✅ This should never be reached since button is disabled when tableData.id doesn't exist
+        console.error('❌ Button clicked without table ID - this should not happen!');
+        setMessage('Please send at least one invitation first');
+        setMessageType('error');
     };
 
     const handleShareLink = () => {
@@ -554,15 +429,20 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     <button 
                         className="create-btn"
                         onClick={handleCreateAndJoinTable}
-                        disabled={isCreatingTable}
+                        disabled={isCreatingTable || !tableData.id}
+                        title={!tableData.id ? "Send at least one invitation first" : ""}
                     >
                         {isCreatingTable ? (
                             <>
-                                <span>⏳</span> {tableData.id ? 'Navigating...' : 'Creating...'}
+                                <span>⏳</span> Navigating...
+                            </>
+                        ) : tableData.id ? (
+                            <>
+                                🎮 GO TO TABLE
                             </>
                         ) : (
                             <>
-                                {tableData.id ? '🎮 GO TO TABLE' : '🎮 CREATE TABLE'}
+                                📨 Send Invitation First
                             </>
                         )}
                     </button>
