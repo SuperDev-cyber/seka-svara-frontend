@@ -289,7 +289,7 @@ const Header = () => {
                                         cursor: 'default'
                                     }}
                                 >
-                                    USDT: {Number(platformScore || 0).toFixed(0)}
+                                    USDT: {Number(user?.platformScore || 0).toFixed(0)}
                                 </button>
                             </div>
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
