@@ -180,46 +180,40 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                 console.log('✅ Table created (not joined yet):', result.tableId);
             }
             
-            // ✅ Step 2: Send invitation IMMEDIATELY
-            const inviteData = {
-                inviterName: user?.username || user?.name || user?.email?.split('@')[0] || 'Player',
-                fromUserId: user?.id || user?.userId,
-                fromUsername: user?.username || user?.name || user?.email?.split('@')[0],
-                fromEmail: user?.email,
-                fromAvatar: user?.avatar,
+            // ✅ Step 2: DB-first invite_request
+            const requestPayload = {
                 targetUserId: friendUser.userId,
-                targetUsername: friendUser.username,
-                tableName: tableData.tableName || 'Game Table',
-                entryFee: tableData.entryFee || 10,
-                tableId: tableData.id,
-                gameUrl: `/game/${tableData.id}`,
-                pending: false,
+                tableSettings: {
+                    tableName: tableData.tableName || 'Game Table',
+                    entryFee: tableData.entryFee || 10,
+                    maxPlayers: tableData.maxPlayers || 6,
+                    isPrivate: !!tableData.isPrivate,
+                    network: tableData.network || 'BEP20'
+                },
+                creator: {
+                    userId: user?.id || user?.userId,
+                    email: user?.email,
+                    username: user?.username || user?.name || user?.email?.split('@')[0],
+                    avatar: user?.avatar
+                }
             };
-            
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('📤 SENDING INVITATION VIA SOCKET');
-            console.log('From:', inviteData.inviterName);
-            console.log('To:', friendUser.username, `(${friendUser.userId})`);
-            console.log('Table ID:', tableData.id);
-            console.log('Full data:', JSON.stringify(inviteData, null, 2));
-            
-            // Send via socket
-            const invitationPromise = new Promise((resolve) => {
-                socket.emit('send_game_invitation', inviteData, (response) => {
-                    console.log('📨 Invitation response:', response);
-                    resolve(response);
-                });
+
+            const response = await new Promise((resolve) => {
+                socket.emit('invite_request', requestPayload, (res) => resolve(res));
             });
-            
-            const response = await invitationPromise;
             
             if (response && response.success) {
                 console.log('✅ Invitation delivered successfully!');
                 setMessage(`Invitation sent to ${friendUser.username}!`);
                 setMessageType('success');
                 
-                // Mark as invited
-                setSelectedFriends([...selectedFriends, friendUser.userId]);
+                // Auto-navigate inviter to created table
+                if (response.table?.id) {
+                    const gameUrl = `/game/${response.table.id}?invited=true`;
+                    console.log('🚀 Navigating to created table:', gameUrl);
+                    onClose();
+                    window.location.href = gameUrl;
+                }
             } else {
                 console.error('❌ Failed to send invitation:', response?.error);
                 setMessage(`Failed to send invitation: ${response?.error || 'Unknown error'}`);
