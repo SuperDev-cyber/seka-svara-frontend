@@ -245,6 +245,21 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         console.log('Table already created?', !!tableData.id);
         console.log('Invitations already sent:', selectedFriends.length);
         
+        // If a table already exists (we sent invites with tableData.id), do NOT create another one.
+        if (tableData && tableData.id) {
+            try {
+                setIsCreatingTable(true);
+                setMessage('Joining table...');
+                const gameUrl = `/game/${tableData.id}?invited=true`;
+                console.log('🔗 Navigating to existing table:', gameUrl);
+                onClose();
+                window.location.href = gameUrl;
+                return;
+            } finally {
+                setIsCreatingTable(false);
+            }
+        }
+
         if (!onCreateTable) {
             console.error('❌ No onCreateTable function!');
             setMessage('Cannot create table: No table creation function provided');
