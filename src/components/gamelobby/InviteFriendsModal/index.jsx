@@ -19,6 +19,18 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
 
     const [selectedFriends, setSelectedFriends] = useState([]);
     const [isCreatingTable, setIsCreatingTable] = useState(false);
+    
+    // ✅ FIX: Use local state to track created table ID instead of mutating prop
+    const [createdTableId, setCreatedTableId] = useState(null);
+
+    // Reset state when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setCreatedTableId(null);
+            setSelectedFriends([]);
+            setMessage('');
+        }
+    }, [isOpen]);
 
     // Fetch online users when modal opens
     useEffect(() => {
@@ -170,16 +182,18 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                 console.log('✅ Invitation delivered successfully!');
                 console.log('✅ Table created with ID:', response.table?.id);
                 
-                // ✅ Store the created table ID for subsequent invites
+                // ✅ FIX: Store in local state instead of mutating prop
                 if (response.table?.id) {
+                    setCreatedTableId(response.table.id);
+                    // Also update tableData for compatibility
                     tableData.id = response.table.id;
-                    console.log('💾 Saved table ID for future invites:', tableData.id);
+                    console.log('💾 Saved table ID in state:', response.table.id);
                 }
                 
                 // ✅ REMOVED AUTO-JOIN: Inviter is NOT auto-joined anymore
-                // They must click "GO TO TABLE" button to join
+                // They must click "JOIN TABLE" button to join
                 console.log('📋 Table created but inviter NOT joined yet');
-                console.log('👉 Inviter must click GO TO TABLE button to join');
+                console.log('👉 Inviter must click JOIN TABLE button to join');
                 
                 setMessage(`Invitation sent to ${friendUser.username}!`);
                 setMessageType('success');
@@ -189,8 +203,8 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     setSelectedFriends(prev => [...prev, friendUser.userId]);
                 }
                 
-                // ✅ User can send more invites or click GO TO TABLE
-                console.log('⏳ Waiting for user to send more invites or click GO TO TABLE');
+                // ✅ User can send more invites or click JOIN TABLE
+                console.log('⏳ Waiting for user to send more invites or click JOIN TABLE');
             } else {
                 console.error('❌ Failed to send invitation:', response?.error);
                 setMessage(`Failed to send invitation: ${response?.error || 'Unknown error'}`);
@@ -218,18 +232,19 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         console.log('Invitations already sent:', selectedFriends.length);
         
         // ✅ FIX: If table was created during invitation, JOIN it now via WebSocket
-        if (tableData && tableData.id) {
+        const tableId = createdTableId || tableData?.id;
+        if (tableId) {
             try {
                 setIsCreatingTable(true);
                 setMessage('Joining table...');
                 
                 console.log('✅ Table exists - joining via WebSocket first...');
-                console.log('📋 Table ID:', tableData.id);
+                console.log('📋 Table ID:', tableId);
                 
                 // ✅ Step 1: JOIN the table via WebSocket
                 const joinPromise = new Promise((resolve, reject) => {
                     socket.emit('join_table', {
-                        tableId: tableData.id,
+                        tableId: tableId,
                         userId: user?.id || user?.userId,
                         userEmail: user?.email,
                         username: user?.username || user?.name || user?.email?.split('@')[0],
@@ -250,7 +265,7 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                 console.log('✅ Successfully joined table via WebSocket!');
                 
                 // ✅ Step 2: NOW navigate to the game
-                const gameUrl = `/game/${tableData.id}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(tableData.tableName)}`;
+                const gameUrl = `/game/${tableId}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(tableData.tableName)}`;
                 console.log('🚀 Navigating to table:', gameUrl);
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
@@ -267,7 +282,7 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
             }
         }
 
-        // ✅ This should never be reached since button is disabled when tableData.id doesn't exist
+        // ✅ This should never be reached since button is disabled when no table ID exists
         console.error('❌ Button clicked without table ID - this should not happen!');
         setMessage('Please send at least one invitation first');
         setMessageType('error');
@@ -433,15 +448,15 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     <button 
                         className="create-btn"
                         onClick={handleCreateAndJoinTable}
-                        disabled={isCreatingTable || !tableData.id}
-                        title={!tableData.id ? "Send at least one invitation first" : "Click to join the table"}
-                        style={!tableData.id ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                        disabled={isCreatingTable || (!createdTableId && !tableData?.id)}
+                        title={(!createdTableId && !tableData?.id) ? "Send at least one invitation first" : "Click to join the table"}
+                        style={(!createdTableId && !tableData?.id) ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                     >
                         {isCreatingTable ? (
                             <>
                                 <span>⏳</span> Joining...
                             </>
-                        ) : tableData.id ? (
+                        ) : (createdTableId || tableData?.id) ? (
                             <>
                                 🎮 JOIN TABLE
                             </>
