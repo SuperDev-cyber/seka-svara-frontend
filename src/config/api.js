@@ -3,8 +3,15 @@
 const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) {
-    // If VITE_API_URL is provided, ensure it ends with /api/v1
-    const cleanUrl = envUrl.replace(/\/+$/, ''); // Remove trailing slashes
+    // Remove trailing slashes
+    const cleanUrl = envUrl.replace(/\/+$/, '');
+    
+    // Check if /api/v1 is already included
+    if (cleanUrl.endsWith('/api/v1')) {
+      return cleanUrl;
+    }
+    
+    // Otherwise, append /api/v1
     return `${cleanUrl}/api/v1`;
   }
   // Default to localhost with /api/v1
