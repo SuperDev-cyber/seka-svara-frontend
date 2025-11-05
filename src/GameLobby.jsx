@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import { API_CONFIG } from './config/api.js';
 import './GameLobby.css';
 
-const API_BASE = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/v1`
-  : 'http://localhost:8000/api/v1';
+const API_BASE = API_CONFIG.BASE_URL;
 const SOCKET_URL = import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL.replace('/api/v1', '')
+  ? import.meta.env.VITE_API_URL.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '')
   : 'http://localhost:8000';
 
 function GameLobby() {
