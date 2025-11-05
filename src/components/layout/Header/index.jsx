@@ -363,7 +363,7 @@ const Header = () => {
                                     <div className='mobile-user-details'>
                                         <div className='mobile-user-name'>{user?.username}</div>
                                         <div className='mobile-user-email'>{user?.email}</div>
-                                        <div className='mobile-user-balance'>Balance: ${Number(user?.balance || 0).toFixed(0)}</div>
+                                        <div className='mobile-user-balance'>Balance: ${Number(user?.platformScore || user?.balance || 0).toFixed(0)}</div>
                                     </div>
                                 </div>
                             ) : (
