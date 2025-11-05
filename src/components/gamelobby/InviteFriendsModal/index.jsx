@@ -142,47 +142,11 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         setIsLoading(true);
         
         try {
-            // ✅ Step 1: Create table if not already created (WITHOUT joining/navigating)
-            if (!tableData.id) {
-                console.log('📋 Creating table (without joining)...');
-                
-                // Create table via socket WITHOUT joining
-                const createTablePromise = new Promise((resolve, reject) => {
-                    socket.emit('create_table', {
-                        creatorId: user?.id || user?.userId,
-                        creatorEmail: user?.email,
-                        creatorUsername: user?.username || user?.name || user?.email?.split('@')[0],
-                        creatorAvatar: user?.avatar,
-                        tableName: tableData.tableName || 'Game Table',
-                        entryFee: tableData.entryFee || 10,
-                        maxPlayers: tableData.maxPlayers || 6,
-                        network: tableData.network || 'BSC',
-                        privacy: tableData.privacy || 'public',
-                        isPublic: tableData.privacy === 'public'
-                    }, (response) => {
-                        console.log('📥 Create table response:', response);
-                        if (response && response.success) {
-                            resolve(response);
-                        } else {
-                            reject(new Error(response?.message || 'Failed to create table'));
-                        }
-                    });
-                });
-                
-                const result = await createTablePromise;
-                
-                if (!result || !result.tableId) {
-                    throw new Error('Failed to create table');
-                }
-                
-                // Update tableData with the new ID
-                tableData.id = result.tableId;
-                console.log('✅ Table created (not joined yet):', result.tableId);
-            }
-            
-            // ✅ Step 2: DB-first invite_request
+            // ✅ FIX: Let invite_request handle BOTH table creation AND invitation sending
+            // This prevents duplicate table creation!
             const requestPayload = {
                 targetUserId: friendUser.userId,
+                existingTableId: tableData.id || null, // ✅ Send existing table ID if available
                 tableSettings: {
                     tableName: tableData.tableName || 'Game Table',
                     entryFee: tableData.entryFee || 10,
@@ -204,16 +168,24 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
             
             if (response && response.success) {
                 console.log('✅ Invitation delivered successfully!');
+                console.log('✅ Table created with ID:', response.table?.id);
+                
+                // ✅ CRITICAL: Store the created table ID for subsequent invites
+                if (response.table?.id) {
+                    tableData.id = response.table.id;
+                    console.log('💾 Saved table ID for future invites:', tableData.id);
+                }
+                
                 setMessage(`Invitation sent to ${friendUser.username}!`);
                 setMessageType('success');
                 
-                // Auto-navigate inviter to created table
-                if (response.table?.id) {
-                    const gameUrl = `/game/${response.table.id}?invited=true`;
-                    console.log('🚀 Navigating to created table:', gameUrl);
-                    onClose();
-                    window.location.href = gameUrl;
+                // Mark friend as invited
+                if (!selectedFriends.includes(friendUser.userId)) {
+                    setSelectedFriends(prev => [...prev, friendUser.userId]);
                 }
+                
+                // ✅ DON'T auto-navigate yet - let user send more invites
+                console.log('⏳ Waiting for user to send more invites or click CREATE TABLE');
             } else {
                 console.error('❌ Failed to send invitation:', response?.error);
                 setMessage(`Failed to send invitation: ${response?.error || 'Unknown error'}`);
