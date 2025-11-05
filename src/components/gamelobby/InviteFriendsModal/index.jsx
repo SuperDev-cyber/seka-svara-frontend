@@ -170,34 +170,16 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                 console.log('✅ Invitation delivered successfully!');
                 console.log('✅ Table created with ID:', response.table?.id);
                 
-                // ✅ CRITICAL: Store the created table ID for subsequent invites
-                const isFirstInvite = !tableData.id;
+                // ✅ Store the created table ID for subsequent invites
                 if (response.table?.id) {
                     tableData.id = response.table.id;
                     console.log('💾 Saved table ID for future invites:', tableData.id);
                 }
                 
-                // ✅ CRITICAL FIX: For FIRST invite, join the table immediately via WebSocket
-                // This ensures inviter is in the in-memory activeTables Map
-                if (isFirstInvite && response.table?.id && socket) {
-                    console.log('🎯 FIRST INVITE - Joining table via WebSocket to register in memory...');
-                    
-                    socket.emit('join_table', {
-                        tableId: response.table.id,
-                        userId: user?.id || user?.userId,
-                        userEmail: user?.email,
-                        username: user?.username || user?.name || user?.email?.split('@')[0],
-                        avatar: user?.avatar,
-                        tableName: tableData.tableName || 'Game Table',
-                        entryFee: tableData.entryFee || 10
-                    }, (joinResponse) => {
-                        if (joinResponse && joinResponse.success) {
-                            console.log('✅ Inviter successfully joined table in memory!');
-                        } else {
-                            console.error('❌ Failed to join table:', joinResponse?.message);
-                        }
-                    });
-                }
+                // ✅ REMOVED AUTO-JOIN: Inviter is NOT auto-joined anymore
+                // They must click "GO TO TABLE" button to join
+                console.log('📋 Table created but inviter NOT joined yet');
+                console.log('👉 Inviter must click GO TO TABLE button to join');
                 
                 setMessage(`Invitation sent to ${friendUser.username}!`);
                 setMessageType('success');
@@ -207,8 +189,8 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     setSelectedFriends(prev => [...prev, friendUser.userId]);
                 }
                 
-                // ✅ DON'T auto-navigate yet - let user send more invites
-                console.log('⏳ Waiting for user to send more invites or click CREATE TABLE');
+                // ✅ User can send more invites or click GO TO TABLE
+                console.log('⏳ Waiting for user to send more invites or click GO TO TABLE');
             } else {
                 console.error('❌ Failed to send invitation:', response?.error);
                 setMessage(`Failed to send invitation: ${response?.error || 'Unknown error'}`);
@@ -235,27 +217,49 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         console.log('Table ID:', tableData.id);
         console.log('Invitations already sent:', selectedFriends.length);
         
-        // ✅ CRITICAL FIX: If table was created during invitation, inviter is already joined!
-        // Just navigate to the table directly.
+        // ✅ FIX: If table was created during invitation, JOIN it now via WebSocket
         if (tableData && tableData.id) {
             try {
                 setIsCreatingTable(true);
-                setMessage('Navigating to table...');
+                setMessage('Joining table...');
                 
-                console.log('✅ Table already exists and inviter already joined!');
-                console.log('🚀 Navigating directly to game...');
+                console.log('✅ Table exists - joining via WebSocket first...');
+                console.log('📋 Table ID:', tableData.id);
                 
-                // ✅ Navigate directly (inviter was auto-joined when first invite was sent)
+                // ✅ Step 1: JOIN the table via WebSocket
+                const joinPromise = new Promise((resolve, reject) => {
+                    socket.emit('join_table', {
+                        tableId: tableData.id,
+                        userId: user?.id || user?.userId,
+                        userEmail: user?.email,
+                        username: user?.username || user?.name || user?.email?.split('@')[0],
+                        avatar: user?.avatar,
+                        tableName: tableData.tableName || 'Game Table',
+                        entryFee: tableData.entryFee || 10
+                    }, (response) => {
+                        console.log('📥 Join table response:', response);
+                        if (response && response.success) {
+                            resolve(response);
+                        } else {
+                            reject(new Error(response?.message || 'Failed to join table'));
+                        }
+                    });
+                });
+                
+                await joinPromise;
+                console.log('✅ Successfully joined table via WebSocket!');
+                
+                // ✅ Step 2: NOW navigate to the game
                 const gameUrl = `/game/${tableData.id}?userId=${user?.id || user?.userId}&email=${encodeURIComponent(user?.email)}&tableName=${encodeURIComponent(tableData.tableName)}`;
-                console.log('🚀 Navigating to existing table:', gameUrl);
+                console.log('🚀 Navigating to table:', gameUrl);
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
                 onClose();
                 window.location.href = gameUrl;
                 return;
             } catch (error) {
-                console.error('❌ Navigation error:', error);
-                setMessage(`Failed to navigate: ${error.message}`);
+                console.error('❌ Failed to join table:', error);
+                setMessage(`Failed to join table: ${error.message}`);
                 setMessageType('error');
                 return;
             } finally {
@@ -430,15 +434,16 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                         className="create-btn"
                         onClick={handleCreateAndJoinTable}
                         disabled={isCreatingTable || !tableData.id}
-                        title={!tableData.id ? "Send at least one invitation first" : ""}
+                        title={!tableData.id ? "Send at least one invitation first" : "Click to join the table"}
+                        style={!tableData.id ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                     >
                         {isCreatingTable ? (
                             <>
-                                <span>⏳</span> Navigating...
+                                <span>⏳</span> Joining...
                             </>
                         ) : tableData.id ? (
                             <>
-                                🎮 GO TO TABLE
+                                🎮 JOIN TABLE
                             </>
                         ) : (
                             <>
