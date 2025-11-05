@@ -46,13 +46,74 @@ const HeroLeft = () => {
         }
     };
 
-    // Handle wallet connection
+    // Detect browser and redirect to appropriate store
+    const getInstallUrl = (walletType) => {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+        const isChrome = /chrome|crios/i.test(userAgent) && !/edge|edg|opr|firefox/i.test(userAgent);
+        const isFirefox = /firefox|fxios/i.test(userAgent);
+        const isEdge = /edge|edg/i.test(userAgent);
+        const isSafari = /safari/i.test(userAgent) && !/chrome|crios|firefox|fxios|edge|edg/i.test(userAgent);
+        const isIOS = /iphone|ipad|ipod/i.test(userAgent);
+        const isAndroid = /android/i.test(userAgent);
+
+        if (walletType === 'metamask') {
+            if (isMobile) {
+                if (isIOS) {
+                    return 'https://apps.apple.com/app/metamask/id1438144202';
+                } else if (isAndroid) {
+                    return 'https://play.google.com/store/apps/details?id=io.metamask';
+                }
+            } else {
+                if (isChrome || isEdge) {
+                    return 'https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn';
+                } else if (isFirefox) {
+                    return 'https://addons.mozilla.org/en-US/firefox/addon/ether-metamask/';
+                } else if (isSafari) {
+                    return 'https://metamask.io/download/';
+                } else {
+                    return 'https://metamask.io/download/';
+                }
+            }
+        } else if (walletType === 'tronlink') {
+            if (isMobile) {
+                if (isIOS) {
+                    return 'https://apps.apple.com/app/tronlink/id1550840174';
+                } else if (isAndroid) {
+                    return 'https://play.google.com/store/apps/details?id=com.tronlink';
+                }
+            } else {
+                if (isChrome || isEdge) {
+                    return 'https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec';
+                } else if (isFirefox) {
+                    return 'https://addons.mozilla.org/en-US/firefox/addon/tronlink/';
+                } else {
+                    return 'https://www.tronlink.org/';
+                }
+            }
+        }
+        return '#';
+    };
+
+    // Handle wallet connection or installation
     const handleConnectWallet = async (network) => {
         if (!isAuthenticated) {
             setError('Please sign in first to connect your wallet');
             return;
         }
         
+        // Check if wallet needs to be installed
+        if (network === 'BEP20' && !isMetaMaskInstalled()) {
+            window.open(getInstallUrl('metamask'), '_blank', 'noopener,noreferrer');
+            return;
+        }
+        
+        if (network === 'TRC20' && !isTronLinkInstalled()) {
+            window.open(getInstallUrl('tronlink'), '_blank', 'noopener,noreferrer');
+            return;
+        }
+        
+        // Wallet is installed, proceed with connection
         try {
             if (network === 'BEP20') {
                 await connectMetaMask();
@@ -193,7 +254,7 @@ const HeroLeft = () => {
                                     <button
                                         className='wallet-connect-btn'
                                         onClick={() => handleConnectWallet('BEP20')}
-                                        disabled={!isMetaMaskInstalled() || loading}
+                                        disabled={loading}
                                     >
                                         {!isMetaMaskInstalled() ? 'Install MetaMask' : 'Connect'}
                                     </button>
@@ -211,7 +272,7 @@ const HeroLeft = () => {
                                     <button
                                         className='wallet-connect-btn'
                                         onClick={() => handleConnectWallet('TRC20')}
-                                        disabled={!isTronLinkInstalled() || loading}
+                                        disabled={loading}
                                     >
                                         {!isTronLinkInstalled() ? 'Install TronLink' : 'Connect'}
                                     </button>
