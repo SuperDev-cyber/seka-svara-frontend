@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import apiService from '../../../services/api';
 import crown from '../../../assets/icon/crown.png';
-import axios from 'axios';
 
 const UserProfileCard = () => {
     const { user, refreshUserProfile } = useAuth();
@@ -88,31 +88,13 @@ const UserProfileCard = () => {
                     console.log('   Length:', base64Image.length, 'characters');
                     console.log('   Preview:', base64Image.substring(0, 50) + '...');
 
-                    // Send to backend
-                    // ✅ FIX: Check both 'authToken' (new) and 'token' (legacy) keys
-                    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-                    console.log('🔑 Token exists:', !!token);
-                    console.log('🔑 Token from authToken:', !!localStorage.getItem('authToken'));
-                    console.log('🔑 Token from token:', !!localStorage.getItem('token'));
-                    
-                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-                    console.log('🌐 API URL:', apiUrl + '/users/profile');
-                    
+                    // Send to backend using API service (which includes /api/v1 prefix)
                     console.log('📤 Sending PUT request to backend...');
-                    const response = await axios.put(
-                        `${apiUrl}/users/profile`,
-                        { avatar: base64Image },
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                            },
-                        }
-                    );
+                    const response = await apiService.updateUserProfile({ avatar: base64Image });
 
-                    console.log('✅ Backend response:', response.data);
+                    console.log('✅ Backend response:', response);
 
-                    if (response.data) {
+                    if (response) {
                         // Refresh user profile to get updated avatar
                         console.log('🔄 Refreshing user profile...');
                         await refreshUserProfile();
