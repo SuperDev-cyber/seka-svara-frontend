@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../../contexts/WalletContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import apiService from '../../../services/api';
-import { sekaContract } from '../../../blockchain';
-import { ethers, Signer } from 'ethers';
 
 const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
@@ -68,10 +66,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const maxWithdrawable = sekaBalance;
     const currentNetwork = networks.find(network => network.value === selectedNetwork);
 
-    const toBigNum = (value, d = 6) => {
-        return ethers.utils.parseUnits(value.toString(), d);
-    }
-
     // const getSigner = useCallback(async () => {
     //     if (!window.ethereum) {
     //       return;
@@ -81,10 +75,11 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     //   }, []);
 
     const handleWithdraw = async () => {
-        
+        // Parse and validate amount
+        const withdrawAmount = parseFloat(amount);
 
         // Validation
-        if (!withdrawAmount || withdrawAmount <= 0) {
+        if (!amount || withdrawAmount <= 0 || isNaN(withdrawAmount)) {
             setMessage('Please enter a valid amount');
             setMessageType('error');
             return;
@@ -106,23 +101,22 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setIsProcessing(true);
             setMessage('Processing withdrawal...');
             setMessageType('info');
-            const withdrawAmount = toBigNum(amount);
-            // const signer = await getSigner();
-            // if(!signer) {
-            //     setMessage('Please connect your wallet first');
-            //     setMessageType('error');
-            //     return;
-            // }
-            // const sekaWithSigner = sekaContract.connect(signer);
-            // const tx = await sekaWithSigner.withdraw(withdrawAmount);
+            
             // Call backend to process withdrawal
+            // The toAddress is the connected wallet address (account) - funds will be sent here
             const response = await apiService.post('/wallet/withdraw', {
+                network: selectedNetwork,
+                amount: withdrawAmount, // Amount in SEKA (will be converted to USDT 1:1)
+                toAddress: account // User's connected wallet address - funds sent here
+            });
+
+            console.log('✅ Withdrawal request sent:', {
                 network: selectedNetwork,
                 amount: withdrawAmount,
                 toAddress: account
             });
 
-            setMessage(`✅ Withdrawal successful! ${withdrawAmount} SEKA will be sent to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`);
+            setMessage(`✅ Withdrawal successful! ${withdrawAmount.toFixed(2)} SEKA will be sent to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`);
             setMessageType('success');
             
             // Call success callback
