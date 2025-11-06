@@ -64,8 +64,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     };
 
-    // Calculate maximum withdrawable amount based on wagering requirement
-    const maxWithdrawable = totalWagered;
+    // Users can withdraw their full balance - no wagering requirements
+    const maxWithdrawable = sekaBalance;
     const currentNetwork = networks.find(network => network.value === selectedNetwork);
 
     const toBigNum = (value, d = 6) => {
@@ -92,12 +92,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
         if (withdrawAmount > sekaBalance) {
             setMessage('Insufficient SEKA balance');
-            setMessageType('error');
-            return;
-        }
-
-        if (withdrawAmount > maxWithdrawable) {
-            setMessage(`Maximum withdrawable amount is ${maxWithdrawable.toFixed(0)} SEKA. You need to wager ${(withdrawAmount * 1.3).toFixed(0)} SEKA in games (current: ${totalWagered.toFixed(0)} SEKA wagered)`);
             setMessageType('error');
             return;
         }
@@ -159,8 +153,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     };
 
     const handleMaxAmount = () => {
-        const max = Math.min(sekaBalance, maxWithdrawable);
-        setAmount(max.toFixed(0));
+        setAmount(sekaBalance.toFixed(0));
     };
 
     if (!isOpen) return null;
@@ -207,39 +200,38 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                     </div>
 
-                    {/* Wagering Requirements */}
+                    {/* Balance Information */}
                     <div className="info-box" style={{
-                        background: 'linear-gradient(135deg, #ffd70015 0%, #ff8c0015 100%)',
-                        border: '2px solid #ffd700',
+                        background: 'linear-gradient(135deg, #22c55e15 0%, #16a34a15 100%)',
+                        border: '2px solid #22c55e',
                         padding: '15px',
                         borderRadius: '12px',
                         marginBottom: '20px'
                     }}>
-                        <h4 style={{ marginBottom: '12px', color: '#ffd700', fontSize: '16px' }}>
-                            🎮 Wagering Requirements
+                        <h4 style={{ marginBottom: '12px', color: '#22c55e', fontSize: '16px' }}>
+                            💰 Withdrawal Information
                         </h4>
                         {loading ? (
                             <div>Loading stats...</div>
                         ) : (
                             <>
                                 <div style={{
-                                    background: 'rgba(59, 130, 246, 0.1)',
+                                    background: 'rgba(34, 197, 94, 0.1)',
                                     padding: '10px',
                                     borderRadius: '6px',
                                     marginBottom: '12px',
                                     fontSize: '12px',
                                     lineHeight: '1.6',
-                                    border: '1px solid rgba(59, 130, 246, 0.3)',
-                                    color: '#60a5fa'
+                                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                                    color: '#4ade80'
                                 }}>
-                                    <strong>ℹ️ How it works:</strong><br/>
-                                    "Total Wagered" is the sum of all money you've spent in games (bets, antes, raises). 
-                                    Even if you win and use those winnings to play again, that counts as wagered amount.
+                                    <strong>✅ You can withdraw your full balance!</strong><br/>
+                                    All funds in your account are available for withdrawal with no restrictions.
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Total Game Activity:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#4ade80', fontSize:'12px' }}>
-                                        {totalWagered.toFixed(0)} SEKA
+                                    <span style={{fontSize:'12px'}}>Current SEKA Balance:</span>
+                                    <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize:'12px' }}>
+                                        {sekaBalance.toFixed(0)} SEKA
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -248,23 +240,14 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                         {maxWithdrawable.toFixed(0)} SEKA
                                     </span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Current SEKA Balance:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#60a5fa', fontSize:'12px' }}>
-                                        {sekaBalance.toFixed(0)} SEKA
-                                    </span>
-                                </div>
-                                <div style={{
-                                    marginTop: '12px',
-                                    padding: '10px',
-                                    background: 'rgba(255, 215, 0, 0.15)',
-                                    borderRadius: '6px',
-                                    fontSize: '13px',
-                                    border: '1px solid rgba(255, 215, 0, 0.3)',
-                                    color: '#ffd700'
-                                }}>
-                                    💡 <strong>Formula:</strong> Max Withdrawal = Total Wagered in Games ÷ 1.3
-                                </div>
+                                {totalWagered > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', opacity: 0.7 }}>
+                                        <span style={{fontSize:'12px'}}>Total Game Activity (Info Only):</span>
+                                        <span style={{ fontWeight: 'bold', color: '#60a5fa', fontSize:'12px' }}>
+                                            {totalWagered.toFixed(0)} SEKA
+                                        </span>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
@@ -314,7 +297,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                         <input
                             type="number"
-                            placeholder={`Max: ${maxWithdrawable.toFixed(0)} SEKA`}
+                            placeholder={`Enter amount (max: ${sekaBalance.toFixed(0)} SEKA)`}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="amount-input"
@@ -323,7 +306,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             disabled={isProcessing || loading}
                         />
                         <div style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-                            Available: {sekaBalance.toFixed(0)} SEKA | Max Withdrawable: {maxWithdrawable.toFixed(0)} SEKA
+                            Available Balance: {sekaBalance.toFixed(0)} SEKA
                         </div>
                     </div>
 
@@ -345,39 +328,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                     )}
 
-                    {/* Example Section */}
-                    <div style={{
-                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                        border: '1px solid rgba(102, 126, 234, 0.3)',
-                        padding: '15px',
-                        borderRadius: '8px',
-                        marginBottom: '15px'
-                    }}>
-                        <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#667eea' }}>📖 Example Scenario</h3>
-                        <div style={{ fontSize: '12px', lineHeight: '1.8', color: '#a0aec0' }}>
-                            <p style={{ marginBottom: '8px' }}>
-                                <strong>Player deposits 10 USDT:</strong>
-                            </p>
-                            <ul style={{ paddingLeft: '20px', marginBottom: '10px' }}>
-                                <li>Game 1: Bets 5 USDT (loses) → <strong>5 SEKA wagered</strong></li>
-                                <li>Game 2: Wins 25 USDT</li>
-                                <li>Game 3: Uses 20 USDT from winnings to play → <strong>20 SEKA wagered</strong></li>
-                                <li>Game 4: Wins 100 USDT</li>
-                                <li>Game 5: Uses 50 USDT to play → <strong>50 SEKA wagered</strong></li>
-                                <li>Wins 1,000 USDT total</li>
-                            </ul>
-                            <div style={{
-                                background: 'rgba(102, 126, 234, 0.2)',
-                                padding: '10px',
-                                borderRadius: '6px',
-                                border: '1px solid rgba(102, 126, 234, 0.4)'
-                            }}>
-                                <strong style={{ color: '#ffd700' }}>Total Wagered:</strong> 5 + 20 + 50 = <strong style={{ color: '#4ade80' }}>75 SEKA</strong><br/>
-                                <strong style={{ color: '#ffd700' }}>Max Withdrawal:</strong> 75 ÷ 1.3 = <strong style={{ color: '#4ade80' }}>~57.69 SEKA</strong><br/>
-                                <em style={{ fontSize: '11px', opacity: 0.8 }}>Even with 1,000 SEKA balance, can only withdraw ~57.69 SEKA</em>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="important-notes" style={{
                         background: '#1a1a1a',
@@ -385,11 +335,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         borderRadius: '8px',
                         marginBottom: '15px'
                     }}>
-                        <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#f59e0b' }}>⚠️ Important Information</h3>
+                        <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#22c55e' }}>✅ Withdrawal Information</h3>
                         <ul style={{ fontSize: '12px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li><strong>Wagering requirement:</strong> You can withdraw up to (Total Amount Wagered in Games) ÷ 1.3</li>
-                            <li><strong>What counts as "wagered":</strong> All money spent on bets, antes, and raises in games</li>
-                            <li><strong>Winnings count too:</strong> If you win and play again with those winnings, that amount is also wagered</li>
+                            <li><strong>Full Balance Available:</strong> You can withdraw your entire SEKA balance with no restrictions</li>
                             <li>SEKA Points will be converted back to USDT (1:1 ratio)</li>
                             <li>USDT will be sent to your connected wallet address</li>
                             <li>Processing time: ~5-10 minutes</li>
@@ -400,9 +348,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                     <button 
                         className="confirm-button"
                         onClick={handleWithdraw}
-                        disabled={isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxWithdrawable}
+                        disabled={isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance}
                         style={{
-                            background: (isProcessing || loading || !amount || parseFloat(amount) <= 0) 
+                            background: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance) 
                                 ? '#444' 
                                 : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                             color: '#fff',
@@ -411,9 +359,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             border: 'none',
                             fontSize: '16px',
                             fontWeight: 'bold',
-                            cursor: (isProcessing || loading || !amount || parseFloat(amount) <= 0) ? 'not-allowed' : 'pointer',
+                            cursor: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance) ? 'not-allowed' : 'pointer',
                             width: '100%',
-                            opacity: (isProcessing || loading || !amount || parseFloat(amount) <= 0) ? 0.6 : 1
+                            opacity: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance) ? 0.6 : 1
                         }}
                     >
                         {isProcessing ? '⏳ Processing...' : '💸 Confirm Withdrawal'}
