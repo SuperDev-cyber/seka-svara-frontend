@@ -58,16 +58,18 @@ const SocialButtons = () => {
 
     return (
         <GoogleOAuthProvider clientId={googleClientId}>
-            <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                useOneTap={true}
-                text="signup_with"
-                shape="rectangular"
-                theme="outline"
-                size="large"
-                width="100%"
-            />
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    useOneTap={true}
+                    text="signup_with"
+                    shape="rectangular"
+                    theme="outline"
+                    size="large"
+                    width="100%"
+                />
+            </div>
         </GoogleOAuthProvider>
     );
 };
