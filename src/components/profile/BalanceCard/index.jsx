@@ -9,7 +9,7 @@ import WithdrawModal from '../WithdrawModal';
 
 const BalanceCard = () => {
     const { user, refreshUserProfile } = useAuth();
-    const { isConnected, currentNetwork, getBalance } = useWallet();
+    const { isConnected, currentNetwork, getBalance, USDTBalance, getUSDTBalance } = useWallet();
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [sekaBalance, setSekaBalance] = useState(0);
@@ -21,6 +21,7 @@ const BalanceCard = () => {
         if (user) {
             fetchWalletData();
             fetchSekaBalance();
+            getUSDTBalance
         }
     }, [user, isConnected, currentNetwork]);
 
@@ -138,7 +139,7 @@ const BalanceCard = () => {
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
-                            {formatAmount(user?.platformScore || 0)} USDT
+                            {USDTBalance ? USDTBalance : 0} USDT
                         </div>
                         <div className='network-name' style={{ opacity: 0.9 }}>
                             Mirrors your USDT balance

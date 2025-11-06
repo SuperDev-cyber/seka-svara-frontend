@@ -159,9 +159,9 @@ export const WalletProvider = ({ children }) => {
     );
   }, []);
 
-  const fromBigNum = (value, d = 18) => {
+  const fromBigNum = (value, d = 6) => {
     if (!value) return 0; // Prevents NaN errors
-    return parseFloat(ethers.utils.formatUnits(value.toString(), 18));
+    return parseFloat(ethers.utils.formatUnits(value.toString(), d));
 }
 
 
@@ -170,15 +170,8 @@ export const WalletProvider = ({ children }) => {
     console.log("getUSDTBalance");
     try {
       if (network === 'BEP20') {
-        const contract = new web3Instance.eth.Contract(USDT_ABI, NETWORKS.BEP20.USDTContract);
-        const [rawBalance, tokenDecimals] = await Promise.all([
-          contract.methods.balanceOf(account).call(),
-          contract.methods.decimals().call(),
-        ]);
-        const decimals = Number(tokenDecimals || 18);
-        // Normalize using on-chain decimals (USDT on BSC is 18)
-        const clean = rawBalance?.toString().replace('n', '') || '0';
-        const formattedBalance = Number(clean) / Math.pow(10, decimals);
+        const balance = await sekaContract.getPlayerBalance(account);
+        const formattedBalance = fromBigNum(balance);
         setUSDTBalance(formattedBalance);
       } else if (network === 'TRC20') {
         const contract = await web3Instance.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);
