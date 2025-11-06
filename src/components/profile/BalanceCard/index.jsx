@@ -4,7 +4,7 @@ import { useWallet } from '../../../contexts/WalletContext';
 import apiService from '../../../services/api';
 import deposit from '../../../assets/icon/deposit-icon.png';
 import withdraw from '../../../assets/icon/withdraw-icon.png';
-import DepositModal from '../DepositModal';
+import DepositModal from '../../wallet/DepositModal';
 import WithdrawModal from '../WithdrawModal';
 
 const BalanceCard = () => {

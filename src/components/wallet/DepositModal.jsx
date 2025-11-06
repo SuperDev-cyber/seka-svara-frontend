@@ -17,7 +17,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   } = useWallet();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
-  const [adminAddress, setAdminAddress] = useState('');
+  const [depositAddress, setDepositAddress] = useState(''); // User-specific deposit address
   const [amount, setAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState('');
@@ -26,28 +26,42 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
-  // Fetch admin wallet address when modal opens or network changes
+  // Fetch user-specific deposit address when modal opens or network changes
   useEffect(() => {
     if (isOpen) {
-      fetchAdminAddress();
+      fetchUserDepositAddress();
       setCurrentStep('input');
       setMessage('');
       setAmount('');
     }
   }, [isOpen, selectedNetwork]);
 
-  const fetchAdminAddress = async () => {
+  const fetchUserDepositAddress = async () => {
     try {
-      const response = await apiService.get(`/wallet/admin-addresses?network=${selectedNetwork}`);
-      console.log('Admin address response:', response);
-      let addr = response.address || response.data?.address || '';
+      // First, try to get existing user addresses
+      const addressesResponse = await apiService.get('/wallet/addresses');
+      console.log('User addresses response:', addressesResponse);
+      
+      let addr = addressesResponse[selectedNetwork] || addressesResponse.BEP20 || addressesResponse.TRC20 || '';
+      
+      // If address doesn't exist, generate one
+      if (!addr) {
+        console.log(`Generating ${selectedNetwork} address for user...`);
+        const generateResponse = await apiService.post('/wallet/generate-address', {
+          network: selectedNetwork
+        });
+        addr = generateResponse.address || generateResponse[selectedNetwork] || '';
+      }
+      
       // Ensure EIP-55 checksum for BSC
       if (addr && selectedNetwork === 'BEP20') {
         try { addr = ethers.utils.getAddress(addr); } catch {}
       }
-      setAdminAddress(addr);
+      
+      setDepositAddress(addr);
+      console.log(`✅ User deposit address (${selectedNetwork}):`, addr);
     } catch (error) {
-      console.error('Failed to fetch admin address:', error);
+      console.error('Failed to fetch user deposit address:', error);
       setMessage('Failed to load deposit address. Please try again.');
       setMessageType('error');
     }
@@ -99,8 +113,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     //   return;
     // }
 
-    if (!adminAddress) {
-      setMessage('Admin address not loaded. Please try again.');
+    if (!depositAddress) {
+      setMessage('Deposit address not loaded. Please try again.');
       setMessageType('error');
       return;
     }
@@ -111,14 +125,14 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     setMessageType('info');
 
     try {
-      // Step 1: Send USDT transaction via Web3
+      // Step 1: Send USDT transaction via Web3 to user's unique deposit address
       console.log('📤 Sending USDT transaction:', {
-        to: adminAddress,
+        to: depositAddress,
         amount: depositAmount,
         network: selectedNetwork,
       });
 
-      const tx = await sendUSDT(adminAddress, depositAmount, selectedNetwork);
+      const tx = await sendUSDT(depositAddress, depositAmount, selectedNetwork);
       console.log('✅ Transaction completed:', tx);
 
       // Extract transaction hash based on network
@@ -210,7 +224,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(adminAddress || '');
+      await navigator.clipboard.writeText(depositAddress || '');
       setCopied(true);
       if (window.showToast) window.showToast('Copied!', 'success', 1500);
       setTimeout(() => setCopied(false), 1500);
@@ -266,19 +280,19 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
           )}
 
-          {/* Admin Address Display */}
+          {/* User Deposit Address Display */}
           <div className="address-section">
-            <label>Deposit Address — {networkCaption}</label>
+            <label>Your Deposit Address — {networkCaption}</label>
             <div className="address-container">
               <div className="address-text">
-                <code>{adminAddress || 'Loading...'}</code>
+                <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{depositAddress || 'Loading...'}</code>
               </div>
-              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy} disabled={!adminAddress}>
+              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy} disabled={!depositAddress}>
                 {copied ? 'Copied!' : 'Copy'}
               </button>
-              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!adminAddress}>Show QR</button>
+              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress}>Show QR</button>
             </div>
-            <p className="address-hint">Send USDT to this address. Text wraps on mobile.</p>
+            <p className="address-hint">Send USDT to this address. Your unique address is fully displayed above.</p>
           </div>
 
           {/* Amount Input */}
@@ -400,11 +414,11 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
             <div className="modal-content" style={{ textAlign:'center' }}>
               <p style={{color:'#aaa', marginBottom:12}}>{networkCaption}</p>
-              {adminAddress && (
-                <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(adminAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
+              {depositAddress && (
+                <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(depositAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
               )}
               <div className="address-display-box" style={{marginTop:16}}>
-                <code>{adminAddress}</code>
+                <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{depositAddress}</code>
               </div>
             </div>
           </div>
