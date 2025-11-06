@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../../contexts/WalletContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import apiService from '../../../services/api';
+import { sekaContract } from '../../../blockchain';
+import { ethers, Signer } from 'ethers';
 
 const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
@@ -63,12 +65,24 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     };
 
     // Calculate maximum withdrawable amount based on wagering requirement
-    const maxWithdrawable = totalWagered / 1.3;
+    const maxWithdrawable = totalWagered;
     const currentNetwork = networks.find(network => network.value === selectedNetwork);
 
+    const toBigNum = (value, d = 6) => {
+        return ethers.utils.parseUnits(value.toString(), d);
+    }
+
+    const getSigner = useCallback(async () => {
+        if (!window.ethereum) {
+          throw new Error('MetaMask not found');
+        }
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        return provider.getSigner();
+      }, []);
+
     const handleWithdraw = async () => {
-        const withdrawAmount = parseFloat(amount);
         
+
         // Validation
         if (!withdrawAmount || withdrawAmount <= 0) {
             setMessage('Please enter a valid amount');
@@ -98,7 +112,10 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setIsProcessing(true);
             setMessage('Processing withdrawal...');
             setMessageType('info');
-
+            const withdrawAmount = toBigNum(amount);
+            const signer = await getSigner();
+            const sekaWithSigner = sekaContract.connect(signer);
+            const tx = await sekaWithSigner.withDraw(withdrawAmount);
             // Call backend to process withdrawal
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,

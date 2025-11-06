@@ -3,6 +3,8 @@
  * Handles interactions with the Seka Svara game smart contracts
  */
 
+import { sekaContract } from "../blockchain";
+
 // Contract addresses for different networks
 const CONTRACT_ADDRESSES = {
   BEP20: {
@@ -230,6 +232,8 @@ class SmartContractService {
    * @param {string} playerAddress - Player's address
    * @param {number} requiredAmount - Required amount
    */
+
+  
   async checkUSDTBalance(playerAddress, requiredAmount) {
     if (!this.web3 || !this.USDTAddress) {
       throw new Error('Web3 or USDT contract not available');
