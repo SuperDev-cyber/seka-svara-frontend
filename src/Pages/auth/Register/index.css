@@ -204,6 +204,16 @@
     position: relative;
 }
 
+.google-login-container {
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+}
+
+.google-login-container > div {
+    width: 100% !important;
+}
+
 .social-buttons {
     display: flex;
     flex-direction: column;

@@ -197,6 +197,16 @@
     position: relative;
 }
 
+.google-login-container {
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+}
+
+.google-login-container > div {
+    width: 100% !important;
+}
+
 .social-buttons {
     display: flex;
     flex-direction: column;
@@ -332,8 +342,8 @@
     }
 
     .divider {
-        max-width: 100%;
-        margin: 1rem auto;
+        max-width: 99%;
+        margin: 1rem auto 1rem 0;
     }
 
     .footer {
