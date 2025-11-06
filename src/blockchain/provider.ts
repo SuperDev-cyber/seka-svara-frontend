@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 const supportChainId = 56 // BSC Mainnet
 
 const RPCS: { [key: number]: string } = {
-    56: "https://bsc-dataseed.binance.org/", // BSC Mainnet
+    56: "https://bnb.rpc.subquery.network/public", // BSC Mainnet
     8453: "https://base-mainnet.public.blastapi.io",
     84532: 'https://base-sepolia.drpc.org',
     17000: "https://ethereum-holesky-rpc.publicnode.com",
