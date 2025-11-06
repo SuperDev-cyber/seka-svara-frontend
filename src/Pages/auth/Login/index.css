@@ -213,6 +213,15 @@
 .google-login-container .nsm7Bb-HzV7m-LgbsSe {
     width: 100% !important;
     max-width: none !important;
+    display: block !important;
+}
+
+/* Fallback: override any inline max-width in nested elements */
+.google-login-container div[style*="max-width"],
+.google-login-container div[style*="max-width: 400px"],
+.google-login-container *[style*="max-width: 400px"] {
+    max-width: none !important;
+    width: 100% !important;
 }
 
 .social-buttons {
