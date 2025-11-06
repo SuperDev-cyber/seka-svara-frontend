@@ -115,7 +115,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             const withdrawAmount = toBigNum(amount);
             const signer = await getSigner();
             const sekaWithSigner = sekaContract.connect(signer);
-            const tx = await sekaWithSigner.withDraw(withdrawAmount);
+            const tx = await sekaWithSigner.withdraw(withdrawAmount);
             // Call backend to process withdrawal
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
