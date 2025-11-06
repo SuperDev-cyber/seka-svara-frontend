@@ -176,7 +176,7 @@ const LoginForm = () => {
             </p>
 
             <Divider />
-            <SocialButtons />
+            <SocialButtons style={{ padding: '0 76px' }} />
         </div>
     );
 };

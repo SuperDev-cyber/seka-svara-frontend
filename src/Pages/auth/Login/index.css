@@ -214,7 +214,6 @@
     width: 100% !important;
     max-width: none !important;
     display: block !important;
-    padding: 0 76px !important;
 }
 
 /* Fallback: override any inline max-width in nested elements */
