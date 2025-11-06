@@ -72,13 +72,13 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         return ethers.utils.parseUnits(value.toString(), d);
     }
 
-    const getSigner = useCallback(async () => {
-        if (!window.ethereum) {
-          return;
-        }
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        return provider.getSigner();
-      }, []);
+    // const getSigner = useCallback(async () => {
+    //     if (!window.ethereum) {
+    //       return;
+    //     }
+    //     const provider = new ethers.providers.Web3Provider(window.ethereum);
+    //     return provider.getSigner();
+    //   }, []);
 
     const handleWithdraw = async () => {
         
