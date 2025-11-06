@@ -10,27 +10,17 @@ import { ethers } from 'ethers';
 // Network configurations
 const NETWORKS = {
   BEP20: {
-    name: 'Base Sepolia Testnet',
-    chainId: '0x14a34', // 84532 in hex
-    rpcUrl: 'https://base-sepolia.drpc.org',
-    blockExplorer: 'https://basescan.org',
+    name: 'Binance Smart Chain',
+    chainId: '0x38', // 56 in decimal (BSC Mainnet)
+    rpcUrl: 'https://bsc-dataseed.binance.org/',
+    blockExplorer: 'https://bscscan.com',
     nativeCurrency: {
-      name: 'ETH',
-      symbol: 'ETH',
-      decimals: 18
+      name: 'BNB',
+      symbol: 'BNB',
+      decimals: 18,
     },
-    USDTContract: '0xe13137C700f14b5aDbdC8A63b71a282B9557Ce9d', // USDT on Base Sepolia Testnet
-    sekaContract: '0x01BdF4098a5CD6539B8A91DB96EaF3418ed02707', // Seka on Base Sepolia Testnet
-    // name: 'Binance Smart Chain',
-    // chainId: '0x38', // 56 in decimal
-    // rpcUrl: 'https://bsc-dataseed.binance.org/',
-    // blockExplorer: 'https://bscscan.com',
-    // nativeCurrency: {
-    //   name: 'BNB',
-    //   symbol: 'BNB',
-    //   decimals: 18,
-    // },
-    // USDTContract: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+    USDTContract: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC Mainnet
+    sekaContract: '0x01BdF4098a5CD6539B8A91DB96EaF3418ed02707', // Seka contract on BSC Mainnet
   },
   TRC20: {
     name: 'Tron Network',
@@ -531,7 +521,7 @@ export const WalletProvider = ({ children }) => {
   // Approve USDT spending for GameEscrow contract
   const approveGameEscrow = useCallback(async (amount) => {
     if (!isConnected || currentNetwork !== 'BEP20') {
-      throw new Error('Please connect to Base Sepolia network');
+      throw new Error('Please connect to Binance Smart Chain network');
     }
 
     try {
@@ -573,7 +563,7 @@ export const WalletProvider = ({ children }) => {
   // Deposit to game room via GameEscrow contract
   const depositToGameRoom = useCallback(async (roomId, amount) => {
     if (!isConnected || currentNetwork !== 'BEP20') {
-      throw new Error('Please connect to Base Sepolia network');
+      throw new Error('Please connect to Binance Smart Chain network');
     }
 
     try {
@@ -615,7 +605,7 @@ export const WalletProvider = ({ children }) => {
   // Join game room via GameEscrow contract
   const joinGameRoom = useCallback(async (roomId) => {
     if (!isConnected || currentNetwork !== 'BEP20') {
-      throw new Error('Please connect to Base Sepolia network');
+      throw new Error('Please connect to Binance Smart Chain network');
     }
 
     try {
@@ -656,7 +646,7 @@ export const WalletProvider = ({ children }) => {
   // Create game room via GameEscrow contract
   const createGameRoom = useCallback(async (roomId, entryFee, maxPlayers, roomType, invitedPlayers = []) => {
     if (!isConnected || currentNetwork !== 'BEP20') {
-      throw new Error('Please connect to Base Sepolia network');
+      throw new Error('Please connect to Binance Smart Chain network');
     }
 
     try {

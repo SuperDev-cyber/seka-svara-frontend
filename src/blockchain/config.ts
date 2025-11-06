@@ -1,15 +1,15 @@
 /**
  * Blockchain Configuration
- * Network: Base Sepolia Testnet
+ * Network: Binance Smart Chain (BSC) Mainnet
  */
 
 export const BLOCKCHAIN_CONFIG = {
   // Network Configuration
   network: {
-    name: 'Base Sepolia',
-    chainId: 84532, // Base Sepolia Chain ID
-    rpcUrl: 'https://base-sepolia.drpc.org',
-    blockExplorer: 'https://sepolia.basescan.org',
+    name: 'Binance Smart Chain',
+    chainId: 56, // BSC Mainnet Chain ID
+    rpcUrl: 'https://bsc-dataseed.binance.org/',
+    blockExplorer: 'https://bscscan.com',
   },
 
   // GameEscrow Contract
