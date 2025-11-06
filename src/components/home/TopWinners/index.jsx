@@ -1,48 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import apiService from '../../../services/api';
 
 const TopWinners = () => {
-    const winners = [
-        {
-            rank: 1,
-            name: "CryptoKing",
-            games: "98 games",
-            winnings: "15,247 USDT",
-            winRate: "88%",
-            isCrown: true
-        },
-        {
-            rank: 2,
-            name: "CardMaster",
-            games: "86 games",
-            winnings: "15,247 USDT",
-            winRate: "82%",
-            isCrown: false
-        },
-        {
-            rank: 3,
-            name: "GameWizard",
-            games: "75 games",
-            winnings: "12,500 USDT",
-            winRate: "78%",
-            isCrown: false
-        },
-        {
-            rank: 4,
-            name: "PlayPro",
-            games: "120 games",
-            winnings: "20,000 USDT",
-            winRate: "85%",
-            isCrown: false
-        },
-        {
-            rank: 5,
-            name: "WinSphere",
-            games: "50 games",
-            winnings: "9,300 USDT",
-            winRate: "74%",
-            isCrown: false
-        }
-    ];
+    const [winners, setWinners] = useState([]);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await apiService.getTopPlayers(); // ordered by totalGamesWon
+                const top5 = (data || []).slice(0, 5).map((u, i) => ({
+                    rank: i + 1,
+                    name: u.username || `Player ${u.id.substring(0,4)}`,
+                    games: `${u.totalGamesPlayed || 0} games`,
+                    winnings: `${Number(u.totalWinnings || 0).toLocaleString()} USDT`,
+                    winRate: `${u.winRate || 0}%`,
+                    isCrown: i === 0,
+                }));
+                setWinners(top5);
+            } catch (e) {
+                setWinners([]);
+            }
+        };
+        load();
+    }, []);
 
     return (
         <div className='top-winners-section'>

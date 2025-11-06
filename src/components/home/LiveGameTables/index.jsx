@@ -1,72 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../../../contexts/SocketContext';
 
 const LiveGameTables = () => {
-    const gameTables = [
-        {
-            id: "Table #001",
-            players: "4/6 Players",
-            betAmount: "10 USDT",
-            network: "BEP20",
-            status: "Waiting",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #001",
-            players: "4/6 Players",
-            betAmount: "10 USDT",
-            network: "BEP20",
-            status: "Waiting",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #002",
-            players: "1/5 Players",
-            betAmount: "25 USDT",
-            network: "TRC20",
-            status: "Waiting",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #004",
-            players: "4/6 Players",
-            betAmount: "10 USDT",
-            network: "BEP20",
-            status: "Waiting",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #005",
-            players: "3/6 Players",
-            betAmount: "20 USDT",
-            network: "BEP20",
-            status: "Starting Soon",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #003",
-            players: "2/8 Players",
-            betAmount: "15 USDT",
-            network: "ERC20",
-            status: "Waiting",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #004",
-            players: "5/6 Players",
-            betAmount: "30 USDT",
-            network: "BEP20",
-            status: "Waiting",
-            buttonText: "Join Now"
-        },
-        {
-            id: "Table #006",
-            players: "1/5 Players",
-            betAmount: "50 USDT",
-            network: "TRC20",
-            status: "Waiting",
-            buttonText: "Play Now"
-        }
-    ];
+    const { socket } = useSocket();
+    const navigate = useNavigate();
+    const [gameTables, setGameTables] = useState([]);
+
+    useEffect(() => {
+        if (!socket) return;
+        // Ask backend for dynamic tables
+        socket.emit('get_active_tables', {}, (response) => {
+            if (response?.success) setGameTables(response.tables || []);
+        });
+        const onActive = (payload) => setGameTables(payload || []);
+        socket.on('active_tables', onActive);
+        return () => socket.off('active_tables', onActive);
+    }, [socket]);
+
+    const handleJoin = (id) => navigate('/gamelobby', { state: { tableId: id } });
 
     return (
         <div className='live-game-tables-section'>
@@ -83,32 +35,35 @@ const LiveGameTables = () => {
                 
                 <div className='tables-grid'>
                     {gameTables.map((table, index) => (
-                        <div key={index} className='table-card'>
+                        <div key={table.id || index} className='table-card'>
                             <div className='table-info'>
-                                <h3 className='table-id'>{table.id}</h3>
-                                <p className='players-count'>{table.players}</p>
+                                <h3 className='table-id'>{table.tableName || `Table`}</h3>
+                                <p className='players-count'>{table.currentPlayers}/{table.maxPlayers} Players</p>
                                 <div className='bet-info'>
-                                    <span className='bet-amount'>{table.betAmount}</span>
+                                    <span className='bet-amount'>{Number(table.entryFee || 0)} USDT</span>
                                     <span className='network'>{table.network}</span>
                                 </div>
                             </div>
                             
                             <div className='status-tag-container'>
-                                <div className={`status-tag ${table.status.toLowerCase().replace(' ', '-')}`}>
-                                    {table.status}
+                                <div className={`status-tag ${(table.status || 'waiting').toLowerCase().replace(' ', '-')}`}>
+                                    {(table.status || 'waiting').toUpperCase()}
                                 </div>
                             </div>
                             
                             <div className='join-btn-container'>
-                                <button className='join-btn'>
+                                <button className='join-btn' onClick={() => handleJoin(table.id)}>
                                     <svg className='play-icon' width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                                         <polygon points="5,3 19,12 5,21"/>
                                     </svg>
-                                    {table.buttonText}
+                                    Join Now
                                 </button>
                             </div>
                         </div>
                     ))}
+                    {gameTables.length === 0 && (
+                        <div className='no-tables'>No active tables. Please check back soon.</div>
+                    )}
                 </div>
             </div>
         </div>
