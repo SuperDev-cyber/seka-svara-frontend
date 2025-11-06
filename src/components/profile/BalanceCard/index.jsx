@@ -18,10 +18,10 @@ const BalanceCard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        getUSDTBalance();
         if (user) {
             fetchWalletData();
             fetchSekaBalance();
-            getUSDTBalance
         }
     }, [user, isConnected, currentNetwork]);
 

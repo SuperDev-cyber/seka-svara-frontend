@@ -172,6 +172,7 @@ export const WalletProvider = ({ children }) => {
       if (network === 'BEP20') {
         const balance = await sekaContract.getPlayerBalance(account);
         const formattedBalance = fromBigNum(balance);
+        console.log("USDTBlance", formattedBalance);
         setUSDTBalance(formattedBalance);
       } else if (network === 'TRC20') {
         const contract = await web3Instance.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);

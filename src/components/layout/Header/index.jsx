@@ -19,7 +19,7 @@ const Header = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
-    const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance } = useWallet();
+    const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
 
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
@@ -27,6 +27,7 @@ const Header = () => {
             try {
                 // getBalance already returns a formatted string, no need to format again
                 const balance = await getBalance(currentNetwork);
+                getUSDTBalance();
                 console.log("Seka contract balance:", balance);
                 setSekaBalance(balance);
 
