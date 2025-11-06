@@ -214,6 +214,14 @@
     width: 100% !important;
 }
 
+/* Ensure inner Google smart button stretches full width (override Google's max-width:400px) */
+.google-login-container > div > div,
+.google-login-container [role="button"],
+.google-login-container .nsm7Bb-HzV7m-LgbsSe {
+    width: 100% !important;
+    max-width: none !important;
+}
+
 .social-buttons {
     display: flex;
     flex-direction: column;
