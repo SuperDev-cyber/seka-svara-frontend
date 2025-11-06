@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../contexts/WalletContext';
 import apiService from '../../services/api';
 import './DepositModal.css';
+import { ethers } from 'ethers';
 
 const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const {
@@ -22,6 +23,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [currentStep, setCurrentStep] = useState('input'); // 'input', 'sending', 'confirming', 'success'
+  const [copied, setCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   // Fetch admin wallet address when modal opens or network changes
   useEffect(() => {
@@ -37,7 +40,12 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     try {
       const response = await apiService.get(`/wallet/admin-addresses?network=${selectedNetwork}`);
       console.log('Admin address response:', response);
-      setAdminAddress(response.address || response.data?.address || '');
+      let addr = response.address || response.data?.address || '';
+      // Ensure EIP-55 checksum for BSC
+      if (addr && selectedNetwork === 'BEP20') {
+        try { addr = ethers.utils.getAddress(addr); } catch {}
+      }
+      setAdminAddress(addr);
     } catch (error) {
       console.error('Failed to fetch admin address:', error);
       setMessage('Failed to load deposit address. Please try again.');
@@ -198,6 +206,17 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   const needsWalletConnection = !isConnected || currentNetwork !== selectedNetwork;
 
+  const networkCaption = selectedNetwork === 'BEP20' ? 'BEP-20 (BSC)' : 'TRC-20 (TRON)';
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(adminAddress || '');
+      setCopied(true);
+      if (window.showToast) window.showToast('Copied!', 'success', 1500);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="deposit-modal" onClick={(e) => e.stopPropagation()}>
@@ -249,17 +268,17 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
           {/* Admin Address Display */}
           <div className="address-section">
-            <label>Your Seka Svara Wallet Address ({selectedNetwork}):</label>
-            <div className="address-display-box">
-              <code>
-                {
-                  adminAddress
-                    ? `${adminAddress.substring(0, 6)}...${adminAddress.substring(adminAddress.length - 5)}`
-                    : 'Loading...'
-                }
-              </code>
+            <label>Deposit Address — {networkCaption}</label>
+            <div className="address-container">
+              <div className="address-text">
+                <code>{adminAddress || 'Loading...'}</code>
+              </div>
+              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy} disabled={!adminAddress}>
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!adminAddress}>Show QR</button>
             </div>
-            <p className="address-hint">Funds will be sent to this address automatically</p>
+            <p className="address-hint">Send USDT to this address. Text wraps on mobile.</p>
           </div>
 
           {/* Amount Input */}
@@ -372,6 +391,25 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           )}
         </div>
       </div>
+      {showQR && (
+        <div className="modal-overlay" onClick={() => setShowQR(false)}>
+          <div className="deposit-modal" style={{ maxWidth: 360 }} onClick={(e)=>e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>QR Code</h2>
+              <button className="close-btn" onClick={() => setShowQR(false)}>×</button>
+            </div>
+            <div className="modal-content" style={{ textAlign:'center' }}>
+              <p style={{color:'#aaa', marginBottom:12}}>{networkCaption}</p>
+              {adminAddress && (
+                <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(adminAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
+              )}
+              <div className="address-display-box" style={{marginTop:16}}>
+                <code>{adminAddress}</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
