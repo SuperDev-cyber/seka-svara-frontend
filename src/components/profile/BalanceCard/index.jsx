@@ -159,7 +159,7 @@ const BalanceCard = () => {
                         </span> */}
                     </div>
                     <div className='card-content'>
-                        <div className='main-amount'>{USDTBalance ? USDTBalance : 0}  USDT</div>
+                        <div className='main-amount'>{formatAmount(contractBalance)}  USDT</div>
                         <div className='network-name'>Smart Contract</div>
                     </div>
                 </div>
