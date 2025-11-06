@@ -15,6 +15,7 @@ const Header = () => {
     const [showDepositModal, setShowDepositModal] = useState(false);
     const [sekaBalance, setSekaBalance] = useState(null);
     const [platformScore, setPlatformScore] = useState(0); // ✅ Platform Score (backend database)
+    const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
@@ -93,6 +94,44 @@ const Header = () => {
         }
     };
 
+    // Simple i18n map and translator
+    const i18n = {
+        en: {
+            home: 'Home',
+            marketplace: 'Marketplace',
+            gameLobby: 'Game Lobby',
+            signIn: 'Sign in / Register',
+            deposit: 'Deposit',
+            profile: 'Profile',
+            logout: 'Logout',
+            playNow: 'Play Now',
+            english: 'English',
+            russian: 'Русский',
+            wallet: 'Wallet',
+            balance: 'Balance',
+        },
+        ru: {
+            home: 'Главная',
+            marketplace: 'Маркетплейс',
+            gameLobby: 'Игровой зал',
+            signIn: 'Войти / Регистрация',
+            deposit: 'Пополнить',
+            profile: 'Профиль',
+            logout: 'Выйти',
+            playNow: 'Играть',
+            english: 'English',
+            russian: 'Русский',
+            wallet: 'Кошелёк',
+            balance: 'Баланс',
+        },
+    };
+
+    const t = (k) => i18n[lang][k] || k;
+
+    useEffect(() => {
+        localStorage.setItem('lang', lang);
+    }, [lang]);
+
     // Determine which balance to display
     const getDisplayBalance = () => {
         const USDTAmount = parseFloat(USDTBalance || 0);
@@ -165,11 +204,11 @@ const Header = () => {
                             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                             <polyline points="9,22 9,12 15,12 15,22" />
                         </svg>
-                        Home
+                        {t('home')}
                     </Link>
                     <Link to="/marketplace" className={`nav-link ${location.pathname === '/marketplace' ? 'active' : ''}`}>
                         <img src={marketplaceIcon} alt="Marketplace" className='nav-icon' />
-                        Marketplace
+                        {t('marketplace')}
                     </Link>
                     <Link to="/gamelobby" className={`nav-link ${location.pathname === '/gamelobby' ? 'active' : ''}`}>
                         <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -177,7 +216,7 @@ const Header = () => {
                             <line x1="9" y1="9" x2="15" y2="9" />
                             <line x1="9" y1="15" x2="15" y2="15" />
                         </svg>
-                        Game Lobby
+                        {t('gameLobby')}
                     </Link>
                 </nav>
 
@@ -219,18 +258,18 @@ const Header = () => {
                                         <div className='user-balance'>Balance: ${Number(user?.platformScore || user?.balance || 0).toFixed(0)}</div>
                                     </div>
                                     <div className='user-menu-divider'></div>
-                                    <Link to="/profile" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
+                        <Link to="/profile" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                             <circle cx="12" cy="7" r="4" />
                                         </svg>
-                                        Profile
+                                        {t('profile')}
                                     </Link>
                                     <Link to="/marketplace" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-6" />
                                         </svg>
-                                        Marketplace
+                                        {t('marketplace')}
                                     </Link>
                                     <button className='user-menu-item logout-item' onClick={handleLogout}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -238,14 +277,14 @@ const Header = () => {
                                             <polyline points="16,17 21,12 16,7" />
                                             <line x1="21" y1="12" x2="9" y2="12" />
                                         </svg>
-                                        Logout
+                                        {t('logout')}
                                     </button>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <Link to="/login" className='signin-register-link'>
-                            <span className='signin-text'>Sign in / Register</span>
+                            <span className='signin-text'>{t('signIn')}</span>
                             <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="12" cy="12" r="10" />
                                 <circle cx="12" cy="9" r="3" />
@@ -259,7 +298,10 @@ const Header = () => {
                             <line x1="2" y1="12" x2="22" y2="12" />
                             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
                         </svg>
-                        Eng
+                        <select value={lang} onChange={(e) => setLang(e.target.value)} className='lang-select'>
+                            <option value="en">{t('english')}</option>
+                            <option value="ru">{t('russian')}</option>
+                        </select>
                     </div>
                 </div>
 
@@ -293,7 +335,7 @@ const Header = () => {
                                 </button>
                             </div>
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
-                                Deposit
+                                {t('deposit')}
                             </button>
                         </>
                     ) : isAuthenticated ? (
@@ -303,12 +345,12 @@ const Header = () => {
                             </button>
                             {/* Show deposit button even without wallet connection */}
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
-                                Deposit
+                                {t('deposit')}
                             </button>
                         </>
                     ) : (
                         <button className='connect-wallet-btn' onClick={() => navigate('/login')}>
-                            Wallet:
+                            {t('wallet')}:
                         </button>
                     )}
                     {/* <button className='play-now-btn' onClick={handlePlayNow}>
@@ -329,11 +371,11 @@ const Header = () => {
                                     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                                     <polyline points="9,22 9,12 15,12 15,22" />
                                 </svg>
-                                Home
+                                {t('home')}
                             </Link>
                             <Link to="/marketplace" className={`mobile-nav-link ${location.pathname === '/marketplace' ? 'active' : ''}`} onClick={closeMobileMenu}>
                                 <img src={marketplaceIcon} alt="Marketplace" className='nav-icon' />
-                                Marketplace
+                                {t('marketplace')}
                             </Link>
                             <Link to="/gamelobby" className={`mobile-nav-link ${location.pathname === '/gamelobby' ? 'active' : ''}`} onClick={closeMobileMenu}>
                                 <svg className='nav-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -341,7 +383,7 @@ const Header = () => {
                                     <line x1="9" y1="9" x2="15" y2="9" />
                                     <line x1="9" y1="15" x2="15" y2="15" />
                                 </svg>
-                                Game Lobby
+                                {t('gameLobby')}
                             </Link>
                         </nav>
 
@@ -373,7 +415,7 @@ const Header = () => {
                                         <circle cx="12" cy="9" r="3" />
                                         <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
                                     </svg>
-                                    Sign in / Register
+                                    {t('signIn')}
                                 </Link>
                             )}
                             <div className='mobile-language-selector'>
@@ -382,7 +424,10 @@ const Header = () => {
                                     <line x1="2" y1="12" x2="22" y2="12" />
                                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
                                 </svg>
-                                English
+                                <select value={lang} onChange={(e) => setLang(e.target.value)} className='lang-select'>
+                                    <option value="en">{t('english')}</option>
+                                    <option value="ru">{t('russian')}</option>
+                                </select>
                             </div>
                         </div>
 
@@ -418,22 +463,22 @@ const Header = () => {
                             {isAuthenticated ? (
                                 <>
                                     <Link to="/profile" className='mobile-connect-wallet-btn' onClick={closeMobileMenu}>
-                                        Profile
+                                        {t('profile')}
                                     </Link>
                                     <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>
-                                        Deposit
+                                        {t('deposit')}
                                     </button>
                                     <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
-                                        Play Now
+                                        {t('playNow')}
                                     </button>
                                     <button className='mobile-logout-btn' onClick={() => { handleLogout(); closeMobileMenu(); }}>
-                                        Logout
+                                        {t('logout')}
                                     </button>
                                 </>
                             ) : (
                                 <>
                                     <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
-                                        Play Now
+                                        {t('playNow')}
                                     </button>
                                 </>
                             )}
