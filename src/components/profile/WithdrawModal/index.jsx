@@ -113,14 +113,14 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessage('Processing withdrawal...');
             setMessageType('info');
             const withdrawAmount = toBigNum(amount);
-            const signer = await getSigner();
-            if(!signer) {
-                setMessage('Please connect your wallet first');
-                setMessageType('error');
-                return;
-            }
-            const sekaWithSigner = sekaContract.connect(signer);
-            const tx = await sekaWithSigner.withdraw(withdrawAmount);
+            // const signer = await getSigner();
+            // if(!signer) {
+            //     setMessage('Please connect your wallet first');
+            //     setMessageType('error');
+            //     return;
+            // }
+            // const sekaWithSigner = sekaContract.connect(signer);
+            // const tx = await sekaWithSigner.withdraw(withdrawAmount);
             // Call backend to process withdrawal
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
