@@ -74,7 +74,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
     const getSigner = useCallback(async () => {
         if (!window.ethereum) {
-          throw new Error('MetaMask not found');
+          return;
         }
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         return provider.getSigner();
