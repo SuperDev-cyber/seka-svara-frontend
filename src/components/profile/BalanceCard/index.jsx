@@ -9,7 +9,7 @@ import WithdrawModal from '../WithdrawModal';
 
 const BalanceCard = () => {
     const { user, refreshUserProfile } = useAuth();
-    const { isConnected, currentNetwork, getBalance, USDTBalance, getUSDTBalance } = useWallet();
+    const { isConnected, currentNetwork, getBalance, USDTBalance } = useWallet();
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [sekaBalance, setSekaBalance] = useState(0);
@@ -18,7 +18,6 @@ const BalanceCard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        getUSDTBalance();
         if (user) {
             fetchWalletData();
             fetchSekaBalance();
