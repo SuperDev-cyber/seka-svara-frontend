@@ -167,6 +167,8 @@
     font-weight: 700;
     cursor: pointer;
     margin-bottom: 1rem;
+    position: relative;
+    z-index: 3; /* ensure above any overlapping elements */
 }
 
 .login-text {
@@ -182,6 +184,7 @@
     align-items: center;
     justify-content: center;
     max-width: 100%;
+    pointer-events: none; /* divider should not block clicks */
 }
 
 .divider::before {
