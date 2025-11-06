@@ -68,6 +68,7 @@ const SocialButtons = () => {
                     theme="outline"
                     size="large"
                     width="100%"
+                    containerProps={{ style: { width: '100%' } }}
                 />
             </div>
         </GoogleOAuthProvider>
