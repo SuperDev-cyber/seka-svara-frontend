@@ -169,20 +169,14 @@ export const WalletProvider = ({ children }) => {
     try {
       if (network === 'BEP20') {
         const contract = new web3Instance.eth.Contract(USDT_ABI, NETWORKS.BEP20.USDTContract);
-        const balance = await contract.methods.balanceOf(account).call();
-        console.log('balance', balance);
-
-        // balance from contract is usually a string or BigNumber (USDT has 6 decimals)
-        // If balance is a BigInt or string, convert and handle correctly
-        // USDT on BSC usually has 6 decimals
-        let formattedBalance;
-        if (typeof balance === 'bigint' || (typeof balance === 'string' && balance.endsWith('n'))) {
-          // Handle case when balance is a BigInt or returned as "989999987000n"
-          const clean = balance.toString().replace('n', ''); // Remove potential trailing 'n'
-          formattedBalance = parseFloat(clean) / 1e6;
-        } else {
-          formattedBalance = parseFloat(balance) / 1e6;
-        }
+        const [rawBalance, tokenDecimals] = await Promise.all([
+          contract.methods.balanceOf(account).call(),
+          contract.methods.decimals().call(),
+        ]);
+        const decimals = Number(tokenDecimals || 18);
+        // Normalize using on-chain decimals (USDT on BSC is 18)
+        const clean = rawBalance?.toString().replace('n', '') || '0';
+        const formattedBalance = Number(clean) / Math.pow(10, decimals);
         setUSDTBalance(formattedBalance);
       } else if (network === 'TRC20') {
         const contract = await web3Instance.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);
