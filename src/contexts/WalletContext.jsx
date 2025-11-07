@@ -14,14 +14,14 @@ const NETWORKS = {
   BEP20: {
     name: 'Binance Smart Chain',
     chainId: '0x38', // 56 in decimal (BSC Mainnet)
-    rpcUrl: '      url: "https://bnb.rpc.subquery.network/public',
+    rpcUrl: 'https://bsc-dataseed.binance.org/', // Official BSC RPC (CORS-friendly)
     blockExplorer: 'https://bscscan.com',
     nativeCurrency: {
       name: 'BNB',
       symbol: 'BNB',
       decimals: 18,
     },
-    USDTContract: '0x5823F41428500c2CE218DD4ff42c24F3a3Fed52B', // USDT on BSC Mainnet
+    USDTContract: '0x55d398326f99059fF775485246999027B3197955', // Official USDT on BSC Mainnet
     sekaContract: '0xd079BbF34fD2BECa098c8C48D4742B7ef1D62A80', // Seka contract on BSC Mainnet
   },
   TRC20: {
