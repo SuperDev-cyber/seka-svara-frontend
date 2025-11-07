@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import Web3 from 'web3';
 import TronWeb from 'tronweb';
 import { useAuth } from './AuthContext';
+import { useSafeAuth } from './SafeAuthContext';
 import { GAME_ESCROW_ABI } from '../blockchain/abi';
 import { CONTRACT_ADDRESS } from '../blockchain/config';
 import { sekaContract, USDTContract } from '../blockchain';
@@ -99,6 +100,7 @@ export const useWallet = () => {
 
 export const WalletProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
+  const { loggedIn: safeAuthLoggedIn, provider: safeAuthProvider, account: safeAuthAccount, getSigner: safeAuthGetSigner } = useSafeAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [currentNetwork, setCurrentNetwork] = useState(null);
   const [account, setAccount] = useState(null);
@@ -169,21 +171,34 @@ export const WalletProvider = ({ children }) => {
     return parseFloat(ethers.utils.formatUnits(value.toString(), d));
   }
 
-  // Get ethers signer from MetaMask
+  // Get ethers signer - prioritize SafeAuth, fallback to MetaMask
   const getSigner = useCallback(async () => {
+    // ✅ First try SafeAuth provider
+    if (safeAuthLoggedIn && safeAuthGetSigner) {
+      try {
+        return await safeAuthGetSigner();
+      } catch (error) {
+        console.warn('SafeAuth signer failed, falling back to MetaMask:', error);
+      }
+    }
+    
+    // Fallback to MetaMask
     if (!window.ethereum) {
-      throw new Error('MetaMask not found');
+      throw new Error('No wallet provider found. Please connect SafeAuth or install MetaMask.');
     }
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     return provider.getSigner();
-  }, []);
+  }, [safeAuthLoggedIn, safeAuthGetSigner]);
 
   // ✅ UNIFIED FUNCTION: Returns the Seka contract balance of the user using getPlayerBalance
   // This is the SINGLE SOURCE OF TRUTH for fetching SEKA balance from the blockchain
   // Moved before getUSDTBalance to resolve dependency order
   const getBalance = useCallback(async (network) => {
     try {
-      if(!account) {
+      // ✅ Use SafeAuth account if available, otherwise use context account
+      const currentAccount = safeAuthAccount || account;
+      
+      if(!currentAccount) {
         console.warn('getBalance: No account available');
         return 0;
       }
@@ -244,7 +259,7 @@ export const WalletProvider = ({ children }) => {
         }
         
         // Use getPlayerBalance (correct method name from contract ABI)
-        const userBalance = await sekaWithSigner.getPlayerBalance(account);
+        const userBalance = await sekaWithSigner.getPlayerBalance(currentAccount);
         return fromEthersBigNum(userBalance);
       } else if (network === 'TRC20') {
         // For Tron: use tronWeb contract call
@@ -259,7 +274,7 @@ export const WalletProvider = ({ children }) => {
           NETWORKS.TRC20.sekaContract
         );
         // getPlayerBalance returns string value in sun; convert to TRX
-        const userBalance = await contract.getPlayerBalance(account).call();
+        const userBalance = await contract.getPlayerBalance(currentAccount).call();
         return tronWeb.fromSun(userBalance);
       } else {
         throw new Error('Invalid network or wallet not connected');
@@ -271,7 +286,7 @@ export const WalletProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [account, sekaContract, tronWeb, getSigner]);
+  }, [account, safeAuthAccount, sekaContract, tronWeb, getSigner]);
 
   // ✅ REFACTORED: Get SEKA balance (unified approach)
   // This function now uses the unified getBalance() function instead of directly calling the contract
@@ -543,7 +558,8 @@ export const WalletProvider = ({ children }) => {
         // ✅ Get the signer's address first (this is the actual address that will send the transaction)
         const signerAddress = await signer.getAddress();
         console.log(`👤 Signer address: ${signerAddress}`);
-        console.log(`👤 Context account: ${account}`);
+        console.log(`👤 Context account: ${account || safeAuthAccount}`);
+        console.log(`👤 SafeAuth account: ${safeAuthAccount}`);
         
         // ✅ Create a fresh USDT contract instance connected to the signer
         // This ensures we're using the correct network and provider
@@ -884,9 +900,40 @@ export const WalletProvider = ({ children }) => {
     }
   }, [isConnected, account, currentNetwork, web3, tronWeb, getUSDTBalance]);
 
+  // ✅ Sync SafeAuth account with WalletContext
+  useEffect(() => {
+    if (safeAuthLoggedIn && safeAuthAccount) {
+      console.log('✅ SafeAuth connected, syncing account:', safeAuthAccount);
+      setAccount(safeAuthAccount);
+      setCurrentNetwork('BEP20');
+      setIsConnected(true);
+      
+      // Initialize web3 with SafeAuth provider if available
+      if (safeAuthProvider) {
+        try {
+          const web3Instance = new Web3(safeAuthProvider);
+          setWeb3(web3Instance);
+        } catch (error) {
+          console.error('Error initializing Web3 with SafeAuth provider:', error);
+        }
+      }
+    } else if (!safeAuthLoggedIn && isConnected && account === safeAuthAccount) {
+      // SafeAuth disconnected, clear connection
+      console.log('SafeAuth disconnected, clearing connection');
+      setIsConnected(false);
+      setAccount(null);
+      setCurrentNetwork(null);
+    }
+  }, [safeAuthLoggedIn, safeAuthAccount, safeAuthProvider, isConnected, account]);
+
   // Auto-reconnect wallet on page load if previously connected
   useEffect(() => {
     const autoReconnect = async () => {
+      // ✅ Skip auto-reconnect if SafeAuth is already connected
+      if (safeAuthLoggedIn) {
+        return;
+      }
+      
       const wasConnected = localStorage.getItem('walletConnected');
       const savedNetwork = localStorage.getItem('walletNetwork');
       
@@ -915,7 +962,7 @@ export const WalletProvider = ({ children }) => {
     if (isAuthenticated) {
       autoReconnect();
     }
-  }, [isAuthenticated, isConnected, isAutoConnecting, connectMetaMask, connectTronLink]);
+  }, [isAuthenticated, isConnected, isAutoConnecting, safeAuthLoggedIn, connectMetaMask, connectTronLink]);
 
   // Listen for account changes
   useEffect(() => {

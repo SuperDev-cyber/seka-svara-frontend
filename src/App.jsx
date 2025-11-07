@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import { AuthProvider } from './contexts/AuthContext';
 import { WalletProvider } from './contexts/WalletContext';
+import { SafeAuthProvider } from './contexts/SafeAuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ToastContainer from './components/common/ToastContainer';
@@ -31,9 +32,10 @@ function App() {
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
-      <AuthProvider>
-        <WalletProvider>
-          <SocketProvider>
+      <SafeAuthProvider>
+        <AuthProvider>
+          <WalletProvider>
+            <SocketProvider>
             <BrowserRouter>
               <ToastContainer />
               <NotificationManager />
@@ -96,6 +98,7 @@ function App() {
           </SocketProvider>
         </WalletProvider>
       </AuthProvider>
+      </SafeAuthProvider>
     </GoogleOAuthProvider>
   )
 }
