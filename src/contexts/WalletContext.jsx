@@ -540,12 +540,20 @@ export const WalletProvider = ({ children }) => {
         // ✅ Get signer from MetaMask
         const signer = await getSigner();
         
+        // ✅ Get the signer's address first (this is the actual address that will send the transaction)
+        const signerAddress = await signer.getAddress();
+        console.log(`👤 Signer address: ${signerAddress}`);
+        console.log(`👤 Context account: ${account}`);
+        
+        // ✅ Create a fresh USDT contract instance connected to the signer
+        // This ensures we're using the correct network and provider
+        const USDTWithSigner = USDTContract.connect(signer);
+        
         // ✅ Get decimals dynamically from the contract
         // Official BSC USDT (0x55d398326f99059fF775485246999027B3197955) uses 18 decimals
         let decimals = 18; // Default fallback for BSC USDT
         try {
-          if (USDTContract && typeof USDTContract.decimals === 'function') {
-            const USDTWithSigner = USDTContract.connect(signer);
+          if (USDTWithSigner && typeof USDTWithSigner.decimals === 'function') {
             decimals = await USDTWithSigner.decimals();
             console.log(`✅ USDT contract decimals: ${decimals} (Official BSC USDT should be 18)`);
           }
@@ -557,17 +565,14 @@ export const WalletProvider = ({ children }) => {
         const amountWithDecimals = toBigNum(amount, decimals);
         console.log(`📤 Transferring ${amount} USDT (${amountWithDecimals.toString()} with ${decimals} decimals) to ${to}`);
         
-        // ✅ Get the signer's address (this is the actual address that will send the transaction)
-        const signerAddress = await signer.getAddress();
-        console.log(`👤 Signer address: ${signerAddress}`);
-        console.log(`👤 Context account: ${account}`);
-        
         // ✅ Check user's USDT balance using the signer's address (the actual sender)
-        const USDTWithSigner = USDTContract.connect(signer);
+        // IMPORTANT: Get fresh balance from blockchain (not cached)
         const userBalance = await USDTWithSigner.balanceOf(signerAddress);
         const userBalanceFormatted = ethers.utils.formatUnits(userBalance, decimals);
         
         console.log(`💰 User USDT balance (from signer address): ${userBalanceFormatted} USDT`);
+        console.log(`💰 User USDT balance (raw BigNumber): ${userBalance.toString()}`);
+        console.log(`📤 Amount to transfer (raw BigNumber): ${amountWithDecimals.toString()}`);
         
         // ✅ Also check BNB balance for gas fees
         const bnbBalance = await signer.provider.getBalance(signerAddress);
@@ -578,14 +583,24 @@ export const WalletProvider = ({ children }) => {
           throw new Error(`Insufficient BNB for gas fees. You have ${bnbBalanceFormatted} BNB, but need at least 0.001 BNB for gas fees. Please add BNB to your wallet.`);
         }
         
-        if (parseFloat(userBalanceFormatted) < parseFloat(amount)) {
-          throw new Error(`Insufficient USDT balance. You have ${userBalanceFormatted} USDT, but need ${amount} USDT.`);
+        // ✅ Compare BigNumber values directly (amountWithDecimals is already a BigNumber from toBigNum)
+        // Add a small buffer (1 wei) to account for any rounding issues
+        const oneWei = ethers.BigNumber.from(1);
+        if (userBalance.lt(amountWithDecimals)) {
+          throw new Error(`Insufficient USDT balance. You have ${userBalanceFormatted} USDT, but need ${amount} USDT. Please check your balance on BSCScan: https://bscscan.com/address/${signerAddress}`);
         }
         
-        // ✅ Double-check: Compare BigInt amounts directly for accuracy
-        const amountBigInt = ethers.BigNumber.from(amountWithDecimals);
-        if (userBalance.lt(amountBigInt)) {
-          throw new Error(`Insufficient USDT balance (BigInt check). You have ${userBalanceFormatted} USDT, but need ${amount} USDT.`);
+        // ✅ Additional safety check: ensure we have at least the amount + a small buffer
+        const requiredAmount = amountWithDecimals.add(oneWei);
+        if (userBalance.lt(requiredAmount)) {
+          console.warn(`⚠️ Balance is very close to required amount. Proceeding with caution...`);
+        }
+        
+        // ✅ Final balance check right before transfer (in case balance changed)
+        const finalBalanceCheck = await USDTWithSigner.balanceOf(signerAddress);
+        if (finalBalanceCheck.lt(amountWithDecimals)) {
+          const finalBalanceFormatted = ethers.utils.formatUnits(finalBalanceCheck, decimals);
+          throw new Error(`Balance changed! Current balance: ${finalBalanceFormatted} USDT, but need ${amount} USDT. Please try again.`);
         }
         
         // ✅ Verify contract has transfer method before calling
@@ -596,6 +611,13 @@ export const WalletProvider = ({ children }) => {
         // ✅ Transfer USDT directly to the specified address (for deposits)
         // IMPORTANT: This is a direct transfer, NOT an approve call
         console.log(`🔄 Calling transfer(${to}, ${amountWithDecimals.toString()}) on USDT contract...`);
+        console.log(`📋 Transfer details:`, {
+          from: signerAddress,
+          to: to,
+          amount: amountWithDecimals.toString(),
+          contractAddress: USDTContract.address || USDTContract.target,
+        });
+        
         const tx = await USDTWithSigner.transfer(to, amountWithDecimals);
         console.log(`⏳ Waiting for transaction to be mined...`);
         const receipt = await tx.wait(); // Wait for transaction to be mined
@@ -642,8 +664,27 @@ export const WalletProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ USDT transfer error:', error);
-      setError(error.message);
-      throw error;
+      
+      // ✅ Provide more helpful error messages
+      let errorMessage = error.message || 'Failed to send USDT';
+      
+      // Check for specific blockchain errors
+      if (error.reason && error.reason.includes('transfer amount exceeds balance')) {
+        errorMessage = `Insufficient USDT balance. The blockchain reports your balance is too low for this transfer. Please check your actual balance on BSCScan: https://bscscan.com/address/${account || 'your-wallet'}`;
+      } else if (error.data && error.data.message && error.data.message.includes('transfer amount exceeds balance')) {
+        errorMessage = `Insufficient USDT balance. The blockchain reports your balance is too low. Please verify your balance on BSCScan.`;
+      } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || error.message?.includes('UNPREDICTABLE_GAS_LIMIT')) {
+        if (error.reason && error.reason.includes('transfer amount exceeds balance')) {
+          errorMessage = `Transaction failed: Insufficient USDT balance. Please check your actual balance on BSCScan and ensure you have enough USDT for the transfer plus gas fees.`;
+        } else {
+          errorMessage = `Transaction failed: Cannot estimate gas. ${error.reason ? `Reason: ${error.reason}` : 'The transaction would likely fail. Please check your balance and try again.'}`;
+        }
+      } else if (error.code === -32603 && error.data && error.data.message) {
+        errorMessage = `Blockchain error: ${error.data.message}. Please check your balance and try again.`;
+      }
+      
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
