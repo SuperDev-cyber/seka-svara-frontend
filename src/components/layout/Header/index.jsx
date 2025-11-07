@@ -89,21 +89,19 @@ const Header = () => {
 
     // Callback for when deposit is successful
     const handleDepositSuccess = async () => {
-        console.log("✨ Deposit successful! Refreshing balances...");
+        console.log("✨ Deposit successful! Refreshing platform score...");
 
         try {
-            // Refresh the Seka contract balance
-            await fetchSekaBalance();
-
-            // ✅ Refresh user profile to update platformScore in context
-            // This will automatically update the UI via the useEffect hook
+            // ✅ Simply refresh user profile to get updated platform score from backend
+            // The backend already added the deposit amount to platform score
+            // No need to call fetchSekaBalance()/getBalance() which can cause errors
             if (refreshUserProfile) {
                 await refreshUserProfile();
             }
 
-            console.log("✅ All balances refreshed successfully!");
+            console.log("✅ Platform score refreshed successfully!");
         } catch (error) {
-            console.error("❌ Error refreshing balances:", error);
+            console.error("❌ Error refreshing platform score:", error);
         }
     };
 

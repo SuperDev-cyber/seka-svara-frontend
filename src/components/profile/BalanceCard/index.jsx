@@ -9,7 +9,7 @@ import WithdrawModal from '../WithdrawModal';
 
 const BalanceCard = () => {
     const { user, refreshUserProfile } = useAuth();
-    const { isConnected, currentNetwork, getBalance, USDTBalance } = useWallet();
+    const { isConnected, currentNetwork, USDTBalance } = useWallet();
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [sekaBalance, setSekaBalance] = useState(0);
@@ -56,21 +56,23 @@ const BalanceCard = () => {
     };
 
     const handleDepositSuccess = async () => {
-        // Refresh balances after successful deposit
-        await fetchSekaBalance();
-        await fetchWalletData();
+        // ✅ Simply refresh user profile to get updated platform score from backend
+        // The backend already added the deposit amount to platform score
+        // No need to call getBalance() which can cause errors
         if (refreshUserProfile) {
             await refreshUserProfile();
         }
+        await fetchWalletData();
     };
 
     const handleWithdrawSuccess = async () => {
-        // Refresh balances after successful withdrawal
-        await fetchSekaBalance();
-        await fetchWalletData();
+        // ✅ Simply refresh user profile to get updated platform score from backend
+        // The backend already deducted the withdrawal amount from platform score
+        // No need to call getBalance() which can cause errors
         if (refreshUserProfile) {
             await refreshUserProfile();
         }
+        await fetchWalletData();
     };
 
     const formatAmount = (amount) => {
@@ -98,9 +100,8 @@ const BalanceCard = () => {
         );
     }
 
-    const totalBalance = sekaBalance || user?.balance || 0;
-    const virtualBalance = user?.balance || 0;
-    const contractBalance = sekaBalance || 0;
+    // ✅ Use platform score from user context (updated by backend after deposits/withdrawals)
+    const platformScore = Number(user?.platformScore || 0);
 
     return (
         <div className='balance-section'>
