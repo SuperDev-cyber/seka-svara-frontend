@@ -7,6 +7,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
     const { user } = useAuth();
     
+    // ✅ Use platform score instead of SEKA balance
+    const platformScore = Number(user?.platformScore || 0);
+    
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
     const [amount, setAmount] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -62,8 +65,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     };
 
-    // Users can withdraw their full balance - no wagering requirements
-    const maxWithdrawable = sekaBalance;
+    // ✅ Users can withdraw their full platform score - no wagering requirements
+    const maxWithdrawable = platformScore;
     const currentNetwork = networks.find(network => network.value === selectedNetwork);
 
     // const getSigner = useCallback(async () => {
@@ -85,8 +88,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             return;
         }
 
-        if (withdrawAmount > sekaBalance) {
-            setMessage('Insufficient SEKA balance');
+        if (withdrawAmount > platformScore) {
+            setMessage('Insufficient Platform Score');
             setMessageType('error');
             return;
         }
@@ -147,7 +150,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     };
 
     const handleMaxAmount = () => {
-        setAmount(sekaBalance.toFixed(0));
+        setAmount(platformScore.toFixed(0));
     };
 
     if (!isOpen) return null;
@@ -223,22 +226,22 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                     All funds in your account are available for withdrawal with no restrictions.
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Current SEKA Balance:</span>
+                                    <span style={{fontSize:'12px'}}>Current Platform Score:</span>
                                     <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize:'12px' }}>
-                                        {sekaBalance.toFixed(0)} SEKA
+                                        {platformScore.toFixed(0)} Platform Score
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span style={{fontSize:'12px'}}>Max Withdrawable:</span>
                                     <span style={{ fontWeight: 'bold', color: '#ffd700', fontSize:'12px' }}>
-                                        {maxWithdrawable.toFixed(0)} SEKA
+                                        {maxWithdrawable.toFixed(0)} Platform Score
                                     </span>
                                 </div>
                                 {totalWagered > 0 && (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', opacity: 0.7 }}>
                                         <span style={{fontSize:'12px'}}>Total Game Activity (Info Only):</span>
                                         <span style={{ fontWeight: 'bold', color: '#60a5fa', fontSize:'12px' }}>
-                                            {totalWagered.toFixed(0)} SEKA
+                                            {totalWagered.toFixed(0)} Platform Score
                                         </span>
                                     </div>
                                 )}
@@ -269,7 +272,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
                     <div className="form-group">
                         <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <label className="form-label">Amount (SEKA)</label>
+                            <label className="form-label">Amount (Platform Score)</label>
                             <button 
                                 type="button"
                                 className="max-button" 
@@ -291,7 +294,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                         <input
                             type="number"
-                            placeholder={`Enter amount (max: ${sekaBalance.toFixed(0)} SEKA)`}
+                            placeholder={`Enter amount (max: ${platformScore.toFixed(0)} Platform Score)`}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="amount-input"
@@ -300,7 +303,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             disabled={isProcessing || loading}
                         />
                         <div style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-                            Available Balance: {sekaBalance.toFixed(0)} SEKA
+                            Available Balance: {platformScore.toFixed(0)} Platform Score
                         </div>
                     </div>
 
@@ -342,9 +345,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                     <button 
                         className="confirm-button"
                         onClick={handleWithdraw}
-                        disabled={isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance}
+                        disabled={isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore}
                         style={{
-                            background: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance) 
+                            background: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore) 
                                 ? '#444' 
                                 : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                             color: '#fff',
@@ -353,9 +356,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             border: 'none',
                             fontSize: '16px',
                             fontWeight: 'bold',
-                            cursor: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance) ? 'not-allowed' : 'pointer',
+                            cursor: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore) ? 'not-allowed' : 'pointer',
                             width: '100%',
-                            opacity: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > sekaBalance) ? 0.6 : 1
+                            opacity: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore) ? 0.6 : 1
                         }}
                     >
                         {isProcessing ? '⏳ Processing...' : '💸 Confirm Withdrawal'}

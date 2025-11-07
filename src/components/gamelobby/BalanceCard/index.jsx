@@ -17,12 +17,11 @@ const BalanceCard = () => {
     }, [user]);
 
     const formatBalance = () => {
-        // This is technically correct if you want to display the platform score as an integer with the "SEKA" label.
-        // However, to be more robust, you could check for null/undefined and handle formatting edge cases:
+        // ✅ Display platform score
         if (platformScore === null || platformScore === undefined || isNaN(platformScore)) {
-            return '0 SEKA';
+            return '0 Platform Score';
         }
-        return `${Number(platformScore).toFixed(0)} USDT`;
+        return `${Number(platformScore).toFixed(0)} Platform Score`;
     };
 
     return (

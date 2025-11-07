@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../contexts/WalletContext';
+import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 import './DepositModal.css';
 import { ethers } from 'ethers';
@@ -17,6 +18,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     connectTronLink,
     networks,
   } = useWallet();
+  const { user } = useAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
   const [depositAddress, setDepositAddress] = useState(''); // User-specific deposit address
@@ -103,7 +105,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
     // Validation
     if (!depositAmount || depositAmount < 1) {
-      setMessage('Minimum deposit amount is 1 USDT');
+      setMessage('Minimum deposit amount is 1 Platform Score');
       setMessageType('error');
       return;
     }
@@ -284,7 +286,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             <div className="wallet-status success">
               ✅ Wallet Connected: {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
               <br />
-              💰 Your USDT Balance: {parseFloat(USDTBalance || 0).toFixed(0)} USDT
+              💰 Your Platform Score: {Number(user?.platformScore || 0).toFixed(0)} Platform Score
             </div>
           )}
 
@@ -311,11 +313,11 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
           {/* Amount Input */}
           <div className="input-group">
-            <label>Amount (USDT):</label>
+            <label>Amount (Platform Score):</label>
             <input
               type="text"
               className="input-field"
-              placeholder="Enter amount (min. 1 USDT)"
+              placeholder="Enter amount (min. 1 Platform Score)"
               value={amount}
               onChange={(e) => {
                 const value = e.target.value;
@@ -328,7 +330,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             />
             {isConnected && currentNetwork === selectedNetwork && (
               <p className="input-hint">
-                Available: {parseFloat(USDTBalance || 0).toFixed(0)} USDT
+                Available: {Number(user?.platformScore || 0).toFixed(0)} Platform Score
               </p>
             )}
           </div>
