@@ -557,15 +557,35 @@ export const WalletProvider = ({ children }) => {
         const amountWithDecimals = toBigNum(amount, decimals);
         console.log(`📤 Transferring ${amount} USDT (${amountWithDecimals.toString()} with ${decimals} decimals) to ${to}`);
         
-        // ✅ Check user's USDT balance before attempting transfer
+        // ✅ Get the signer's address (this is the actual address that will send the transaction)
+        const signerAddress = await signer.getAddress();
+        console.log(`👤 Signer address: ${signerAddress}`);
+        console.log(`👤 Context account: ${account}`);
+        
+        // ✅ Check user's USDT balance using the signer's address (the actual sender)
         const USDTWithSigner = USDTContract.connect(signer);
-        const userBalance = await USDTWithSigner.balanceOf(account);
+        const userBalance = await USDTWithSigner.balanceOf(signerAddress);
         const userBalanceFormatted = ethers.utils.formatUnits(userBalance, decimals);
         
-        console.log(`💰 User USDT balance: ${userBalanceFormatted} USDT`);
+        console.log(`💰 User USDT balance (from signer address): ${userBalanceFormatted} USDT`);
+        
+        // ✅ Also check BNB balance for gas fees
+        const bnbBalance = await signer.provider.getBalance(signerAddress);
+        const bnbBalanceFormatted = ethers.utils.formatEther(bnbBalance);
+        console.log(`⛽ BNB balance for gas: ${bnbBalanceFormatted} BNB`);
+        
+        if (parseFloat(bnbBalanceFormatted) < 0.001) {
+          throw new Error(`Insufficient BNB for gas fees. You have ${bnbBalanceFormatted} BNB, but need at least 0.001 BNB for gas fees. Please add BNB to your wallet.`);
+        }
         
         if (parseFloat(userBalanceFormatted) < parseFloat(amount)) {
           throw new Error(`Insufficient USDT balance. You have ${userBalanceFormatted} USDT, but need ${amount} USDT.`);
+        }
+        
+        // ✅ Double-check: Compare BigInt amounts directly for accuracy
+        const amountBigInt = ethers.BigNumber.from(amountWithDecimals);
+        if (userBalance.lt(amountBigInt)) {
+          throw new Error(`Insufficient USDT balance (BigInt check). You have ${userBalanceFormatted} USDT, but need ${amount} USDT.`);
         }
         
         // ✅ Verify contract has transfer method before calling
