@@ -162,30 +162,105 @@ export const WalletProvider = ({ children }) => {
   const fromBigNum = (value, d = 6) => {
     if (!value) return 0; // Prevents NaN errors
     return parseFloat(ethers.utils.formatUnits(value.toString(), d));
-}
+  }
 
+  const fromEthersBigNum = (value, d = 6) => {
+    // if (!value) return 0; // Prevents NaN errors
+    return parseFloat(ethers.utils.formatUnits(value.toString(), d));
+  }
 
-  // Get USDT balance
-  const getUSDTBalance = useCallback(async (web3Instance, account, network) => {
-    console.log("getUSDTBalance");
+  // Get ethers signer from MetaMask
+  const getSigner = useCallback(async () => {
+    if (!window.ethereum) {
+      throw new Error('MetaMask not found');
+    }
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    return provider.getSigner();
+  }, []);
+
+  // ✅ UNIFIED FUNCTION: Returns the Seka contract balance of the user using getPlayerBalance
+  // This is the SINGLE SOURCE OF TRUTH for fetching SEKA balance from the blockchain
+  // Moved before getUSDTBalance to resolve dependency order
+  const getBalance = useCallback(async (network) => {
     try {
-      if (network === 'BEP20') {
-        const balance = await sekaContract.getPlayerBalance(account);
-        const formattedBalance = fromBigNum(balance);
-        console.log("USDTBlance", formattedBalance);
-        setUSDTBalance(formattedBalance);
-      } else if (network === 'TRC20') {
-        const contract = await web3Instance.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);
-        const balance = await contract.balanceOf(account).call();
-        const decimals = await contract.decimals().call();
-        const formattedBalance = web3Instance.fromSun(balance);
-        setUSDTBalance(formattedBalance);
+      if(!account) {
+        console.warn('getBalance: No account available');
+        return 0;
+      }
+      if(!network) {
+        console.warn('getBalance: No network specified');
+        return 0;
+      }
+      
+      setLoading(true);
+      setError(null);
+      
+      if (network === 'BEP20' && sekaContract) {
+        // For MetaMask/ETH network: ethers contract call
+        const signer = await getSigner();
+        
+        // ✅ FIX: Check if signer is available before using it
+        if (!signer) {
+          console.error('getBalance: Signer not available for BEP20 network');
+          setError('Wallet signer not available. Please reconnect your wallet.');
+          return 0;
+        }
+        
+        const sekaWithSigner = sekaContract.connect(signer);
+        // Use getPlayerBalance (correct method name from contract ABI)
+        const userBalance = await sekaWithSigner.getPlayerBalance(account);
+        return fromEthersBigNum(userBalance);
+      } else if (network === 'TRC20' && tronWeb) {
+        // For Tron: use tronWeb contract call
+        if (!tronWeb || !tronWeb.ready) {
+          console.error('getBalance: TronWeb not ready');
+          setError('TronWeb not ready. Please reconnect your wallet.');
+          return 0;
+        }
+        
+        const contract = await tronWeb.contract(
+          require('../blockchain/abis/Seka.json'),
+          NETWORKS.TRC20.sekaContract
+        );
+        // getPlayerBalance returns string value in sun; convert to TRX
+        const userBalance = await contract.getPlayerBalance(account).call();
+        return tronWeb.fromSun(userBalance);
+      } else {
+        throw new Error('Invalid network or wallet not connected');
       }
     } catch (error) {
-      console.error('Error getting USDT balance:', error);
+      console.error('getBalance error:', error);
+      setError(error.message);
+      return 0; // Return 0 instead of throwing to prevent UI crashes
+    } finally {
+      setLoading(false);
+    }
+  }, [account, sekaContract, tronWeb, getSigner]);
+
+  // ✅ REFACTORED: Get SEKA balance (unified approach)
+  // This function now uses the unified getBalance() function instead of directly calling the contract
+  // Note: Despite the name "USDTBalance", this actually fetches SEKA balance from the contract
+  const getUSDTBalance = useCallback(async (web3Instance, account, network) => {
+    console.log("getUSDTBalance: Using unified getBalance() function");
+    try {
+      // Use network from parameter or fall back to currentNetwork from context
+      const targetNetwork = network || currentNetwork;
+      if (!targetNetwork) {
+        console.warn('getUSDTBalance: No network specified');
+        setUSDTBalance('0');
+        return;
+      }
+      
+      // ✅ Use the unified getBalance() function instead of directly calling the contract
+      const balance = await getBalance(targetNetwork);
+      const formattedBalance = balance ? parseFloat(balance.toString()) : 0;
+      console.log("SEKA Balance (from unified getBalance):", formattedBalance);
+      setUSDTBalance(formattedBalance.toString());
+    } catch (error) {
+      console.error('Error getting SEKA balance via getUSDTBalance:', error);
       setUSDTBalance('0');
     }
-  }, []);
+  }, [getBalance, currentNetwork]);
 
   // Connect to MetaMask for BEP20
   const connectMetaMask = useCallback(async () => {
@@ -402,58 +477,6 @@ export const WalletProvider = ({ children }) => {
   const toBigNum = (value, d = 6) => {
     return ethers.utils.parseUnits(value.toString(), d);
   }
-
-  const fromEthersBigNum = (value, d = 6) => {
-    // if (!value) return 0; // Prevents NaN errors
-    return parseFloat(ethers.utils.formatUnits(value.toString(), d));
-  }
-
-
-  // Get ethers signer from MetaMask
-  const getSigner = useCallback(async () => {
-    if (!window.ethereum) {
-      throw new Error('MetaMask not found');
-    }
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    return provider.getSigner();
-  }, []);
-
-
-  // Returns the Seka contract balance of the user using getPlayerBalance
-  const getBalance = useCallback(async (network) => {
-    try {
-      if(!account) return;
-      if(!network) return;
-      
-      setLoading(true);
-      setError(null);
-      
-      if (network === 'BEP20' && sekaContract) {
-        // For MetaMask/ETH network: ethers contract call
-        const signer = await getSigner();
-        const sekaWithSigner = sekaContract.connect(signer);
-        // Use getPlayerBalance (correct method name from contract ABI)
-        const userBalance = await sekaWithSigner.getPlayerBalance(account);
-        return fromEthersBigNum(userBalance);
-      } else if (network === 'TRC20' && tronWeb) {
-        // For Tron: use tronWeb contract call
-        const contract = await tronWeb.contract(
-          require('../blockchain/abis/Seka.json'),
-          NETWORKS.TRC20.sekaContract
-        );
-        // getPlayerBalance returns string value in sun; convert to TRX
-        const userBalance = await contract.getPlayerBalance(account).call();
-        return tronWeb.fromSun(userBalance);
-      } else {
-        throw new Error('Invalid network or wallet not connected');
-      }
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [account, sekaContract, tronWeb, getSigner]);
 
   // Send USDT transaction
   const sendUSDT = useCallback(async (to, amount, network) => {
