@@ -40,10 +40,11 @@ export const SafeAuthProvider = ({ children }) => {
         setLoading(true);
 
         // Configure chain for BSC (Binance Smart Chain)
+        // Using Web3Auth's bundled RPC service for better reliability and higher limits
         const chainConfig = {
           chainNamespace: CHAIN_NAMESPACES.EIP155,
           chainId: '0x38', // BSC Mainnet (56 in decimal)
-          rpcTarget: 'https://bsc-dataseed.binance.org/',
+          rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/${clientId}`, // Web3Auth bundled RPC
           displayName: 'Binance Smart Chain',
           blockExplorerUrl: 'https://bscscan.com',
           ticker: 'BNB',
