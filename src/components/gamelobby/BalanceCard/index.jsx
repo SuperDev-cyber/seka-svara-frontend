@@ -21,7 +21,7 @@ const BalanceCard = () => {
         if (platformScore === null || platformScore === undefined || isNaN(platformScore)) {
             return '0 USDT';
         }
-        return `${Number(platformScore).toFixed(0)} Platform Score`;
+        return `${Number(platformScore).toFixed(0)} USDT`;
     };
 
     return (
