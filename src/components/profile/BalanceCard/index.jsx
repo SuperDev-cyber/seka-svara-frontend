@@ -128,39 +128,38 @@ const BalanceCard = () => {
                     border: '2px solid #fbbf24'
                 }}>
                     <div className='card-header'>
-                        <h3>🏆 Seka-Svara Score</h3>
-                        {/* <span className='network-tag' style={{ 
-                            background: '#f59e0b',
-                            color: '#fff'
-                        }}>
-                            Seka-Svara-Points
-                        </span> */}
+                        <h3>🏆 Platform Score</h3>
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
-                            {USDTBalance ? USDTBalance : 0} USDT
+                            {Number(user?.platformScore || 0).toFixed(0)} USDT
                         </div>
                         <div className='network-name' style={{ opacity: 0.9 }}>
-                            Mirrors your USDT balance
+                            Seka-Svara Score
                         </div>
                         <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.8 }}>
-                            Used for admin tracking
+                            Used for all game activities
                         </div>
                     </div>
                 </div>
 
-                <div className='balance-card network-card'>
+                <div className='balance-card network-card' style={{
+                    background: 'linear-gradient(135deg, rgb(245 76 11) 0%, rgb(217, 119, 6) 100%)',
+                    border: '2px solid #fbbf24'
+                }}>
                     <div className='card-header'>
-                        <h3>⛓️ Contract Balance</h3>
-                        {/* <span className='network-tag' style={{ 
-                            background: isConnected ? '#22c55e' : '#666' 
-                        }}>
-                            {isConnected ? currentNetwork || 'Connected' : 'Not Connected'}
-                        </span> */}
+                        <h3>🏆 Platform Score</h3>
                     </div>
                     <div className='card-content'>
-                        <div className='main-amount'>{formatAmount(contractBalance)}  USDT</div>
-                        <div className='network-name'>Smart Contract</div>
+                        <div className='main-amount' style={{ color: '#fbbf24' }}>
+                            {Number(user?.platformScore || 0).toFixed(0)} USDT
+                        </div>
+                        <div className='network-name' style={{ opacity: 0.9 }}>
+                            Contract Balance
+                        </div>
+                        <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.8 }}>
+                            Mirrors your USDT balance
+                        </div>
                     </div>
                 </div>
             </div>
