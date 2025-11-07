@@ -21,7 +21,7 @@ const NETWORKS = {
       symbol: 'BNB',
       decimals: 18,
     },
-    USDTContract: '0x5823F41428500c2CE218DD4ff42c24F3a3Fed52B', // Official USDT on BSC Mainnet
+    USDTContract: '0x55d398326f99059fF775485246999027B3197955', // ✅ Official USDT on BSC Mainnet
     sekaContract: '0xd079BbF34fD2BECa098c8C48D4742B7ef1D62A80', // Seka contract on BSC Mainnet
   },
   TRC20: {
@@ -541,23 +541,17 @@ export const WalletProvider = ({ children }) => {
         const signer = await getSigner();
         
         // ✅ Get decimals dynamically from the contract
-        let decimals = 18; // Default fallback
+        // Official BSC USDT (0x55d398326f99059fF775485246999027B3197955) uses 18 decimals
+        let decimals = 18; // Default fallback for BSC USDT
         try {
           if (USDTContract && typeof USDTContract.decimals === 'function') {
             const USDTWithSigner = USDTContract.connect(signer);
             decimals = await USDTWithSigner.decimals();
-            console.log(`✅ USDT contract decimals: ${decimals}`);
+            console.log(`✅ USDT contract decimals: ${decimals} (Official BSC USDT should be 18)`);
           }
         } catch (decimalsError) {
           console.warn(`⚠️ Could not get decimals from contract, using default 18: ${decimalsError.message}`);
-          // Try 6 decimals as fallback (some USDT contracts use 6)
-          try {
-            const amountWithDecimals6 = toBigNum(amount, 6);
-            // Test if contract accepts 6 decimals by checking balance format
-            decimals = 6;
-          } catch {
-            decimals = 18; // Final fallback
-          }
+          decimals = 18; // Official BSC USDT uses 18 decimals
         }
         
         const amountWithDecimals = toBigNum(amount, decimals);
