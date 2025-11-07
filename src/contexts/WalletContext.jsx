@@ -618,6 +618,13 @@ export const WalletProvider = ({ children }) => {
           contractAddress: USDTContract.address || USDTContract.target,
         });
         
+        // ✅ One more balance verification using the provider directly (most accurate)
+        const providerBalance = await USDTWithSigner.balanceOf(signerAddress);
+        console.log(`🔍 Final provider balance check: ${ethers.utils.formatUnits(providerBalance, decimals)} USDT`);
+        if (providerBalance.lt(amountWithDecimals)) {
+          throw new Error(`Final balance check failed. You have ${ethers.utils.formatUnits(providerBalance, decimals)} USDT, but need ${amount} USDT. Please check BSCScan: https://bscscan.com/address/${signerAddress}`);
+        }
+        
         const tx = await USDTWithSigner.transfer(to, amountWithDecimals);
         console.log(`⏳ Waiting for transaction to be mined...`);
         const receipt = await tx.wait(); // Wait for transaction to be mined
