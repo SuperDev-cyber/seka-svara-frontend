@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Web3AuthModal } from '@web3auth/modal';
-import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from '@web3auth/base';
+import { Web3Auth } from '@web3auth/modal';
+import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { ethers } from 'ethers';
 
@@ -57,7 +57,7 @@ export const SafeAuthProvider = ({ children }) => {
         });
 
         // Initialize Web3Auth
-        const web3authInstance = new Web3AuthModal({
+        const web3authInstance = new Web3Auth({
           clientId,
           web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using Sapphire Mainnet as shown in project settings
           chainConfig,
@@ -71,8 +71,6 @@ export const SafeAuthProvider = ({ children }) => {
             loginGridCol: 3,
             primaryButton: 'externalLogin',
           },
-          // Enable Google and Wallet login
-          loginMethodsOrder: ['google', 'wallet'],
         });
 
         await web3authInstance.init();
@@ -153,12 +151,8 @@ export const SafeAuthProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      // For external wallet, Web3Auth will show a modal with wallet options
-      // Use 'openlogin' adapter with 'wallet' provider or show the modal
-      const web3authProvider = await web3auth.connectTo('openlogin', {
-        loginProvider: 'wallet', // This will show wallet options in the modal
-        redirectUrl: getRedirectUrl(),
-      });
+      // For external wallet, use the connect() method which opens the modal
+      const web3authProvider = await web3auth.connect();
 
       if (web3authProvider) {
         setProvider(web3authProvider);
@@ -180,37 +174,6 @@ export const SafeAuthProvider = ({ children }) => {
       } else {
         throw new Error('Failed to connect wallet');
       }
-    } catch (error) {
-      console.error('Error logging in with Wallet:', error);
-      // If 'wallet' provider doesn't work, try opening the modal directly
-      if (error.message?.includes('wallet') || error.code === 'INVALID_LOGIN_PROVIDER') {
-        try {
-          // Open Web3Auth modal which will show all login options including wallets
-          await web3auth.connect();
-          const web3authProvider = web3auth.provider;
-          if (web3authProvider) {
-            setProvider(web3authProvider);
-            setLoggedIn(true);
-            
-            const userInfo = await web3auth.getUserInfo();
-            setUser(userInfo);
-
-            const ethersProvider = new ethers.providers.Web3Provider(web3authProvider);
-            const signer = ethersProvider.getSigner();
-            const address = await signer.getAddress();
-            setAccount(address);
-
-            const network = await ethersProvider.getNetwork();
-            setChainId(network.chainId.toString());
-
-            return { provider: web3authProvider, user: userInfo, address };
-          }
-        } catch (modalError) {
-          console.error('Error opening Web3Auth modal:', modalError);
-          throw new Error('Failed to connect wallet. Please try again.');
-        }
-      }
-      throw error;
     } finally {
       setLoading(false);
     }
