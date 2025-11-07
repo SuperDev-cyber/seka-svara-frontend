@@ -520,7 +520,7 @@
 .transaction-name {
     color: white;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 10px;
 }
 
 .transaction-meta {
@@ -597,7 +597,7 @@
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
     .profile-content {
-        grid-template-columns: 1fr;
+        grid-template-columns: 100%;
         gap: 2rem;
     }
 

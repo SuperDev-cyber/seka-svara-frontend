@@ -130,7 +130,7 @@ const BalanceCard = () => {
                     </div>
                 </div>
 
-                <div className='balance-card network-card' style={{
+                {/* <div className='balance-card network-card' style={{
                     background: 'linear-gradient(135deg, rgb(245 76 11) 0%, rgb(217, 119, 6) 100%)',
                     border: '2px solid #fbbf24'
                 }}>
@@ -148,7 +148,7 @@ const BalanceCard = () => {
                             Mirrors your USDT balance
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
 
             <div className='balance-actions'>
