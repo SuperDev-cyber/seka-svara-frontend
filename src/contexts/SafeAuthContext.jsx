@@ -28,11 +28,17 @@ export const SafeAuthProvider = ({ children }) => {
   const clientId = 'BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q';
 
   // Get current origin for redirect URLs
+  // Must match whitelisted origin: https://www.sekasvara.io
   const getRedirectUrl = () => {
     if (typeof window !== 'undefined') {
-      return window.location.origin;
+      // Normalize to www subdomain to match whitelisted origin
+      const origin = window.location.origin;
+      if (origin.includes('sekasvara.io') && !origin.includes('www.')) {
+        return 'https://www.sekasvara.io';
+      }
+      return origin;
     }
-    return 'https://sekasvara.io';
+    return 'https://www.sekasvara.io';
   };
 
   useEffect(() => {
@@ -59,12 +65,10 @@ export const SafeAuthProvider = ({ children }) => {
         });
 
         // Initialize Web3Auth
-        // Try MAINNET first, if that doesn't work, try SAPPHIRE_MAINNET
-        const web3AuthNetwork = WEB3AUTH_NETWORK.MAINNET || WEB3AUTH_NETWORK.SAPPHIRE_MAINNET;
-        
+        // Use SAPPHIRE_MAINNET to match the project environment
         const web3authInstance = new Web3Auth({
           clientId,
-          web3AuthNetwork: web3AuthNetwork,
+          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
           chainConfig,
           privateKeyProvider,
           uiConfig: {
