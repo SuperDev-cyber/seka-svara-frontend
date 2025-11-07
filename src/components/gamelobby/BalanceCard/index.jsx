@@ -19,7 +19,7 @@ const BalanceCard = () => {
     const formatBalance = () => {
         // ✅ Display platform score
         if (platformScore === null || platformScore === undefined || isNaN(platformScore)) {
-            return '0 Platform Score';
+            return '0 USDT';
         }
         return `${Number(platformScore).toFixed(0)} Platform Score`;
     };
