@@ -27,7 +27,19 @@ const Header = () => {
             try {
                 // getBalance already returns a formatted string, no need to format again
                 const balance = await getBalance(currentNetwork);
-                getUSDTBalance();
+                
+                // ✅ Safely call getUSDTBalance with error handling
+                try {
+                    if (getUSDTBalance && typeof getUSDTBalance === 'function') {
+                        await getUSDTBalance();
+                    } else {
+                        console.warn('getUSDTBalance not available');
+                    }
+                } catch (usdtError) {
+                    console.error('Error calling getUSDTBalance:', usdtError);
+                    // Don't throw - continue with balance update
+                }
+                
                 console.log("Seka contract balance:", balance);
                 setSekaBalance(balance);
 

@@ -195,9 +195,30 @@ export const WalletProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      if (network === 'BEP20' && sekaContract) {
+      if (network === 'BEP20') {
+        // ✅ Check if sekaContract is available
+        if (!sekaContract) {
+          console.error('getBalance: sekaContract not initialized');
+          setError('Contract not initialized. Please refresh the page.');
+          return 0;
+        }
+        
+        // ✅ Check if getSigner is available
+        if (!getSigner || typeof getSigner !== 'function') {
+          console.error('getBalance: getSigner function not available');
+          setError('Wallet signer function not available. Please reconnect your wallet.');
+          return 0;
+        }
+        
         // For MetaMask/ETH network: ethers contract call
-        const signer = await getSigner();
+        let signer;
+        try {
+          signer = await getSigner();
+        } catch (signerError) {
+          console.error('getBalance: Failed to get signer:', signerError);
+          setError('Failed to get wallet signer. Please reconnect your wallet.');
+          return 0;
+        }
         
         // ✅ FIX: Check if signer is available before using it
         if (!signer) {
@@ -206,11 +227,26 @@ export const WalletProvider = ({ children }) => {
           return 0;
         }
         
+        // ✅ Check if connect method exists on contract
+        if (!sekaContract.connect || typeof sekaContract.connect !== 'function') {
+          console.error('getBalance: sekaContract.connect is not a function');
+          setError('Contract connection method not available.');
+          return 0;
+        }
+        
         const sekaWithSigner = sekaContract.connect(signer);
+        
+        // ✅ Check if getPlayerBalance method exists
+        if (!sekaWithSigner.getPlayerBalance || typeof sekaWithSigner.getPlayerBalance !== 'function') {
+          console.error('getBalance: getPlayerBalance method not available on contract');
+          setError('Contract method not available.');
+          return 0;
+        }
+        
         // Use getPlayerBalance (correct method name from contract ABI)
         const userBalance = await sekaWithSigner.getPlayerBalance(account);
         return fromEthersBigNum(userBalance);
-      } else if (network === 'TRC20' && tronWeb) {
+      } else if (network === 'TRC20') {
         // For Tron: use tronWeb contract call
         if (!tronWeb || !tronWeb.ready) {
           console.error('getBalance: TronWeb not ready');
@@ -230,7 +266,7 @@ export const WalletProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('getBalance error:', error);
-      setError(error.message);
+      setError(error.message || 'Failed to fetch balance');
       return 0; // Return 0 instead of throwing to prevent UI crashes
     } finally {
       setLoading(false);
@@ -240,9 +276,17 @@ export const WalletProvider = ({ children }) => {
   // ✅ REFACTORED: Get SEKA balance (unified approach)
   // This function now uses the unified getBalance() function instead of directly calling the contract
   // Note: Despite the name "USDTBalance", this actually fetches SEKA balance from the contract
+  // Can be called with or without parameters - uses context values as fallback
   const getUSDTBalance = useCallback(async (web3Instance, account, network) => {
     console.log("getUSDTBalance: Using unified getBalance() function");
     try {
+      // ✅ Ensure getBalance is available
+      if (!getBalance || typeof getBalance !== 'function') {
+        console.error('getUSDTBalance: getBalance function not available');
+        setUSDTBalance('0');
+        return;
+      }
+      
       // Use network from parameter or fall back to currentNetwork from context
       const targetNetwork = network || currentNetwork;
       if (!targetNetwork) {
