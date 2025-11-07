@@ -5,13 +5,22 @@ import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
 
 const SocialButtons = () => {
-    const { loginWithGoogle: safeAuthLoginGoogle, loginWithWallet: safeAuthLoginWallet, loggedIn: safeAuthLoggedIn } = useSafeAuth();
+    const { 
+        loginWithGoogle: safeAuthLoginGoogle, 
+        loginWithWallet: safeAuthLoginWallet, 
+        loggedIn: safeAuthLoggedIn,
+        loading: safeAuthLoading,
+        initError: safeAuthInitError
+    } = useSafeAuth();
     const { loginWithGoogle: backendLoginGoogle } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [loading, setLoading] = useState(false);
 
     const from = location.state?.from?.pathname || '/';
+    
+    // Disable buttons if SafeAuth is still loading or has initialization errors
+    const isDisabled = loading || safeAuthLoading || safeAuthLoggedIn || !!safeAuthInitError;
   
     const handleSafeAuthGoogle = async () => {
         try {
@@ -148,9 +157,35 @@ const SocialButtons = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+            {safeAuthInitError && (
+                <div style={{ 
+                    padding: '12px', 
+                    backgroundColor: '#fee', 
+                    border: '1px solid #fcc', 
+                    borderRadius: '4px',
+                    color: '#c33',
+                    fontSize: '12px',
+                    marginBottom: '8px'
+                }}>
+                    ⚠️ {safeAuthInitError}
+                </div>
+            )}
+            {safeAuthLoading && (
+                <div style={{ 
+                    padding: '12px', 
+                    backgroundColor: '#eef', 
+                    border: '1px solid #ccf', 
+                    borderRadius: '4px',
+                    color: '#33c',
+                    fontSize: '12px',
+                    marginBottom: '8px'
+                }}>
+                    🔄 Initializing Web3Auth...
+                </div>
+            )}
             <button
                 onClick={handleSafeAuthGoogle}
-                disabled={loading || safeAuthLoggedIn}
+                disabled={isDisabled}
                 style={{
                     width: '100%',
                     padding: '12px',
@@ -167,8 +202,8 @@ const SocialButtons = () => {
                     color: '#3c4043',
                 }}
             >
-                {loading ? (
-                    <>🔄 Connecting...</>
+                {loading || safeAuthLoading ? (
+                    <>🔄 {safeAuthLoading ? 'Initializing...' : 'Connecting...'}</>
                 ) : (
                     <>
                         <svg width="18" height="18" viewBox="0 0 24 24">
@@ -184,7 +219,7 @@ const SocialButtons = () => {
 
             <button
                 onClick={handleSafeAuthWallet}
-                disabled={loading || safeAuthLoggedIn}
+                disabled={isDisabled}
                 style={{
                     width: '100%',
                     padding: '12px',
@@ -201,8 +236,8 @@ const SocialButtons = () => {
                     color: '#3c4043',
                 }}
             >
-                {loading ? (
-                    <>🔄 Connecting...</>
+                {loading || safeAuthLoading ? (
+                    <>🔄 {safeAuthLoading ? 'Initializing...' : 'Connecting...'}</>
                 ) : (
                     <>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -22,6 +22,7 @@ export const SafeAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [account, setAccount] = useState(null);
   const [chainId, setChainId] = useState(null);
+  const [initError, setInitError] = useState(null);
 
   // Web3Auth Client ID from project settings
   const clientId = 'BDYU7Pkurgm7StMwMbJl3upFO06-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCbl';
@@ -74,8 +75,16 @@ export const SafeAuthProvider = ({ children }) => {
           },
         });
 
+        console.log('🔄 Initializing Web3Auth with:', {
+          clientId: clientId.substring(0, 20) + '...',
+          network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+          chainId: chainConfig.chainId,
+        });
+        
         await web3authInstance.init();
+        console.log('✅ Web3Auth initialized successfully');
         setWeb3auth(web3authInstance);
+        setInitError(null); // Clear any previous errors
 
         // Check if user is already logged in
         if (web3authInstance.connected) {
@@ -96,7 +105,25 @@ export const SafeAuthProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Error initializing Web3Auth:', error);
+        console.error('❌ Error initializing Web3Auth:', error);
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          stack: error.stack,
+          clientId: clientId.substring(0, 20) + '...',
+        });
+        
+        let errorMessage = 'Failed to initialize Web3Auth. ';
+        if (error.message?.includes('404') || error.message?.includes('not found')) {
+          errorMessage += 'Project not found. Please verify your Client ID and network configuration in the Web3Auth dashboard.';
+        } else if (error.message?.includes('network')) {
+          errorMessage += 'Network configuration error. Please check your network settings.';
+        } else {
+          errorMessage += error.message || 'Please check your configuration.';
+        }
+        
+        setInitError(errorMessage);
+        // Don't set web3auth to null - keep it so we can retry
       } finally {
         setLoading(false);
       }
@@ -107,8 +134,11 @@ export const SafeAuthProvider = ({ children }) => {
 
   // Login with Google
   const loginWithGoogle = useCallback(async () => {
+    if (loading) {
+      throw new Error('Web3Auth is still initializing. Please wait...');
+    }
     if (!web3auth) {
-      throw new Error('Web3Auth not initialized');
+      throw new Error('Web3Auth not initialized. Please refresh the page or check your configuration.');
     }
 
     try {
@@ -146,8 +176,11 @@ export const SafeAuthProvider = ({ children }) => {
 
   // Login with Wallet (external wallet like MetaMask)
   const loginWithWallet = useCallback(async () => {
+    if (loading) {
+      throw new Error('Web3Auth is still initializing. Please wait...');
+    }
     if (!web3auth) {
-      throw new Error('Web3Auth not initialized');
+      throw new Error('Web3Auth not initialized. Please refresh the page or check your configuration.');
     }
 
     try {
@@ -224,6 +257,7 @@ export const SafeAuthProvider = ({ children }) => {
     user,
     account,
     chainId,
+    initError,
     loginWithGoogle,
     loginWithWallet,
     logout,
