@@ -4,10 +4,7 @@ import apiService from '../../services/api';
 import './DepositModal.css';
 import { ethers } from 'ethers';
 
-// ✅ Hardcoded deposit address - all deposits must go to this address
-const DEPOSIT_ADDRESS_BEP20 = '0x684ac954a4b55340d539656d7a93a09724067b66';
-// TODO: Add TRC20 deposit address if needed
-const DEPOSIT_ADDRESS_TRC20 = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb'; // Placeholder - update if needed
+// ✅ Removed hardcoded addresses - now using user's unique deposit address for everything
 
 const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const {
@@ -130,18 +127,19 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     setMessageType('info');
 
     try {
-      // ✅ Step 1: Send USDT transaction via Web3 to hardcoded deposit address
-      // All deposits must go to the hardcoded address, not the displayed unique address
-      const targetDepositAddress = selectedNetwork === 'BEP20' ? DEPOSIT_ADDRESS_BEP20 : DEPOSIT_ADDRESS_TRC20;
+      // ✅ Step 1: Send USDT transaction to user's unique deposit address
+      // All deposits now go to the user's unique address (simplified flow)
+      if (!depositAddress) {
+        throw new Error('Deposit address not available. Please try again.');
+      }
       
       console.log('📤 Sending USDT transaction:', {
-        to: targetDepositAddress, // ✅ Using hardcoded address
-        displayedAddress: depositAddress, // Unique address shown to user
+        to: depositAddress, // ✅ Using user's unique address
         amount: depositAmount,
         network: selectedNetwork,
       });
 
-      const tx = await sendUSDT(targetDepositAddress, depositAmount, selectedNetwork);
+      const tx = await sendUSDT(depositAddress, depositAmount, selectedNetwork);
       console.log('✅ Transaction completed:', tx);
 
       // Extract transaction hash based on network
@@ -233,13 +231,18 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   const handleCopy = async () => {
     try {
-      // ✅ Always copy the hardcoded deposit address, not the displayed unique address
-      const addressToCopy = selectedNetwork === 'BEP20' ? DEPOSIT_ADDRESS_BEP20 : DEPOSIT_ADDRESS_TRC20;
-      await navigator.clipboard.writeText(addressToCopy);
+      // ✅ Copy user's unique deposit address
+      if (!depositAddress) {
+        throw new Error('Deposit address not available');
+      }
+      await navigator.clipboard.writeText(depositAddress);
       setCopied(true);
       if (window.showToast) window.showToast('Copied!', 'success', 1500);
       setTimeout(() => setCopied(false), 1500);
-    } catch {}
+    } catch (error) {
+      console.error('Failed to copy address:', error);
+      if (window.showToast) window.showToast('Failed to copy address', 'error', 2000);
+    }
   };
 
   return (
@@ -425,18 +428,17 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
             <div className="modal-content" style={{ textAlign:'center' }}>
               <p style={{color:'#aaa', marginBottom:12}}>{networkCaption}</p>
-              {/* ✅ QR code uses hardcoded deposit address, not the displayed unique address */}
-              {(() => {
-                const qrAddress = selectedNetwork === 'BEP20' ? DEPOSIT_ADDRESS_BEP20 : DEPOSIT_ADDRESS_TRC20;
-                return (
-                  <>
-                    <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
-                    <div className="address-display-box" style={{marginTop:16}}>
-                      <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{qrAddress}</code>
-                    </div>
-                  </>
-                );
-              })()}
+              {/* ✅ QR code uses user's unique deposit address */}
+              {depositAddress ? (
+                <>
+                  <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(depositAddress)}`} style={{ background:'#fff', padding:8, borderRadius:8 }} />
+                  <div className="address-display-box" style={{marginTop:16}}>
+                    <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{depositAddress}</code>
+                  </div>
+                </>
+              ) : (
+                <p>Loading address...</p>
+              )}
             </div>
           </div>
         </div>
