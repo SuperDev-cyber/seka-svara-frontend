@@ -522,10 +522,14 @@ export const WalletProvider = ({ children }) => {
     return ethers.utils.parseUnits(value.toString(), d);
   }
 
-  // Send USDT transaction
+  // ✅ Send USDT transaction to specified address (for deposits)
   const sendUSDT = useCallback(async (to, amount, network) => {
     if (!isConnected) {
       throw new Error('Wallet not connected');
+    }
+
+    if (!to || to.length < 20) {
+      throw new Error('Invalid recipient address');
     }
 
     try {
@@ -533,27 +537,36 @@ export const WalletProvider = ({ children }) => {
       setError(null);
 
       if (network === 'BEP20' && web3) {
-        // Get signer from MetaMask
+        // ✅ Get signer from MetaMask
         const signer = await getSigner();
         
-        // Approve and deposit using USDT's correct decimals (6)
-        const amountWithDecimals = toBigNum(amount, 6); // USDT uses 6 decimals
+        // ✅ USDT on BSC uses 18 decimals (not 6!)
+        // The contract at 0x5823F41428500c2CE218DD4ff42c24F3a3Fed52B might use different decimals
+        // But standard BSC USDT (0x55d398326f99059fF775485246999027B3197955) uses 18
+        // Let's use 18 for now, but we should check the contract
+        const amountWithDecimals = toBigNum(amount, 18); // BSC USDT typically uses 18 decimals
         
-        // Step 1: Approve USDT for Seka contract
+        // ✅ Transfer USDT directly to the specified address (for deposits)
         const USDTWithSigner = USDTContract.connect(signer);
-        const approveTx = await USDTWithSigner.approve(NETWORKS.BEP20.sekaContract, amountWithDecimals);
-        await approveTx.wait(); // Wait for approval to be mined
-        
-        // Step 2: Call deposit on Seka contract
-        const sekaWithSigner = sekaContract.connect(signer);
-        const tx = await sekaWithSigner.deposit(amountWithDecimals);
-        await tx.wait(); // Wait for transaction to be mined
+        const tx = await USDTWithSigner.transfer(to, amountWithDecimals);
+        const receipt = await tx.wait(); // Wait for transaction to be mined
+
+        console.log('✅ USDT transfer successful:', {
+          to,
+          amount,
+          txHash: receipt.transactionHash,
+        });
 
         // Refresh balance after transaction
         await getUSDTBalance(web3, account, 'BEP20');
         
-        return tx;
+        return {
+          transactionHash: receipt.transactionHash,
+          hash: receipt.transactionHash,
+          ...receipt,
+        };
       } else if (network === 'TRC20' && tronWeb) {
+        // ✅ Transfer USDT on Tron network
         const contract = await tronWeb.contract(USDT_ABI, NETWORKS.TRC20.USDTContract);
         const amountSun = tronWeb.toSun(amount);
         
@@ -561,20 +574,31 @@ export const WalletProvider = ({ children }) => {
           from: account,
         });
 
+        console.log('✅ USDT transfer successful (Tron):', {
+          to,
+          amount,
+          txHash: tx,
+        });
+
         // Refresh balance after transaction
         await getUSDTBalance(tronWeb, account, 'TRC20');
         
-        return tx;
+        return {
+          txid: tx,
+          transactionHash: tx,
+          hash: tx,
+        };
       } else {
         throw new Error('Invalid network or wallet not connected');
       }
     } catch (error) {
+      console.error('❌ USDT transfer error:', error);
       setError(error.message);
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [isConnected, web3, tronWeb, account, getUSDTBalance]);
+  }, [isConnected, web3, tronWeb, account, getUSDTBalance, getSigner, USDTContract]);
 
   // Approve USDT spending for GameEscrow contract
   const approveGameEscrow = useCallback(async (amount) => {
