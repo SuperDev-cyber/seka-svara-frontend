@@ -540,15 +540,50 @@ export const WalletProvider = ({ children }) => {
         // ✅ Get signer from MetaMask
         const signer = await getSigner();
         
-        // ✅ USDT on BSC uses 18 decimals (not 6!)
-        // The contract at 0x5823F41428500c2CE218DD4ff42c24F3a3Fed52B might use different decimals
-        // But standard BSC USDT (0x55d398326f99059fF775485246999027B3197955) uses 18
-        // Let's use 18 for now, but we should check the contract
-        const amountWithDecimals = toBigNum(amount, 18); // BSC USDT typically uses 18 decimals
+        // ✅ Get decimals dynamically from the contract
+        let decimals = 18; // Default fallback
+        try {
+          if (USDTContract && typeof USDTContract.decimals === 'function') {
+            const USDTWithSigner = USDTContract.connect(signer);
+            decimals = await USDTWithSigner.decimals();
+            console.log(`✅ USDT contract decimals: ${decimals}`);
+          }
+        } catch (decimalsError) {
+          console.warn(`⚠️ Could not get decimals from contract, using default 18: ${decimalsError.message}`);
+          // Try 6 decimals as fallback (some USDT contracts use 6)
+          try {
+            const amountWithDecimals6 = toBigNum(amount, 6);
+            // Test if contract accepts 6 decimals by checking balance format
+            decimals = 6;
+          } catch {
+            decimals = 18; // Final fallback
+          }
+        }
+        
+        const amountWithDecimals = toBigNum(amount, decimals);
+        console.log(`📤 Transferring ${amount} USDT (${amountWithDecimals.toString()} with ${decimals} decimals) to ${to}`);
+        
+        // ✅ Check user's USDT balance before attempting transfer
+        const USDTWithSigner = USDTContract.connect(signer);
+        const userBalance = await USDTWithSigner.balanceOf(account);
+        const userBalanceFormatted = ethers.utils.formatUnits(userBalance, decimals);
+        
+        console.log(`💰 User USDT balance: ${userBalanceFormatted} USDT`);
+        
+        if (parseFloat(userBalanceFormatted) < parseFloat(amount)) {
+          throw new Error(`Insufficient USDT balance. You have ${userBalanceFormatted} USDT, but need ${amount} USDT.`);
+        }
+        
+        // ✅ Verify contract has transfer method before calling
+        if (!USDTWithSigner.transfer || typeof USDTWithSigner.transfer !== 'function') {
+          throw new Error('USDT contract does not support transfer method. Please check the contract address.');
+        }
         
         // ✅ Transfer USDT directly to the specified address (for deposits)
-        const USDTWithSigner = USDTContract.connect(signer);
+        // IMPORTANT: This is a direct transfer, NOT an approve call
+        console.log(`🔄 Calling transfer(${to}, ${amountWithDecimals.toString()}) on USDT contract...`);
         const tx = await USDTWithSigner.transfer(to, amountWithDecimals);
+        console.log(`⏳ Waiting for transaction to be mined...`);
         const receipt = await tx.wait(); // Wait for transaction to be mined
 
         console.log('✅ USDT transfer successful:', {
