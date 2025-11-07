@@ -419,7 +419,7 @@ export const WalletProvider = ({ children }) => {
   }, []);
 
 
-  // Returns the Seka contract balance of the user using getUserBalance
+  // Returns the Seka contract balance of the user using getPlayerBalance
   const getBalance = useCallback(async (network) => {
     try {
       if(!account) return;
@@ -432,7 +432,8 @@ export const WalletProvider = ({ children }) => {
         // For MetaMask/ETH network: ethers contract call
         const signer = await getSigner();
         const sekaWithSigner = sekaContract.connect(signer);
-        const userBalance = await sekaWithSigner.getUserBalance(account);
+        // Use getPlayerBalance (correct method name from contract ABI)
+        const userBalance = await sekaWithSigner.getPlayerBalance(account);
         return fromEthersBigNum(userBalance);
       } else if (network === 'TRC20' && tronWeb) {
         // For Tron: use tronWeb contract call
@@ -440,8 +441,8 @@ export const WalletProvider = ({ children }) => {
           require('../blockchain/abis/Seka.json'),
           NETWORKS.TRC20.sekaContract
         );
-        // getUserBalance returns string value in sun; convert to TRX
-        const userBalance = await contract.getUserBalance(account).call();
+        // getPlayerBalance returns string value in sun; convert to TRX
+        const userBalance = await contract.getPlayerBalance(account).call();
         return tronWeb.fromSun(userBalance);
       } else {
         throw new Error('Invalid network or wallet not connected');
