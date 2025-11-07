@@ -25,7 +25,7 @@ export const SafeAuthProvider = ({ children }) => {
   const [initError, setInitError] = useState(null);
 
   // Web3Auth Client ID from project settings
-  const clientId = 'BDYU7Pkurgm7StMwMbJl3upFO06-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q';
+  const clientId = 'BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q';
 
   // Get current origin for redirect URLs
   const getRedirectUrl = () => {
@@ -59,9 +59,12 @@ export const SafeAuthProvider = ({ children }) => {
         });
 
         // Initialize Web3Auth
+        // Try MAINNET first, if that doesn't work, try SAPPHIRE_MAINNET
+        const web3AuthNetwork = WEB3AUTH_NETWORK.MAINNET || WEB3AUTH_NETWORK.SAPPHIRE_MAINNET;
+        
         const web3authInstance = new Web3Auth({
           clientId,
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using Sapphire Mainnet as shown in project settings
+          web3AuthNetwork: web3AuthNetwork,
           chainConfig,
           privateKeyProvider,
           uiConfig: {
@@ -77,6 +80,7 @@ export const SafeAuthProvider = ({ children }) => {
 
         console.log('🔄 Initializing Web3Auth with:', {
           clientId: clientId.substring(0, 20) + '...',
+          fullClientId: clientId,
           network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
           chainId: chainConfig.chainId,
         });
