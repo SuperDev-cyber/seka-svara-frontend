@@ -25,7 +25,7 @@ export const SafeAuthProvider = ({ children }) => {
   const [initError, setInitError] = useState(null);
 
   // Web3Auth Client ID from project settings
-  const clientId = 'BDYU7Pkurgm7StMwMbJl3upFO06-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCbl';
+  const clientId = 'BDYU7Pkurgm7StMwMbJl3upFO06-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q';
 
   // Get current origin for redirect URLs
   const getRedirectUrl = () => {
