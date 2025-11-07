@@ -12,7 +12,6 @@ const BalanceCard = () => {
     const { isConnected, currentNetwork, USDTBalance } = useWallet();
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-    const [sekaBalance, setSekaBalance] = useState(0);
     const [walletData, setWalletData] = useState(null);
     const [addresses, setAddresses] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -20,23 +19,10 @@ const BalanceCard = () => {
     useEffect(() => {
         if (user) {
             fetchWalletData();
-            fetchSekaBalance();
+            // ✅ Don't call getBalance() - just use platform score from user context
+            // The platform score is already updated by the backend after deposits/withdrawals
         }
     }, [user, isConnected, currentNetwork]);
-
-    const fetchSekaBalance = async () => {
-        try {
-            if (isConnected && currentNetwork && getBalance) {
-                const balance = await getBalance(currentNetwork);
-                setSekaBalance(parseFloat(balance) || 0);
-            } else {
-                setSekaBalance(parseFloat(user?.balance) || 0);
-            }
-        } catch (error) {
-            console.error('Error fetching SEKA balance:', error);
-            setSekaBalance(parseFloat(user?.balance) || 0);
-        }
-    };
 
     const fetchWalletData = async () => {
         try {
