@@ -15,7 +15,7 @@ const NETWORKS = {
   BEP20: {
     name: 'Binance Smart Chain',
     chainId: '0x38', // 56 in decimal (BSC Mainnet)
-    rpcUrl: 'https://bsc-dataseed.binance.org/', // Official BSC RPC (CORS-friendly)
+    rpcUrl: 'https://api.web3auth.io/infura-service/v1/0x38/BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q', // Official BSC RPC (CORS-friendly)
     blockExplorer: 'https://bscscan.com',
     nativeCurrency: {
       name: 'BNB',
