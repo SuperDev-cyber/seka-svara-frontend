@@ -30,15 +30,49 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [currentStep, setCurrentStep] = useState('input'); // 'input', 'sending', 'confirming', 'success'
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [walletAddresses, setWalletAddresses] = useState({ BEP20: null, TRC20: null });
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
 
-  // Use Web3Auth account address as deposit address
-  // For BEP20 (BSC), use the Web3Auth account address
-  // For TRC20 (TRON), we would need a TRON address from Web3Auth (if supported) or fallback
+  // Get deposit address based on selected network
+  // For BEP20: Use Web3Auth account address (Ethereum-compatible, works on BSC)
+  // For TRC20: Use backend-generated TRC20 address (TRON format: T...)
   const depositAddress = selectedNetwork === 'BEP20' && safeAuthAccount 
     ? safeAuthAccount 
     : selectedNetwork === 'TRC20' 
-      ? (safeAuthAccount || '') // TRON support would need separate handling
+      ? (walletAddresses.TRC20 || '')
       : '';
+
+  // Fetch wallet addresses from backend when modal opens or network changes
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (isOpen && user) {
+        try {
+          setLoadingAddresses(true);
+          const addresses = await apiService.get('/wallet/addresses');
+          setWalletAddresses({
+            BEP20: addresses.BEP20 || null,
+            TRC20: addresses.TRC20 || null,
+          });
+          
+          // If TRC20 address doesn't exist, generate it
+          if (selectedNetwork === 'TRC20' && !addresses.TRC20) {
+            try {
+              const generated = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
+              setWalletAddresses(prev => ({ ...prev, TRC20: generated.address || generated.TRC20 }));
+            } catch (error) {
+              console.error('Failed to generate TRC20 address:', error);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch wallet addresses:', error);
+        } finally {
+          setLoadingAddresses(false);
+        }
+      }
+    };
+
+    fetchAddresses();
+  }, [isOpen, user, selectedNetwork]);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -60,10 +94,25 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     }
   }, [isOpen, safeAuthLoggedIn, safeAuthAccount]);
 
-  const handleNetworkChange = (network) => {
+  const handleNetworkChange = async (network) => {
     setSelectedNetwork(network);
     setMessage('');
     setAmount('');
+    
+    // If switching to TRC20 and address doesn't exist, generate it
+    if (network === 'TRC20' && !walletAddresses.TRC20 && user) {
+      try {
+        setLoadingAddresses(true);
+        const generated = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
+        setWalletAddresses(prev => ({ ...prev, TRC20: generated.address || generated.TRC20 }));
+      } catch (error) {
+        console.error('Failed to generate TRC20 address:', error);
+        setMessage('Failed to generate TRC20 address. Please try again.');
+        setMessageType('error');
+      } finally {
+        setLoadingAddresses(false);
+      }
+    }
   };
 
   // Removed handleConnectWallet and handleAutomatedDeposit
@@ -243,7 +292,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
         <div className="modal-content">
           {/* Network Selection */}
-          {/* <div className="network-selection">
+          <div className="network-selection">
             <label>Select Network:</label>
             <div className="network-options">
               <button
@@ -265,7 +314,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
                 <span className="network-fee">Very low fees</span>
               </button>
             </div>
-          </div> */}
+          </div>
 
           {/* Wallet Status */}
           {safeAuthLoggedIn && safeAuthAccount && (
@@ -282,23 +331,35 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
           )}
 
-          {/* User Deposit Address Display - Web3Auth Account Address */}
+          {/* User Deposit Address Display */}
           <div className="address-section">
-            <label>Your Deposit Address — {networkCaption} (Web3Auth Account)</label>
+            <label>
+              Your Deposit Address — {networkCaption} 
+              {selectedNetwork === 'BEP20' ? ' (Web3Auth Account)' : ' (TRON Address)'}
+            </label>
             <div className="address-container">
               <div className="address-text">
                 <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>
-                  {depositAddress || (safeAuthLoggedIn && !safeAuthAccount ? 'Loading...' : 'Please connect Web3Auth wallet')}
+                  {loadingAddresses && selectedNetwork === 'TRC20' 
+                    ? 'Loading TRC20 address...' 
+                    : depositAddress 
+                      ? depositAddress
+                      : selectedNetwork === 'BEP20'
+                        ? (safeAuthLoggedIn && !safeAuthAccount ? 'Loading...' : 'Please connect Web3Auth wallet')
+                        : 'Generating TRC20 address...'}
                 </code>
               </div>
-              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopyAddress} disabled={!depositAddress}>
+              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopyAddress} disabled={!depositAddress || loadingAddresses}>
                 {copied ? 'Copied!' : 'Copy'}
               </button>
-              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress}>Show QR</button>
+              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress || loadingAddresses}>
+                Show QR
+              </button>
             </div>
             <p className="address-hint">
-              Send USDT to this address (your Web3Auth account). 
-              Funds will be stored in your Web3Auth wallet and then transferred to the platform account.
+              {selectedNetwork === 'BEP20' 
+                ? 'Send USDT to this address (your Web3Auth account). Funds will be stored in your Web3Auth wallet and then transferred to the platform account.'
+                : 'Send USDT to this TRC20 address. Funds will be automatically detected and credited to your Platform Score.'}
             </p>
           </div>
 
