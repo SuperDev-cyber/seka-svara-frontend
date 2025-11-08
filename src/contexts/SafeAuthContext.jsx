@@ -114,7 +114,8 @@ export const SafeAuthProvider = ({ children }) => {
           chainId: chainConfig.chainId,
         });
         
-        await web3authInstance.init();
+        // In v9, use initModal() instead of init()
+        await web3authInstance.initModal();
         console.log('✅ Web3Auth initialized successfully');
         setWeb3auth(web3authInstance);
         setInitError(null); // Clear any previous errors
