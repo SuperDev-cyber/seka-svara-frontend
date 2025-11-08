@@ -80,6 +80,14 @@ export const SafeAuthProvider = ({ children }) => {
             loginGridCol: 3,
             primaryButton: 'externalLogin',
           },
+          // Account Abstraction (Smart Accounts) Configuration
+          // This is REQUIRED when Smart Accounts are enabled in the Web3Auth dashboard
+          accountAbstractionConfig: {
+            chainConfig: [{
+              chainId: '0x38', // BSC Mainnet (56 in decimal)
+              rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/${clientId}`, // Web3Auth bundled RPC
+            }],
+          },
         });
 
         console.log('🔄 Initializing Web3Auth with:', {
