@@ -95,24 +95,31 @@ const Header = () => {
         const fetchSafeAuthUSDTBalance = async () => {
             if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
                 try {
+                    console.log('🔄 Fetching SafeAuth USDT balance for account:', safeAuthAccount);
                     const balance = await safeAuthGetUSDTBalance();
+                    console.log('✅ SafeAuth USDT Balance received:', balance);
                     setSafeAuthUSDTBalance(balance);
-                    console.log('💰 SafeAuth USDT Balance:', balance);
                 } catch (error) {
-                    console.error('Error fetching SafeAuth USDT balance:', error);
+                    console.error('❌ Error fetching SafeAuth USDT balance:', error);
                     setSafeAuthUSDTBalance('0');
                 }
             } else {
+                console.log('⚠️ SafeAuth not connected, setting balance to 0', {
+                    safeAuthLoggedIn,
+                    hasAccount: !!safeAuthAccount,
+                    hasFunction: !!safeAuthGetUSDTBalance
+                });
                 setSafeAuthUSDTBalance('0');
             }
         };
 
+        // Fetch immediately
         fetchSafeAuthUSDTBalance();
         
-        // Refresh balance every 10 seconds when SafeAuth is connected
+        // Refresh balance every 5 seconds when SafeAuth is connected (more frequent for testing)
         let interval;
         if (safeAuthLoggedIn && safeAuthAccount) {
-            interval = setInterval(fetchSafeAuthUSDTBalance, 10000);
+            interval = setInterval(fetchSafeAuthUSDTBalance, 5000);
         }
 
         return () => {

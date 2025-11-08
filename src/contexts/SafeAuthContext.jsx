@@ -298,17 +298,25 @@ export const SafeAuthProvider = ({ children }) => {
   // Get USDT balance from Web3Auth wallet
   const getUSDTBalance = useCallback(async () => {
     if (!provider || !account) {
+      console.log('⚠️ getUSDTBalance: Missing provider or account', { hasProvider: !!provider, hasAccount: !!account });
       return '0';
     }
 
     try {
       const ethersProvider = getProvider();
       if (!ethersProvider) {
+        console.error('❌ getUSDTBalance: Failed to get ethers provider');
         return '0';
       }
 
-      // USDT contract address on BSC Mainnet
-      const USDT_ADDRESS = '0x5823F41428500c2CE218DD4ff42c24F3a3Fed52B';
+      // ✅ Official USDT contract address on BSC Mainnet
+      const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
+      
+      console.log('🔍 Fetching USDT balance:', {
+        account: account,
+        usdtContract: USDT_ADDRESS,
+        network: await ethersProvider.getNetwork().catch(() => 'unknown')
+      });
       
       // Minimal USDT ABI for balanceOf
       const USDT_ABI = [
@@ -329,13 +337,32 @@ export const SafeAuthProvider = ({ children }) => {
       ];
 
       const usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, ethersProvider);
-      const balance = await usdtContract.balanceOf(account);
-      const decimals = await usdtContract.decimals();
-      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
       
-      return parseFloat(formattedBalance).toFixed(2);
+      // Fetch balance and decimals
+      const [balance, decimals] = await Promise.all([
+        usdtContract.balanceOf(account),
+        usdtContract.decimals()
+      ]);
+      
+      console.log('💰 Raw USDT balance:', {
+        balance: balance.toString(),
+        decimals: decimals.toString(),
+        account: account
+      });
+      
+      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
+      const finalBalance = parseFloat(formattedBalance).toFixed(2);
+      
+      console.log('✅ USDT Balance formatted:', finalBalance);
+      return finalBalance;
     } catch (error) {
-      console.error('Error fetching USDT balance from Web3Auth wallet:', error);
+      console.error('❌ Error fetching USDT balance from Web3Auth wallet:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        account: account,
+        hasProvider: !!provider
+      });
       return '0';
     }
   }, [provider, account, getProvider]);
