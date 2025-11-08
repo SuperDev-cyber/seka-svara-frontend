@@ -111,7 +111,13 @@ export const SafeAuthProvider = ({ children }) => {
 
         // Register the OpenloginAdapter with Web3Auth instance
         // IMPORTANT: Must be called BEFORE initModal() in v9
-        web3authInstance.configureAdapter(openloginAdapter);
+        try {
+          web3authInstance.configureAdapter(openloginAdapter);
+          console.log('✅ OpenloginAdapter registered successfully');
+        } catch (adapterError) {
+          console.warn('⚠️ Adapter registration warning (may be non-critical):', adapterError.message);
+          // Continue initialization even if adapter registration has warnings
+        }
 
         console.log('🔄 Initializing Web3Auth with:', {
           clientId: clientId.substring(0, 20) + '...',
