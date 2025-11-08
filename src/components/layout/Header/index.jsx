@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useWallet } from '../../../contexts/WalletContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import WalletConnect from '../../wallet/WalletConnect';
 import DepositModal from '../../wallet/DepositModal';
 import apiService from '../../../services/api';
@@ -20,6 +21,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
+    const { loggedIn: safeAuthLoggedIn } = useSafeAuth();
 
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
@@ -318,20 +320,52 @@ const Header = () => {
 
                 {/* Desktop Action Buttons */}
                 <div className='action-buttons desktop-actions'>
-                    {/* Show WalletConnect only when wallet is NOT connected */}
-                    {!isConnected && <WalletConnect />}
+                    {/* Hide Connect Wallet buttons when SafeAuth is connected (Web3Auth handles wallet) */}
+                    {!safeAuthLoggedIn && (
+                        <>
+                            {/* Show WalletConnect only when wallet is NOT connected */}
+                            {!isConnected && <WalletConnect />}
 
-                    {/* Show MY WALLET with balance when wallet IS connected */}
-                    {isConnected ? (
+                            {/* Show MY WALLET with balance when wallet IS connected */}
+                            {isConnected ? (
+                                <>
+                                    <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <button
+                                            className='seka-balance-btn'
+                                            title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
+                                            style={{
+                                                background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
+                                                border: '2px solid rgb(249 148 38)',
+                                                fontWeight: 'bold',
+                                                cursor: 'default'
+                                            }}
+                                        >
+                                            USDT: {Number(user?.platformScore || 0).toFixed(0)}
+                                        </button>
+                                    </div>
+                                    <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
+                                        {t('deposit')}
+                                    </button>
+                                </>
+                            ) : isAuthenticated ? (
+                                <>
+                                    {/* Show deposit button even without wallet connection */}
+                                    <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
+                                        {t('deposit')}
+                                    </button>
+                                </>
+                            ) : (
+                                <button className='connect-wallet-btn' onClick={() => navigate('/login')}>
+                                    {t('wallet')}:
+                                </button>
+                            )}
+                        </>
+                    )}
+                    
+                    {/* Show balance and deposit when SafeAuth is connected */}
+                    {safeAuthLoggedIn && isAuthenticated && (
                         <>
                             <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                {/* <button 
-                                    className='my-wallet-btn' 
-                                    title={`Wallet Balance (not used for games)\nNative: ${formatAmount(balance)} ${currentNetwork === 'BEP20' ? 'ETH' : 'TRX'}\nUSDT: ${formatAmount(USDTBalance)}`}
-                                    style={{ opacity: 0.7 }}
-                                >
-                                    💼 Wallet: {getDisplayBalance()}
-                                </button> */}
                                 <button
                                     className='seka-balance-btn'
                                     title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
@@ -349,24 +383,7 @@ const Header = () => {
                                 {t('deposit')}
                             </button>
                         </>
-                    ) : isAuthenticated ? (
-                        <>
-                            <button className='connect-wallet-btn'>
-                                Wallet: ${Number(user?.balance || 0).toFixed(4)}
-                            </button>
-                            {/* Show deposit button even without wallet connection */}
-                            <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
-                                {t('deposit')}
-                            </button>
-                        </>
-                    ) : (
-                        <button className='connect-wallet-btn' onClick={() => navigate('/login')}>
-                            {t('wallet')}:
-                        </button>
                     )}
-                    {/* <button className='play-now-btn' onClick={handlePlayNow}>
-                        Play Now
-                    </button> */}
                 </div>
 
                 {/* Mobile Menu Overlay */}
@@ -444,8 +461,8 @@ const Header = () => {
 
                         {/* Mobile Action Buttons */}
                         <div className='mobile-action-buttons'>
-                            {/* Show WalletConnect only when wallet is NOT connected */}
-                            {!isConnected && (
+                            {/* Hide Connect Wallet when SafeAuth is connected (Web3Auth handles wallet) */}
+                            {!safeAuthLoggedIn && !isConnected && (
                                 <div className='mobile-wallet-connect'>
                                     <WalletConnect />
                                 </div>

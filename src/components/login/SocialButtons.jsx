@@ -208,6 +208,12 @@ const SocialButtons = () => {
                         return;
                     } catch (retryLoginError) {
                         console.error('Retry login also failed:', retryLoginError);
+                        // If user exists but password doesn't match, they might have an old random password
+                        // Show helpful error message
+                        const errorMsg = retryLoginError.message?.includes('Invalid credentials') 
+                            ? 'Account exists but authentication failed. Please contact support or use password reset.'
+                            : 'Failed to authenticate with existing account';
+                        throw new Error(errorMsg);
                     }
                 }
                 throw new Error('Failed to authenticate with backend');
