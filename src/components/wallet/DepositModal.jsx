@@ -200,7 +200,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   const networkCaption = selectedNetwork === 'BEP20' ? 'BEP-20 (BSC)' : 'TRC-20 (TRON)';
 
-  const handleCopy = async () => {
+  // Separate copy handlers to avoid duplicate toasts
+  const handleCopyAddress = async () => {
     try {
       // ✅ Copy Web3Auth account address
       if (!depositAddress) {
@@ -208,8 +209,24 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       }
       await navigator.clipboard.writeText(depositAddress);
       setCopied(true);
+      // Only show toast for the button next to address, not for footer button
       if (window.showToast) window.showToast('Address copied!', 'success', 1500);
       setTimeout(() => setCopied(false), 1500);
+    } catch (error) {
+      console.error('Failed to copy address:', error);
+      if (window.showToast) window.showToast('Failed to copy address', 'error', 2000);
+    }
+  };
+
+  const handleCopyAddressFooter = async () => {
+    try {
+      // ✅ Copy Web3Auth account address (footer button)
+      if (!depositAddress) {
+        throw new Error('Web3Auth wallet not connected');
+      }
+      await navigator.clipboard.writeText(depositAddress);
+      // Footer button shows different message
+      if (window.showToast) window.showToast('Address copied! Send USDT to this address from any external wallet.', 'info', 5000);
     } catch (error) {
       console.error('Failed to copy address:', error);
       if (window.showToast) window.showToast('Failed to copy address', 'error', 2000);
@@ -226,7 +243,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
         <div className="modal-content">
           {/* Network Selection */}
-          <div className="network-selection">
+          {/* <div className="network-selection">
             <label>Select Network:</label>
             <div className="network-options">
               <button
@@ -248,7 +265,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
                 <span className="network-fee">Very low fees</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Wallet Status */}
           {safeAuthLoggedIn && safeAuthAccount && (
@@ -274,7 +291,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
                   {depositAddress || (safeAuthLoggedIn && !safeAuthAccount ? 'Loading...' : 'Please connect Web3Auth wallet')}
                 </code>
               </div>
-              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy} disabled={!depositAddress}>
+              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopyAddress} disabled={!depositAddress}>
                 {copied ? 'Copied!' : 'Copy'}
               </button>
               <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress}>Show QR</button>
@@ -393,12 +410,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           ) : (
             <button 
               className="btn btn-primary" 
-              onClick={() => {
-                handleCopy();
-                if (window.showToast) {
-                  window.showToast('Address copied! Send USDT to this address from any external wallet.', 'info', 5000);
-                }
-              }}
+              onClick={handleCopyAddressFooter}
               disabled={!depositAddress}
             >
               📋 Copy Address

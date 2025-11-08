@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../../contexts/WalletContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import apiService from '../../../services/api';
+import { ethers } from 'ethers';
 
 const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
     const { user } = useAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
     
-    // ✅ Use platform score instead of SEKA balance
-    const platformScore = Number(user?.platformScore || 0);
+    // ✅ Use Web3Auth wallet USDT balance instead of platform score
+    const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
     
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
+    const [withdrawalAddress, setWithdrawalAddress] = useState('');
+    const [addressError, setAddressError] = useState('');
     const [amount, setAmount] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState(''); // 'success', 'error', 'info'
+    const [copied, setCopied] = useState(false);
     
     // Wagering stats
     const [totalWagered, setTotalWagered] = useState(0);
@@ -26,6 +32,44 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         { value: 'BEP20', label: 'BEP20 (BSC)', fee: 0 },
         { value: 'TRC20', label: 'TRC20 (TRON)', fee: 0 }
     ];
+
+    // ✅ Fetch Web3Auth wallet USDT balance when connected
+    useEffect(() => {
+        const fetchWalletBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
+                try {
+                    const balance = await safeAuthGetUSDTBalance();
+                    setWalletUSDTBalance(balance);
+                    console.log('💰 WithdrawModal - Web3Auth USDT Balance:', balance);
+                } catch (error) {
+                    console.error('Error fetching wallet balance in WithdrawModal:', error);
+                    setWalletUSDTBalance('0');
+                }
+            } else {
+                setWalletUSDTBalance('0');
+            }
+        };
+
+        if (isOpen) {
+            fetchWalletBalance();
+            // Refresh every 5 seconds when SafeAuth is connected
+            let interval;
+            if (safeAuthLoggedIn && safeAuthAccount) {
+                interval = setInterval(fetchWalletBalance, 5000);
+            }
+            return () => {
+                if (interval) clearInterval(interval);
+            };
+        }
+    }, [isOpen, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
+
+    // Initialize withdrawal address with SafeAuth account when modal opens
+    useEffect(() => {
+        if (isOpen && safeAuthAccount) {
+            setWithdrawalAddress(safeAuthAccount);
+            setAddressError('');
+        }
+    }, [isOpen, safeAuthAccount]);
 
     // Fetch wagering stats and balance
     useEffect(() => {
@@ -65,9 +109,56 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     };
 
-    // ✅ Users can withdraw their full platform score - no wagering requirements
-    const maxWithdrawable = platformScore;
+    // ✅ Users can withdraw their full Web3Auth wallet USDT balance
+    const maxWithdrawable = parseFloat(walletUSDTBalance || '0');
     const currentNetwork = networks.find(network => network.value === selectedNetwork);
+
+    // Validate withdrawal address
+    const validateAddress = (address) => {
+        if (!address || address.trim() === '') {
+            return 'Address is required';
+        }
+        
+        const trimmedAddress = address.trim();
+        
+        // BEP20 (BSC) address validation - Ethereum format (0x followed by 40 hex characters)
+        if (selectedNetwork === 'BEP20') {
+            if (!/^0x[a-fA-F0-9]{40}$/.test(trimmedAddress)) {
+                return 'Invalid BSC address format. Must be 0x followed by 40 hexadecimal characters.';
+            }
+        }
+        
+        // TRC20 (TRON) address validation - Base58 format, 34 characters starting with T
+        if (selectedNetwork === 'TRC20') {
+            if (!/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(trimmedAddress)) {
+                return 'Invalid TRON address format. Must start with T and be 34 characters.';
+            }
+        }
+        
+        return '';
+    };
+
+    const handleAddressChange = (e) => {
+        const address = e.target.value;
+        setWithdrawalAddress(address);
+        const error = validateAddress(address);
+        setAddressError(error);
+    };
+
+    const handleCopyAddress = async () => {
+        try {
+            if (!withdrawalAddress) {
+                throw new Error('No address to copy');
+            }
+            await navigator.clipboard.writeText(withdrawalAddress);
+            setCopied(true);
+            if (window.showToast) window.showToast('Address copied!', 'success', 1500);
+            setTimeout(() => setCopied(false), 1500);
+        } catch (error) {
+            console.error('Failed to copy address:', error);
+            if (window.showToast) window.showToast('Failed to copy address', 'error', 2000);
+        }
+    };
 
     // const getSigner = useCallback(async () => {
     //     if (!window.ethereum) {
@@ -78,6 +169,15 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     //   }, []);
 
     const handleWithdraw = async () => {
+        // Validate withdrawal address first
+        const addressError = validateAddress(withdrawalAddress);
+        if (addressError) {
+            setMessage(addressError);
+            setMessageType('error');
+            setAddressError(addressError);
+            return;
+        }
+
         // Parse and validate amount
         const withdrawAmount = parseFloat(amount);
 
@@ -88,14 +188,14 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             return;
         }
 
-        if (withdrawAmount > platformScore) {
-            setMessage('Insufficient Platform Score');
+        if (withdrawAmount > maxWithdrawable) {
+            setMessage(`Insufficient balance. You can withdraw up to ${maxWithdrawable.toFixed(2)} USDT`);
             setMessageType('error');
             return;
         }
 
-        if (!account) {
-            setMessage('Please connect your wallet first');
+        if (!safeAuthLoggedIn || !safeAuthAccount) {
+            setMessage('Please connect your Web3Auth wallet first');
             setMessageType('error');
             return;
         }
@@ -106,20 +206,20 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessageType('info');
             
             // Call backend to process withdrawal
-            // The toAddress is the connected wallet address (account) - funds will be sent here
+            // The toAddress is the user-entered withdrawal address
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
-                amount: withdrawAmount, // Amount in SEKA (will be converted to USDT 1:1)
-                toAddress: account // User's connected wallet address - funds sent here
+                amount: withdrawAmount, // Amount in USDT
+                toAddress: withdrawalAddress.trim() // User-entered withdrawal address
             });
 
             console.log('✅ Withdrawal request sent:', {
                 network: selectedNetwork,
                 amount: withdrawAmount,
-                toAddress: account
+                toAddress: withdrawalAddress.trim()
             });
 
-            setMessage(`✅ Withdrawal successful! ${withdrawAmount.toFixed(2)} SEKA will be sent to ${account.substring(0, 6)}...${account.substring(account.length - 4)}`);
+            setMessage(`✅ Withdrawal successful! ${withdrawAmount.toFixed(2)} USDT will be sent to ${withdrawalAddress.trim().substring(0, 6)}...${withdrawalAddress.trim().substring(withdrawalAddress.trim().length - 4)}`);
             setMessageType('success');
             
             // Call success callback
@@ -131,7 +231,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setTimeout(() => {
                 onClose();
                 setAmount('');
+                setWithdrawalAddress(safeAuthAccount || '');
                 setMessage('');
+                setAddressError('');
             }, 3000);
 
         } catch (error) {
@@ -150,7 +252,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     };
 
     const handleMaxAmount = () => {
-        setAmount(platformScore.toFixed(0));
+        setAmount(maxWithdrawable.toFixed(2));
     };
 
     if (!isOpen) return null;
@@ -170,7 +272,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 </div>
 
                 <div className="modal-content">
-                    {/* Wallet Address Display */}
+                    {/* Wallet Address Input - User can enter arbitrary address */}
                     <div className="info-box" style={{
                         background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
                         border: '2px solid #667eea',
@@ -181,20 +283,59 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px' }}>
                             📍 Withdrawal Address:
                         </div>
-                        <div style={{
-                            background: '#1a1a1a',
-                            padding: '10px',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            wordBreak: 'break-all',
-                            fontFamily: 'monospace',
-                            color: '#ffd700'
-                        }}>
-                            {account || 'Not Connected'}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                            <input
+                                type="text"
+                                value={withdrawalAddress}
+                                onChange={handleAddressChange}
+                                placeholder={selectedNetwork === 'BEP20' ? '0x...' : 'T...'}
+                                style={{
+                                    flex: 1,
+                                    background: '#1a1a1a',
+                                    padding: '10px',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    fontFamily: 'monospace',
+                                    color: addressError ? '#ef4444' : '#ffd700',
+                                    border: addressError ? '2px solid #ef4444' : '2px solid #667eea',
+                                    wordBreak: 'break-all'
+                                }}
+                                disabled={isProcessing || !safeAuthLoggedIn}
+                            />
+                            <button
+                                onClick={handleCopyAddress}
+                                disabled={!withdrawalAddress || isProcessing}
+                                style={{
+                                    background: copied ? '#22c55e' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    padding: '10px 16px',
+                                    borderRadius: '8px',
+                                    cursor: (!withdrawalAddress || isProcessing) ? 'not-allowed' : 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold',
+                                    whiteSpace: 'nowrap',
+                                    opacity: (!withdrawalAddress || isProcessing) ? 0.6 : 1
+                                }}
+                            >
+                                {copied ? 'Copied!' : 'Copy'}
+                            </button>
                         </div>
-                        <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8 }}>
-                            USDT will be sent to your connected wallet address
-                        </div>
+                        {addressError && (
+                            <div style={{ marginTop: '8px', fontSize: '11px', color: '#ef4444' }}>
+                                ⚠️ {addressError}
+                            </div>
+                        )}
+                        {!addressError && withdrawalAddress && (
+                            <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#22c55e' }}>
+                                ✅ Valid {selectedNetwork === 'BEP20' ? 'BSC' : 'TRON'} address
+                            </div>
+                        )}
+                        {!safeAuthLoggedIn && (
+                            <div style={{ marginTop: '8px', fontSize: '11px', color: '#ffa500' }}>
+                                ⚠️ Please connect your Web3Auth wallet first
+                            </div>
+                        )}
                     </div>
 
                     {/* Balance Information */}
@@ -226,15 +367,15 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                     All funds in your account are available for withdrawal with no restrictions.
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Current Platform Score:</span>
+                                    <span style={{fontSize:'12px'}}>Current Web3Auth Wallet Balance:</span>
                                     <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize:'12px' }}>
-                                        {platformScore.toFixed(0)} Platform Score
+                                        {maxWithdrawable.toFixed(2)} USDT
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span style={{fontSize:'12px'}}>Max Withdrawable:</span>
                                     <span style={{ fontWeight: 'bold', color: '#ffd700', fontSize:'12px' }}>
-                                        {maxWithdrawable.toFixed(0)} Platform Score
+                                        {maxWithdrawable.toFixed(2)} USDT
                                     </span>
                                 </div>
                                 {totalWagered > 0 && (
@@ -272,21 +413,24 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
                     <div className="form-group">
                         <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <label className="form-label">Amount (Platform Score)</label>
+                            <label className="form-label">Amount (USDT)</label>
                             <button 
                                 type="button"
                                 className="max-button" 
                                 onClick={handleMaxAmount}
-                                disabled={isProcessing || loading}
+                                disabled={isProcessing || loading || maxWithdrawable <= 0}
                                 style={{
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    background: (isProcessing || loading || maxWithdrawable <= 0) 
+                                        ? '#444' 
+                                        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                     color: '#fff',
                                     border: 'none',
                                     padding: '6px 12px',
                                     borderRadius: '6px',
-                                    cursor: 'pointer',
+                                    cursor: (isProcessing || loading || maxWithdrawable <= 0) ? 'not-allowed' : 'pointer',
                                     fontSize: '12px',
-                                    fontWeight: 'bold'
+                                    fontWeight: 'bold',
+                                    opacity: (isProcessing || loading || maxWithdrawable <= 0) ? 0.6 : 1
                                 }}
                             >
                                 MAX
@@ -294,16 +438,16 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                         <input
                             type="number"
-                            placeholder={`Enter amount (max: ${platformScore.toFixed(0)} Platform Score)`}
+                            placeholder={`Enter amount (max: ${maxWithdrawable.toFixed(2)} USDT)`}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="amount-input"
                             min="0"
                             step="0.01"
-                            disabled={isProcessing || loading}
+                            disabled={isProcessing || loading || maxWithdrawable <= 0}
                         />
                         <div style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-                            Available Balance: {platformScore.toFixed(0)} Platform Score
+                            Available Balance: {maxWithdrawable.toFixed(2)} USDT
                         </div>
                     </div>
 
@@ -334,9 +478,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                     }}>
                         <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#22c55e' }}>✅ Withdrawal Information</h3>
                         <ul style={{ fontSize: '12px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li><strong>Full Balance Available:</strong> You can withdraw your entire SEKA balance with no restrictions</li>
-                            <li>SEKA Points will be converted back to USDT (1:1 ratio)</li>
-                            <li>USDT will be sent to your connected wallet address</li>
+                            <li><strong>Full Balance Available:</strong> You can withdraw your entire Web3Auth wallet USDT balance with no restrictions</li>
+                            <li>Withdrawal amount equals your Web3Auth wallet USDT balance</li>
+                            <li>USDT will be sent to the address you specify above</li>
                             <li>Processing time: ~5-10 minutes</li>
                             <li>No withdrawal fees</li>
                         </ul>
@@ -345,9 +489,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                     <button 
                         className="confirm-button"
                         onClick={handleWithdraw}
-                        disabled={isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore}
+                        disabled={isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxWithdrawable || !!addressError || !withdrawalAddress || !safeAuthLoggedIn}
                         style={{
-                            background: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore) 
+                            background: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxWithdrawable || !!addressError || !withdrawalAddress || !safeAuthLoggedIn) 
                                 ? '#444' 
                                 : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                             color: '#fff',
@@ -356,9 +500,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             border: 'none',
                             fontSize: '16px',
                             fontWeight: 'bold',
-                            cursor: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore) ? 'not-allowed' : 'pointer',
+                            cursor: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxWithdrawable || !!addressError || !withdrawalAddress || !safeAuthLoggedIn) ? 'not-allowed' : 'pointer',
                             width: '100%',
-                            opacity: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > platformScore) ? 0.6 : 1
+                            opacity: (isProcessing || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > maxWithdrawable || !!addressError || !withdrawalAddress || !safeAuthLoggedIn) ? 0.6 : 1
                         }}
                     >
                         {isProcessing ? '⏳ Processing...' : '💸 Confirm Withdrawal'}
