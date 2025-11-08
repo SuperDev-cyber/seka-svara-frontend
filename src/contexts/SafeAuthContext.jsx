@@ -367,6 +367,27 @@ export const SafeAuthProvider = ({ children }) => {
     }
   }, [provider, account, getProvider]);
 
+  // Get BNB balance from Web3Auth wallet
+  const getBNBBalance = useCallback(async () => {
+    if (!provider || !account) {
+      return '0';
+    }
+
+    try {
+      const ethersProvider = getProvider();
+      if (!ethersProvider) {
+        return '0';
+      }
+
+      const bnbBalance = await ethersProvider.getBalance(account);
+      const formattedBalance = ethers.utils.formatEther(bnbBalance);
+      return parseFloat(formattedBalance).toFixed(4);
+    } catch (error) {
+      console.error('Error fetching BNB balance from Web3Auth wallet:', error);
+      return '0';
+    }
+  }, [provider, account, getProvider]);
+
   const value = {
     web3auth,
     provider,
@@ -382,6 +403,7 @@ export const SafeAuthProvider = ({ children }) => {
     getProvider,
     getSigner,
     getUSDTBalance,
+    getBNBBalance,
   };
 
   return (

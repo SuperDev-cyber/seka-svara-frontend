@@ -1,27 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 
 const BalanceCard = () => {
     const { user } = useAuth();
-    const [platformScore, setPlatformScore] = useState(0); // Seka-Svara Score (managed in admin)
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
 
-    // ✅ Sync platform score from user context (PRIMARY SOURCE)
-    // This updates in real-time via socket when balance changes
+    // ✅ Fetch Web3Auth wallet USDT balance when connected
     useEffect(() => {
-        if (user?.platformScore !== undefined && user?.platformScore !== null) {
-            console.log("💰 BalanceCard - Syncing platformScore from user context:", user.platformScore);
-            setPlatformScore(user.platformScore);
-        } else {
-            setPlatformScore(0);
+        const fetchWalletBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
+                try {
+                    const balance = await safeAuthGetUSDTBalance();
+                    setWalletUSDTBalance(balance);
+                    console.log('💰 BalanceCard - Web3Auth USDT Balance:', balance);
+                } catch (error) {
+                    console.error('Error fetching wallet balance in BalanceCard:', error);
+                    setWalletUSDTBalance('0');
+                }
+            } else {
+                setWalletUSDTBalance('0');
+            }
+        };
+
+        fetchWalletBalance();
+        
+        // Refresh every 5 seconds when SafeAuth is connected
+        let interval;
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            interval = setInterval(fetchWalletBalance, 5000);
         }
-    }, [user]);
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     const formatBalance = () => {
-        // ✅ Display platform score
-        if (platformScore === null || platformScore === undefined || isNaN(platformScore)) {
-            return '0 USDT';
+        // ✅ Display Web3Auth wallet USDT balance (real-time from blockchain)
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            const balance = parseFloat(walletUSDTBalance || '0');
+            return `${balance.toFixed(2)} USDT`;
         }
-        return `${Number(platformScore).toFixed(0)} USDT`;
+        // Fallback to 0 if wallet not connected
+        return '0.00 USDT';
     };
 
     return (

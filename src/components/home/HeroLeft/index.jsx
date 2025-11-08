@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../../../contexts/WalletContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 
 const HeroLeft = () => {
     const navigate = useNavigate();
@@ -22,6 +23,9 @@ const HeroLeft = () => {
         formatAddress,
         formatAmount,
     } = useWallet();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance } = useSafeAuth();
+    const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
+    const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
     const [showWalletDropdown, setShowWalletDropdown] = useState(false);
     const dropdownRef = useRef(null);
@@ -299,8 +303,30 @@ const HeroLeft = () => {
                 </div>
             </div>
 
-            {/* Connected Wallet Info */}
-            {isConnected && (
+            {/* Connected Wallet Info - Show SafeAuth wallet if connected, otherwise show MetaMask/TronLink */}
+            {(safeAuthLoggedIn && safeAuthAccount) ? (
+                <div className='connected-wallet-info'>
+                    <div className='wallet-status'>
+                        <div className='network-indicator'>
+                            🟡
+                            <span>BSC</span>
+                        </div>
+                        <div className='wallet-address'>
+                            {safeAuthAccount ? `${safeAuthAccount.substring(0, 6)}...${safeAuthAccount.substring(safeAuthAccount.length - 4)}` : ''}
+                        </div>
+                    </div>
+                    <div className='wallet-balance'> 
+                        <div className='balance-item'>
+                            <span className='balance-label'>USDT</span>
+                            <span className='balance-value'>{parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}</span>
+                        </div>
+                        <div className='balance-item'>
+                            <span className='balance-label'>BNB</span>
+                            <span className='balance-value'>{parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</span>
+                        </div>
+                    </div>
+                </div>
+            ) : isConnected ? (
                 <div className='connected-wallet-info'>
                     <div className='wallet-status'>
                         <div className='network-indicator'>
@@ -325,7 +351,7 @@ const HeroLeft = () => {
                         Disconnect
                     </button>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 };
