@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSafeAuth } from '../../contexts/SafeAuthContext';
 import { useAuth } from '../../contexts/AuthContext';
-import apiService from '../../services/api';
+// apiService no longer needed - using AuthContext functions instead
 
 const SocialButtons = () => {
     const { 
@@ -12,7 +12,7 @@ const SocialButtons = () => {
         loading: safeAuthLoading,
         initError: safeAuthInitError
     } = useSafeAuth();
-    const { loginWithGoogle: backendLoginGoogle } = useAuth();
+    const { login, register, refreshUserProfile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [loading, setLoading] = useState(false);
@@ -36,48 +36,54 @@ const SocialButtons = () => {
             // Get user email from SafeAuth
             const email = result.user.email || result.user.name || 'user@web3auth.io';
             
-            // Register/Login with backend using email
+            // Register/Login with backend using AuthContext functions
+            // This ensures AuthContext state is properly updated
             try {
                 // Try to login first (user might already exist)
-                const loginResponse = await apiService.post('/auth/login', {
-                    email: email,
-                    password: 'web3auth', // Dummy password, backend should handle Web3Auth users differently
-                });
-                
-                if (loginResponse.access_token) {
-                    // User exists, login successful
+                try {
+                    await login({
+                        email: email,
+                        password: 'web3auth', // Dummy password for Web3Auth users
+                    });
+                    
+                    // Refresh user profile to ensure UI updates
+                    if (refreshUserProfile) {
+                        await refreshUserProfile();
+                    }
+                    
                     if (window.showToast) {
                         window.showToast('Login successful!', 'success', 3000);
                     }
                     navigate(from, { replace: true });
                     return;
+                } catch (loginError) {
+                    // User doesn't exist, try to register
+                    console.log('Login failed, trying to register...', loginError);
                 }
-            } catch (loginError) {
-                // User doesn't exist, try to register
-                console.log('Login failed, trying to register...', loginError);
-            }
 
-            // Register new user with backend
-            try {
+                // Register new user with backend
                 const password = 'Web3Auth_' + Date.now() + '_' + Math.random().toString(36).substring(7);
                 const username = email.split('@')[0] + '_' + Date.now().toString().substring(10);
                 
-                const registerResponse = await apiService.post('/auth/register', {
+                await register({
                     username: username,
                     email: email,
                     password: password,
                     confirmPassword: password,
                 });
 
-                if (registerResponse.access_token) {
-                    if (window.showToast) {
-                        window.showToast('Registration successful!', 'success', 3000);
-                    }
-                    navigate(from, { replace: true });
+                // Refresh user profile to ensure UI updates
+                if (refreshUserProfile) {
+                    await refreshUserProfile();
                 }
-            } catch (registerError) {
-                console.error('Registration error:', registerError);
-                throw new Error('Failed to register with backend');
+
+                if (window.showToast) {
+                    window.showToast('Registration successful!', 'success', 3000);
+                }
+                navigate(from, { replace: true });
+            } catch (authError) {
+                console.error('Authentication error:', authError);
+                throw new Error('Failed to authenticate with backend');
             }
         } catch (err) {
             console.error('SafeAuth Google login error:', err);
@@ -108,49 +114,56 @@ const SocialButtons = () => {
             const identifier = userEmail || `${walletAddress}@wallet.local`;
             const isGoogleLogin = !!userEmail;
             
-            // Register/Login with backend
+            // Register/Login with backend using AuthContext functions
+            // This ensures AuthContext state is properly updated
             try {
                 // Try to login first (user might already exist)
-                const loginResponse = await apiService.post('/auth/login', {
-                    email: identifier,
-                    password: 'web3auth', // Dummy password for Web3Auth users
-                });
-                
-                if (loginResponse.access_token) {
+                try {
+                    await login({
+                        email: identifier,
+                        password: 'web3auth', // Dummy password for Web3Auth users
+                    });
+                    
+                    // Refresh user profile to ensure UI updates
+                    if (refreshUserProfile) {
+                        await refreshUserProfile();
+                    }
+                    
                     if (window.showToast) {
                         window.showToast('Login successful!', 'success', 3000);
                     }
                     navigate(from, { replace: true });
                     return;
+                } catch (loginError) {
+                    console.log('Login failed, trying to register...', loginError);
                 }
-            } catch (loginError) {
-                console.log('Login failed, trying to register...', loginError);
-            }
 
-            // Register new user
-            try {
+                // Register new user
                 const password = 'Web3Auth_' + Date.now() + '_' + Math.random().toString(36).substring(7);
                 const email = identifier;
                 const username = isGoogleLogin 
                     ? (userEmail.split('@')[0] + '_' + Date.now().toString().substring(10))
                     : `wallet_${walletAddress.substring(2, 10)}_${Date.now().toString().substring(10)}`;
                 
-                const registerResponse = await apiService.post('/auth/register', {
+                await register({
                     username: username,
                     email: email,
                     password: password,
                     confirmPassword: password,
                 });
 
-                if (registerResponse.access_token) {
-                    if (window.showToast) {
-                        window.showToast('Registration successful!', 'success', 3000);
-                    }
-                    navigate(from, { replace: true });
+                // Refresh user profile to ensure UI updates
+                if (refreshUserProfile) {
+                    await refreshUserProfile();
                 }
-            } catch (registerError) {
-                console.error('Registration error:', registerError);
-                throw new Error('Failed to register with backend');
+
+                if (window.showToast) {
+                    window.showToast('Registration successful!', 'success', 3000);
+                }
+                navigate(from, { replace: true });
+            } catch (authError) {
+                console.error('Authentication error:', authError);
+                throw new Error('Failed to authenticate with backend');
             }
         } catch (err) {
             console.error('SafeAuth login error:', err);
