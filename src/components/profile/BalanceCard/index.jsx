@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useWallet } from '../../../contexts/WalletContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import apiService from '../../../services/api';
 import deposit from '../../../assets/icon/deposit-icon.png';
 import withdraw from '../../../assets/icon/withdraw-icon.png';
@@ -10,11 +11,43 @@ import WithdrawModal from '../WithdrawModal';
 const BalanceCard = () => {
     const { user, refreshUserProfile } = useAuth();
     const { isConnected, currentNetwork, USDTBalance } = useWallet();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [walletData, setWalletData] = useState(null);
     const [addresses, setAddresses] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // ✅ Fetch Web3Auth wallet USDT balance when connected
+    useEffect(() => {
+        const fetchWalletBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
+                try {
+                    const balance = await safeAuthGetUSDTBalance();
+                    setWalletUSDTBalance(balance);
+                    console.log('💰 BalanceCard - Web3Auth USDT Balance:', balance);
+                } catch (error) {
+                    console.error('Error fetching wallet balance in BalanceCard:', error);
+                    setWalletUSDTBalance('0');
+                }
+            } else {
+                setWalletUSDTBalance('0');
+            }
+        };
+
+        fetchWalletBalance();
+        
+        // Refresh every 5 seconds when SafeAuth is connected
+        let interval;
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            interval = setInterval(fetchWalletBalance, 5000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     useEffect(() => {
         if (user) {
@@ -86,8 +119,10 @@ const BalanceCard = () => {
         );
     }
 
-    // ✅ Use platform score from user context (updated by backend after deposits/withdrawals)
-    const platformScore = Number(user?.platformScore || 0);
+    // ✅ Use Web3Auth wallet USDT balance instead of platform score
+    const displayBalance = safeAuthLoggedIn && safeAuthAccount 
+        ? parseFloat(walletUSDTBalance || '0') 
+        : Number(user?.platformScore || 0);
 
     return (
         <div className='balance-section'>
@@ -119,13 +154,17 @@ const BalanceCard = () => {
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
-                            {Number(user?.platformScore || 0).toFixed(0)} USDT
+                            {safeAuthLoggedIn && safeAuthAccount 
+                                ? `${displayBalance.toFixed(2)} USDT`
+                                : `${displayBalance.toFixed(0)} USDT`}
                         </div>
                         <div className='network-name' style={{ opacity: 0.9 }}>
-                            Seka-Svara Score
+                            {safeAuthLoggedIn && safeAuthAccount ? 'Web3Auth Wallet Balance' : 'Seka-Svara Score'}
                         </div>
                         <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.8 }}>
-                            Used for all game activities
+                            {safeAuthLoggedIn && safeAuthAccount 
+                                ? 'Your Web3Auth wallet USDT balance'
+                                : 'Used for all game activities'}
                         </div>
                     </div>
                 </div>

@@ -306,7 +306,9 @@ const Header = () => {
                                 <div className='user-menu-dropdown'>
                                     <div className='user-info'>
                                         <div className='user-email'>{user?.email}</div>
-                                        <div className='user-balance'>Balance: ${Number(user?.platformScore || 0).toFixed(0)}</div>
+                                        <div className='user-balance'>
+                                            Balance: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(0)}
+                                        </div>
                                     </div>
                                     <div className='user-menu-divider'></div>
                         <Link to="/profile" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
@@ -471,7 +473,9 @@ const Header = () => {
                                     <div className='mobile-user-details'>
                                         <div className='mobile-user-name'>{user?.username}</div>
                                         <div className='mobile-user-email'>{user?.email}</div>
-                                        <div className='mobile-user-balance'>Balance: ${Number(user?.platformScore || 0).toFixed(0)}</div>
+                                        <div className='mobile-user-balance'>
+                                            Balance: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(0)}
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
