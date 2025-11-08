@@ -274,6 +274,35 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 </div>
 
                 <div className="modal-content">
+                    {/* Source Address Display - Web3Auth Account (where funds are withdrawn from) */}
+                    {safeAuthLoggedIn && safeAuthAccount && (
+                        <div className="info-box" style={{
+                            background: 'linear-gradient(135deg, #22c55e15 0%, #16a34a15 100%)',
+                            border: '2px solid #22c55e',
+                            padding: '15px',
+                            borderRadius: '12px',
+                            marginBottom: '20px'
+                        }}>
+                            <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px', color: '#22c55e' }}>
+                                💰 Source Address (Your Web3Auth Account):
+                            </div>
+                            <div style={{
+                                background: '#1a1a1a',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                wordBreak: 'break-all',
+                                fontFamily: 'monospace',
+                                color: '#22c55e'
+                            }}>
+                                {safeAuthAccount}
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#4ade80' }}>
+                                ✅ Funds will be withdrawn from this Web3Auth account address
+                            </div>
+                        </div>
+                    )}
+
                     {/* Wallet Address Input - User can enter arbitrary address */}
                     <div className="info-box" style={{
                         background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
@@ -283,7 +312,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         marginBottom: '20px'
                     }}>
                         <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px' }}>
-                            📍 Withdrawal Address:
+                            📍 Withdrawal Address (Destination):
                         </div>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                             <input
