@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../contexts/WalletContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSafeAuth } from '../../contexts/SafeAuthContext';
 import apiService from '../../services/api';
 import './DepositModal.css';
 import { ethers } from 'ethers';
 
-// ✅ Removed hardcoded addresses - now using user's unique deposit address for everything
+// ✅ Using Web3Auth account address as deposit address
 
 const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const {
@@ -19,9 +20,9 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     networks,
   } = useWallet();
   const { user } = useAuth();
+  const { account: safeAuthAccount, loggedIn: safeAuthLoggedIn } = useSafeAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
-  const [depositAddress, setDepositAddress] = useState(''); // User-specific deposit address
   const [amount, setAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState('');
@@ -30,46 +31,34 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
-  // Fetch user-specific deposit address when modal opens or network changes
+  // Use Web3Auth account address as deposit address
+  // For BEP20 (BSC), use the Web3Auth account address
+  // For TRC20 (TRON), we would need a TRON address from Web3Auth (if supported) or fallback
+  const depositAddress = selectedNetwork === 'BEP20' && safeAuthAccount 
+    ? safeAuthAccount 
+    : selectedNetwork === 'TRC20' 
+      ? (safeAuthAccount || '') // TRON support would need separate handling
+      : '';
+
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchUserDepositAddress();
       setCurrentStep('input');
       setMessage('');
       setAmount('');
-    }
-  }, [isOpen, selectedNetwork]);
-
-  const fetchUserDepositAddress = async () => {
-    try {
-      // First, try to get existing user addresses
-      const addressesResponse = await apiService.get('/wallet/addresses');
-      console.log('User addresses response:', addressesResponse);
+      setCopied(false);
+      setShowQR(false);
       
-      let addr = addressesResponse[selectedNetwork] || addressesResponse.BEP20 || addressesResponse.TRC20 || '';
-      
-      // If address doesn't exist, generate one
-      if (!addr) {
-        console.log(`Generating ${selectedNetwork} address for user...`);
-        const generateResponse = await apiService.post('/wallet/generate-address', {
-          network: selectedNetwork
-        });
-        addr = generateResponse.address || generateResponse[selectedNetwork] || '';
+      // Check if Web3Auth is connected
+      if (!safeAuthLoggedIn || !safeAuthAccount) {
+        setMessage('Please connect your Web3Auth wallet first using the "Connect Wallet" button in the header.');
+        setMessageType('warning');
+      } else {
+        setMessage('');
+        setMessageType('');
       }
-      
-      // Ensure EIP-55 checksum for BSC
-      if (addr && selectedNetwork === 'BEP20') {
-        try { addr = ethers.utils.getAddress(addr); } catch {}
-      }
-      
-      setDepositAddress(addr);
-      console.log(`✅ User deposit address (${selectedNetwork}):`, addr);
-    } catch (error) {
-      console.error('Failed to fetch user deposit address:', error);
-      setMessage('Failed to load deposit address. Please try again.');
-      setMessageType('error');
     }
-  };
+  }, [isOpen, safeAuthLoggedIn, safeAuthAccount]);
 
   const handleNetworkChange = (network) => {
     setSelectedNetwork(network);
@@ -77,29 +66,11 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     setAmount('');
   };
 
-  const handleConnectWallet = async () => {
-    try {
-      setIsProcessing(true);
-      setMessage('Connecting wallet...');
-      setMessageType('info');
+  // Removed handleConnectWallet and handleAutomatedDeposit
+  // Deposit flow is now manual: user copies address and sends funds from external wallet
+  // Backend will monitor transactions to Web3Auth addresses and transfer to platform account
 
-      if (selectedNetwork === 'BEP20') {
-        await connectMetaMask();
-      } else if (selectedNetwork === 'TRC20') {
-        await connectTronLink();
-      }
-
-      setMessage('Wallet connected! Now enter the deposit amount.');
-      setMessageType('success');
-    } catch (error) {
-      console.error('Wallet connection error:', error);
-      setMessage(error.message || 'Failed to connect wallet');
-      setMessageType('error');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
+  // Legacy function kept for reference (not used in new flow)
   const handleAutomatedDeposit = async () => {
     const depositAmount = parseFloat(amount);
 
@@ -227,19 +198,17 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   if (!isOpen) return null;
 
-  const needsWalletConnection = !isConnected || currentNetwork !== selectedNetwork;
-
   const networkCaption = selectedNetwork === 'BEP20' ? 'BEP-20 (BSC)' : 'TRC-20 (TRON)';
 
   const handleCopy = async () => {
     try {
-      // ✅ Copy user's unique deposit address
+      // ✅ Copy Web3Auth account address
       if (!depositAddress) {
-        throw new Error('Deposit address not available');
+        throw new Error('Web3Auth wallet not connected');
       }
       await navigator.clipboard.writeText(depositAddress);
       setCopied(true);
-      if (window.showToast) window.showToast('Copied!', 'success', 1500);
+      if (window.showToast) window.showToast('Address copied!', 'success', 1500);
       setTimeout(() => setCopied(false), 1500);
     } catch (error) {
       console.error('Failed to copy address:', error);
@@ -282,42 +251,47 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           </div>
 
           {/* Wallet Status */}
-          {isConnected && currentNetwork === selectedNetwork && (
+          {safeAuthLoggedIn && safeAuthAccount && (
             <div className="wallet-status success">
-              ✅ Wallet Connected: {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
+              ✅ Web3Auth Wallet Connected: {safeAuthAccount.substring(0, 6)}...{safeAuthAccount.substring(safeAuthAccount.length - 4)}
               <br />
               💰 Your Platform Score: {Number(user?.platformScore || 0).toFixed(0)} Platform Score
             </div>
           )}
 
-          {needsWalletConnection && (
+          {(!safeAuthLoggedIn || !safeAuthAccount) && (
             <div className="wallet-status warning">
-              ⚠️ Please connect your {selectedNetwork} wallet to continue
+              ⚠️ Please connect your Web3Auth wallet using the "Connect Wallet" button in the header
             </div>
           )}
 
-          {/* User Deposit Address Display */}
+          {/* User Deposit Address Display - Web3Auth Account Address */}
           <div className="address-section">
-            <label>Your Deposit Address — {networkCaption}</label>
+            <label>Your Deposit Address — {networkCaption} (Web3Auth Account)</label>
             <div className="address-container">
               <div className="address-text">
-                <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>{depositAddress || 'Loading...'}</code>
+                <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>
+                  {depositAddress || (safeAuthLoggedIn && !safeAuthAccount ? 'Loading...' : 'Please connect Web3Auth wallet')}
+                </code>
               </div>
               <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopy} disabled={!depositAddress}>
                 {copied ? 'Copied!' : 'Copy'}
               </button>
               <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress}>Show QR</button>
             </div>
-            <p className="address-hint">Send USDT to this address. Your unique address is fully displayed above.</p>
+            <p className="address-hint">
+              Send USDT to this address (your Web3Auth account). 
+              Funds will be stored in your Web3Auth wallet and then transferred to the platform account.
+            </p>
           </div>
 
-          {/* Amount Input */}
+          {/* Amount Input - Optional, for reference only */}
           <div className="input-group">
-            <label>Amount (Platform Score):</label>
+            <label>Amount (Platform Score) - Optional:</label>
             <input
               type="text"
               className="input-field"
-              placeholder="Enter amount (min. 1 Platform Score)"
+              placeholder="Enter amount for reference (min. 1 Platform Score)"
               value={amount}
               onChange={(e) => {
                 const value = e.target.value;
@@ -326,11 +300,11 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
                   setMessage('');
                 }
               }}
-              disabled={isProcessing || needsWalletConnection}
+              disabled={isProcessing || !safeAuthLoggedIn || !safeAuthAccount}
             />
-            {isConnected && currentNetwork === selectedNetwork && (
+            {safeAuthLoggedIn && safeAuthAccount && (
               <p className="input-hint">
-                Available: {Number(user?.platformScore || 0).toFixed(0)} Platform Score
+                Current Platform Score: {Number(user?.platformScore || 0).toFixed(0)} Platform Score
               </p>
             )}
           </div>
@@ -377,11 +351,12 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           <div className="info-box">
             <h4>📌 How it works:</h4>
             <ol>
+              <li>Connect your Web3Auth wallet using the "Connect Wallet" button in the header</li>
               <li>Select your network (BEP20 or TRC20)</li>
-              <li>Connect your wallet (MetaMask or TronLink)</li>
-              <li>Enter the amount you want to deposit (min. 1 USDT)</li>
-              <li>Click "Deposit Now" - your wallet will open automatically</li>
-              <li>Confirm the transaction in your wallet</li>
+              <li>Copy your Web3Auth account address or scan the QR code</li>
+              <li>Send USDT from any external wallet to your Web3Auth account address</li>
+              <li>Funds will be stored in your Web3Auth wallet</li>
+              <li>Funds will then be automatically transferred to the platform account</li>
               <li>SEKA Points will be credited automatically! 🎉</li>
             </ol>
             <div className="warning-box">
@@ -402,21 +377,31 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             {currentStep === 'success' ? 'Close' : 'Cancel'}
           </button>
           
-          {needsWalletConnection ? (
+          {!safeAuthLoggedIn || !safeAuthAccount ? (
             <button 
               className="btn btn-primary" 
-              onClick={handleConnectWallet}
+              onClick={() => {
+                onClose();
+                if (window.showToast) {
+                  window.showToast('Please connect Web3Auth wallet first', 'info', 3000);
+                }
+              }}
               disabled={isProcessing}
             >
-              {isProcessing ? '🔄 Connecting...' : `🔗 Connect ${selectedNetwork} Wallet`}
+              Connect Web3Auth Wallet First
             </button>
           ) : (
             <button 
               className="btn btn-primary" 
-              onClick={handleAutomatedDeposit}
-              disabled={isProcessing || !amount || parseFloat(amount) < 0.00000000001}
+              onClick={() => {
+                handleCopy();
+                if (window.showToast) {
+                  window.showToast('Address copied! Send USDT to this address from any external wallet.', 'info', 5000);
+                }
+              }}
+              disabled={!depositAddress}
             >
-              {isProcessing ? '🔄 Processing...' : '🚀 Deposit Now'}
+              📋 Copy Address
             </button>
           )}
         </div>
