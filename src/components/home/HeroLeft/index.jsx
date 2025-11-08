@@ -23,7 +23,7 @@ const HeroLeft = () => {
         formatAddress,
         formatAmount,
     } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
@@ -42,11 +42,40 @@ const HeroLeft = () => {
             return;
         }
         
-        if (isConnected) {
-            navigate('/gamelobby');
-        } else {
-            // Show wallet connection prompt
-            setShowWalletDropdown(true);
+        // Navigate to game lobby (Web3Auth wallet connection is handled separately)
+        navigate('/gamelobby');
+    };
+
+    // Handle Connect Wallet button click - opens Web3Auth modal
+    const handleConnectWalletClick = async () => {
+        if (!isAuthenticated) {
+            // Show notification for unregistered users
+            if (window.showToast) {
+                window.showToast('Please sign in to connect your wallet', 'warning', 4000);
+            }
+            navigate('/login');
+            return;
+        }
+
+        // If SafeAuth is already connected, do nothing
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            if (window.showToast) {
+                window.showToast('Wallet already connected!', 'info', 2000);
+            }
+            return;
+        }
+
+        // Open Web3Auth modal
+        try {
+            await safeAuthLoginWallet();
+            if (window.showToast) {
+                window.showToast('Wallet connected successfully!', 'success', 3000);
+            }
+        } catch (error) {
+            console.error('Wallet connection error:', error);
+            if (window.showToast) {
+                window.showToast(error.message || 'Failed to connect wallet', 'error', 5000);
+            }
         }
     };
 
@@ -238,21 +267,11 @@ const HeroLeft = () => {
                     Play Now
                 </button>
                 
-                {/* Wallet Connection Button with Dropdown */}
-                <div className='wallet-connect-container' ref={dropdownRef}>
+                {/* Wallet Connection Button - Opens Web3Auth Modal */}
+                {!safeAuthLoggedIn && (
                     <button 
                         className='connect-wallet'
-                        onClick={() => {
-                            if (!isAuthenticated) {
-                                // Show notification for unregistered users
-                                if (window.showToast) {
-                                    window.showToast('Please sign in to connect your wallet', 'warning', 4000);
-                                }
-                                navigate('/login');
-                                return;
-                            }
-                            setShowWalletDropdown(!showWalletDropdown);
-                        }}
+                        onClick={handleConnectWalletClick}
                         disabled={loading || !isAuthenticated}
                     >
                         <svg className='wallet-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -261,80 +280,8 @@ const HeroLeft = () => {
                             <line x1="10" y1="9" x2="14" y2="9" />
                         </svg>
                         {loading ? 'Connecting...' : !isAuthenticated ? 'Sign In Required' : 'Connect Wallet'}
-                        <svg className='dropdown-arrow' width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
                     </button>
-
-                    {/* Wallet Dropdown */}
-                    {showWalletDropdown && isAuthenticated && (
-                        <div className='wallet-dropdown'>
-                            <div className='dropdown-header'>
-                                <h3>Connect Wallet</h3>
-                                <button 
-                                    className='close-btn'
-                                    onClick={() => setShowWalletDropdown(false)}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                            
-                            <div className='wallet-options'>
-                                {/* MetaMask Option */}
-                                <div className='wallet-option'>
-                                    <div className='wallet-info'>
-                                        <div className='wallet-icon'>🦊</div>
-                                        <div className='wallet-details'>
-                                            <h4>MetaMask</h4>
-                                            <p>Connect to Binance Smart Chain</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        className='wallet-connect-btn'
-                                        onClick={() => handleConnectWallet('BEP20')}
-                                        disabled={loading}
-                                    >
-                                        {!isMetaMaskInstalled() ? 'Install MetaMask' : 'Connect'}
-                                    </button>
-                                </div>
-                                
-                                {/* TronLink Option */}
-                                <div className='wallet-option'>
-                                    <div className='wallet-info'>
-                                        <div className='wallet-icon'>🔴</div>
-                                        <div className='wallet-details'>
-                                            <h4>TronLink</h4>
-                                            <p>Connect to Tron Network</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        className='wallet-connect-btn'
-                                        onClick={() => handleConnectWallet('TRC20')}
-                                        disabled={loading}
-                                    >
-                                        {!isTronLinkInstalled() ? 'Install TronLink' : 'Connect'}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {error && (
-                                <div className='error-message'>
-                                    <div className='error-icon'>⚠️</div>
-                                    <div className='error-text'>{error}</div>
-                                    <button 
-                                        className='retry-btn'
-                                        onClick={() => {
-                                            setError(null);
-                                            // Retry connection logic can be added here
-                                        }}
-                                    >
-                                        Try Again
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
 
             {/* Connected Wallet Info - Show SafeAuth wallet if connected, otherwise show MetaMask/TronLink */}
