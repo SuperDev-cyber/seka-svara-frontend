@@ -21,7 +21,8 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
-    const { loggedIn: safeAuthLoggedIn } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
 
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
@@ -88,6 +89,36 @@ const Header = () => {
             setPlatformScore(0);
         }
     }, [isAuthenticated, user]);
+
+    // ✅ Fetch USDT balance from Web3Auth wallet when connected
+    useEffect(() => {
+        const fetchSafeAuthUSDTBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
+                try {
+                    const balance = await safeAuthGetUSDTBalance();
+                    setSafeAuthUSDTBalance(balance);
+                    console.log('💰 SafeAuth USDT Balance:', balance);
+                } catch (error) {
+                    console.error('Error fetching SafeAuth USDT balance:', error);
+                    setSafeAuthUSDTBalance('0');
+                }
+            } else {
+                setSafeAuthUSDTBalance('0');
+            }
+        };
+
+        fetchSafeAuthUSDTBalance();
+        
+        // Refresh balance every 10 seconds when SafeAuth is connected
+        let interval;
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            interval = setInterval(fetchSafeAuthUSDTBalance, 10000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     // Callback for when deposit is successful
     const handleDepositSuccess = async () => {
@@ -368,7 +399,7 @@ const Header = () => {
                             <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <button
                                     className='seka-balance-btn'
-                                    title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
+                                    title={`USDT Balance - Your Web3Auth wallet USDT balance`}
                                     style={{
                                         background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
                                         border: '2px solid rgb(249 148 38)',
@@ -376,7 +407,7 @@ const Header = () => {
                                         cursor: 'default'
                                     }}
                                 >
-                                    USDT: {Number(user?.platformScore || 0).toFixed(0)}
+                                    USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
                                 </button>
                             </div>
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>

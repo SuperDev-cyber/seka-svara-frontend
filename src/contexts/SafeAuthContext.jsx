@@ -295,6 +295,51 @@ export const SafeAuthProvider = ({ children }) => {
     return ethersProvider.getSigner();
   }, [getProvider]);
 
+  // Get USDT balance from Web3Auth wallet
+  const getUSDTBalance = useCallback(async () => {
+    if (!provider || !account) {
+      return '0';
+    }
+
+    try {
+      const ethersProvider = getProvider();
+      if (!ethersProvider) {
+        return '0';
+      }
+
+      // USDT contract address on BSC Mainnet
+      const USDT_ADDRESS = '0x5823F41428500c2CE218DD4ff42c24F3a3Fed52B';
+      
+      // Minimal USDT ABI for balanceOf
+      const USDT_ABI = [
+        {
+          "constant": true,
+          "inputs": [{"name": "_owner", "type": "address"}],
+          "name": "balanceOf",
+          "outputs": [{"name": "balance", "type": "uint256"}],
+          "type": "function"
+        },
+        {
+          "constant": true,
+          "inputs": [],
+          "name": "decimals",
+          "outputs": [{"name": "", "type": "uint8"}],
+          "type": "function"
+        }
+      ];
+
+      const usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, ethersProvider);
+      const balance = await usdtContract.balanceOf(account);
+      const decimals = await usdtContract.decimals();
+      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
+      
+      return parseFloat(formattedBalance).toFixed(2);
+    } catch (error) {
+      console.error('Error fetching USDT balance from Web3Auth wallet:', error);
+      return '0';
+    }
+  }, [provider, account, getProvider]);
+
   const value = {
     web3auth,
     provider,
@@ -309,6 +354,7 @@ export const SafeAuthProvider = ({ children }) => {
     logout,
     getProvider,
     getSigner,
+    getUSDTBalance,
   };
 
   return (
