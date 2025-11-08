@@ -3,7 +3,6 @@ import { useWallet } from '../../../contexts/WalletContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import apiService from '../../../services/api';
-import { ethers } from 'ethers';
 
 const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
