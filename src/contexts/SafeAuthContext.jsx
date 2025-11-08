@@ -68,12 +68,15 @@ export const SafeAuthProvider = ({ children }) => {
         // Configure OpenloginAdapter for social logins (Google, etc.)
         // This is REQUIRED for Google login and other social authentication methods
         // The adapter handles social login providers configured in the Web3Auth dashboard
-        // IMPORTANT: Create adapter BEFORE Web3Auth instance in v9
+        // IMPORTANT: Create adapter AFTER privateKeyProvider but BEFORE Web3Auth instance in v9
+        // IMPORTANT: OpenloginAdapter needs privateKeyProvider in adapterSettings
         const openloginAdapter = new OpenloginAdapter({
           adapterSettings: {
             clientId,
             network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
             uxMode: 'popup', // Use popup mode for better UX
+            chainConfig, // Pass chainConfig to adapter
+            privateKeyProvider, // CRITICAL: Pass privateKeyProvider to adapter
             // loginConfig is optional - Google should be configured in Web3Auth dashboard
           },
         });
