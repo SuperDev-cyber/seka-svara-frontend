@@ -36,6 +36,9 @@ const SocialButtons = () => {
             // Get user email from SafeAuth
             const email = result.user.email || result.user.name || 'user@web3auth.io';
             
+            // Use consistent password for Web3Auth users
+            const web3AuthPassword = 'Web3Auth_Default_Password_2024';
+            
             // Register/Login with backend using AuthContext functions
             // This ensures AuthContext state is properly updated
             try {
@@ -43,7 +46,7 @@ const SocialButtons = () => {
                 try {
                     await login({
                         email: email,
-                        password: 'web3auth', // Dummy password for Web3Auth users
+                        password: web3AuthPassword, // Consistent password for Web3Auth users
                     });
                     
                     // Refresh user profile to ensure UI updates
@@ -61,15 +64,14 @@ const SocialButtons = () => {
                     console.log('Login failed, trying to register...', loginError);
                 }
 
-                // Register new user with backend
-                const password = 'Web3Auth_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                // Register new user with consistent password
                 const username = email.split('@')[0] + '_' + Date.now().toString().substring(10);
                 
                 await register({
                     username: username,
                     email: email,
-                    password: password,
-                    confirmPassword: password,
+                    password: web3AuthPassword, // Use same password for consistency
+                    confirmPassword: web3AuthPassword,
                 });
 
                 // Refresh user profile to ensure UI updates
@@ -83,6 +85,27 @@ const SocialButtons = () => {
                 navigate(from, { replace: true });
             } catch (authError) {
                 console.error('Authentication error:', authError);
+                // If registration fails because user exists, try login again
+                if (authError.message?.includes('already exists') || authError.response?.status === 409) {
+                    try {
+                        await login({
+                            email: email,
+                            password: web3AuthPassword,
+                        });
+                        
+                        if (refreshUserProfile) {
+                            await refreshUserProfile();
+                        }
+                        
+                        if (window.showToast) {
+                            window.showToast('Login successful!', 'success', 3000);
+                        }
+                        navigate(from, { replace: true });
+                        return;
+                    } catch (retryLoginError) {
+                        console.error('Retry login also failed:', retryLoginError);
+                    }
+                }
                 throw new Error('Failed to authenticate with backend');
             }
         } catch (err) {
@@ -114,6 +137,10 @@ const SocialButtons = () => {
             const identifier = userEmail || `${walletAddress}@wallet.local`;
             const isGoogleLogin = !!userEmail;
             
+            // Use consistent password for Web3Auth users
+            // This ensures login works even if user was previously registered
+            const web3AuthPassword = 'Web3Auth_Default_Password_2024';
+            
             // Register/Login with backend using AuthContext functions
             // This ensures AuthContext state is properly updated
             try {
@@ -121,7 +148,7 @@ const SocialButtons = () => {
                 try {
                     await login({
                         email: identifier,
-                        password: 'web3auth', // Dummy password for Web3Auth users
+                        password: web3AuthPassword, // Consistent password for Web3Auth users
                     });
                     
                     // Refresh user profile to ensure UI updates
@@ -138,8 +165,7 @@ const SocialButtons = () => {
                     console.log('Login failed, trying to register...', loginError);
                 }
 
-                // Register new user
-                const password = 'Web3Auth_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                // Register new user with consistent password
                 const email = identifier;
                 const username = isGoogleLogin 
                     ? (userEmail.split('@')[0] + '_' + Date.now().toString().substring(10))
@@ -148,8 +174,8 @@ const SocialButtons = () => {
                 await register({
                     username: username,
                     email: email,
-                    password: password,
-                    confirmPassword: password,
+                    password: web3AuthPassword, // Use same password for consistency
+                    confirmPassword: web3AuthPassword,
                 });
 
                 // Refresh user profile to ensure UI updates
@@ -163,6 +189,27 @@ const SocialButtons = () => {
                 navigate(from, { replace: true });
             } catch (authError) {
                 console.error('Authentication error:', authError);
+                // If registration fails because user exists, try login again
+                if (authError.message?.includes('already exists') || authError.response?.status === 409) {
+                    try {
+                        await login({
+                            email: identifier,
+                            password: web3AuthPassword,
+                        });
+                        
+                        if (refreshUserProfile) {
+                            await refreshUserProfile();
+                        }
+                        
+                        if (window.showToast) {
+                            window.showToast('Login successful!', 'success', 3000);
+                        }
+                        navigate(from, { replace: true });
+                        return;
+                    } catch (retryLoginError) {
+                        console.error('Retry login also failed:', retryLoginError);
+                    }
+                }
                 throw new Error('Failed to authenticate with backend');
             }
         } catch (err) {
