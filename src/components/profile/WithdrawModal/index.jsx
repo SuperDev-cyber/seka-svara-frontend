@@ -29,13 +29,15 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         { value: 'TRC20', label: 'TRC20 (TRON)', fee: 0 }
     ];
 
-    // Initialize withdrawal address with SafeAuth account when modal opens
+    // Reset withdrawal address to empty when modal opens
     useEffect(() => {
-        if (isOpen && safeAuthAccount) {
-            setWithdrawalAddress(safeAuthAccount);
+        if (isOpen) {
+            setWithdrawalAddress('');
             setAddressError('');
+            setAmount('');
+            setMessage('');
         }
-    }, [isOpen, safeAuthAccount]);
+    }, [isOpen]);
 
     // Fetch wagering stats and balance
     useEffect(() => {
@@ -200,7 +202,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setTimeout(() => {
                 onClose();
                 setAmount('');
-                setWithdrawalAddress(safeAuthAccount || '');
+                setWithdrawalAddress('');
                 setMessage('');
                 setAddressError('');
             }, 3000);
