@@ -23,8 +23,7 @@ const HeroLeft = () => {
         formatAddress,
         formatAmount,
     } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
-    const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getBNBBalance: safeAuthGetBNBBalance, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
     // Removed showWalletDropdown and dropdownRef - no longer needed with Web3Auth
@@ -83,39 +82,35 @@ const HeroLeft = () => {
         disconnect();
     };
 
-    // ✅ Fetch SafeAuth wallet balances when connected
+    // ✅ Fetch SafeAuth BNB balance when connected (USDT now uses Platform Score)
     useEffect(() => {
-        const fetchSafeAuthBalances = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance) {
+        const fetchSafeAuthBNBBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetBNBBalance) {
                 try {
-                    // Fetch USDT balance
-                    const usdtBalance = await safeAuthGetUSDTBalance();
-                    setSafeAuthUSDTBalance(usdtBalance);
-
-                    // Fetch BNB balance
+                    // Fetch BNB balance (native gas token)
                     const bnbBalance = await safeAuthGetBNBBalance();
                     setSafeAuthBNBBalance(bnbBalance);
                 } catch (error) {
-                    console.error('Error fetching SafeAuth balances:', error);
+                    console.error('Error fetching SafeAuth BNB balance:', error);
+                    setSafeAuthBNBBalance('0');
                 }
             } else {
-                setSafeAuthUSDTBalance('0');
                 setSafeAuthBNBBalance('0');
             }
         };
 
-        fetchSafeAuthBalances();
+        fetchSafeAuthBNBBalance();
         
         // Refresh every 5 seconds when SafeAuth is connected
         let interval;
         if (safeAuthLoggedIn && safeAuthAccount) {
-            interval = setInterval(fetchSafeAuthBalances, 5000);
+            interval = setInterval(fetchSafeAuthBNBBalance, 5000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetBNBBalance]);
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth
 
@@ -185,7 +180,7 @@ const HeroLeft = () => {
                     <div className='wallet-balance'> 
                         <div className='balance-item'>
                             <span className='balance-label'>USDT</span>
-                            <span className='balance-value'>{parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}</span>
+                            <span className='balance-value'>{Number(user?.platformScore || 0).toFixed(2)}</span>
                         </div>
                         <div className='balance-item'>
                             <span className='balance-label'>BNB</span>
