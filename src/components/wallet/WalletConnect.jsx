@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useSafeAuth } from '../../contexts/SafeAuthContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import './WalletConnect.css';
 
 const WalletConnect = () => {
@@ -13,108 +11,26 @@ const WalletConnect = () => {
     initError: safeAuthInitError,
     logout: safeAuthLogout,
   } = useSafeAuth();
-  const { login, register, refreshUserProfile, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Handle Web3Auth wallet connection
+  // Handle Web3Auth wallet connection - PURELY FRONTEND, NO BACKEND CALLS
   const handleConnectWallet = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // If user is not authenticated, redirect to login
-      if (!isAuthenticated) {
-        navigate('/login');
-        return;
-      }
-
       // Login with SafeAuth (Web3Auth) - opens modal with Google and wallet options
+      // This is purely frontend - no backend calls
       const result = await safeAuthLoginWallet();
       
       if (!result) {
         throw new Error('Failed to connect with SafeAuth');
       }
 
-      // Get user info - could be from Google login or wallet
-      const userEmail = result.user?.email || result.user?.name || null;
-      const walletAddress = result.address;
-      
-      // Determine identifier: prefer email (from Google) over wallet address
-      const identifier = userEmail || `${walletAddress}@wallet.local`;
-      
-      // Use consistent password for Web3Auth users
-      const web3AuthPassword = 'Web3Auth_Default_Password_2024';
-      
-      // Register/Login with backend using AuthContext functions
-      // This ensures AuthContext state is properly updated
-      try {
-        // Try to login first (user might already exist)
-        try {
-          await login({
-            email: identifier,
-            password: web3AuthPassword,
-          });
-          
-          // Refresh user profile to ensure UI updates
-          if (refreshUserProfile) {
-            await refreshUserProfile();
-          }
-          
-          if (window.showToast) {
-            window.showToast('Wallet connected successfully!', 'success', 3000);
-          }
-        } catch (loginError) {
-          console.log('Login failed, trying to register...', loginError);
-          
-          // Register new user with consistent password
-          const isGoogleLogin = !!userEmail;
-          const email = identifier;
-          const username = isGoogleLogin 
-            ? (userEmail.split('@')[0] + '_' + Date.now().toString().substring(10))
-            : `wallet_${walletAddress.substring(2, 10)}_${Date.now().toString().substring(10)}`;
-          
-          await register({
-            username: username,
-            email: email,
-            password: web3AuthPassword,
-            confirmPassword: web3AuthPassword,
-          });
-
-          // Refresh user profile to ensure UI updates
-          if (refreshUserProfile) {
-            await refreshUserProfile();
-          }
-
-          if (window.showToast) {
-            window.showToast('Wallet registered successfully!', 'success', 3000);
-          }
-        }
-      } catch (authError) {
-        console.error('Authentication error:', authError);
-        // If registration fails because user exists, try login again
-        if (authError.message?.includes('already exists') || authError.response?.status === 409) {
-          try {
-            await login({
-              email: identifier,
-              password: web3AuthPassword,
-            });
-            
-            if (refreshUserProfile) {
-              await refreshUserProfile();
-            }
-            
-            if (window.showToast) {
-              window.showToast('Wallet connected successfully!', 'success', 3000);
-            }
-          } catch (retryLoginError) {
-            console.error('Retry login also failed:', retryLoginError);
-            throw new Error('Failed to authenticate with backend');
-          }
-        } else {
-          throw new Error('Failed to authenticate with backend');
-        }
+      // Wallet connected successfully - no backend authentication needed
+      if (window.showToast) {
+        window.showToast('Wallet connected successfully!', 'success', 3000);
       }
     } catch (err) {
       console.error('Wallet connection error:', err);
@@ -193,7 +109,7 @@ const WalletConnect = () => {
       <button
         className="connect-btn"
         onClick={handleConnectWallet}
-        disabled={loading || safeAuthLoading || !!safeAuthInitError || !isAuthenticated}
+        disabled={loading || safeAuthLoading || !!safeAuthInitError}
       >
         <svg className='wallet-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
@@ -206,17 +122,6 @@ const WalletConnect = () => {
       {error && (
         <div className="error-message">
           <span>⚠️ {error}</span>
-        </div>
-      )}
-
-      {!isAuthenticated && (
-        <div style={{ 
-          marginTop: '8px',
-          fontSize: '12px',
-          color: '#ffa500',
-          textAlign: 'center'
-        }}>
-          Please sign in first
         </div>
       )}
     </div>
