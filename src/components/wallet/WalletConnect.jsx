@@ -1,157 +1,164 @@
 import React, { useState } from 'react';
-import { useWallet } from '../../contexts/WalletContext';
+import { useSafeAuth } from '../../contexts/SafeAuthContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import './WalletConnect.css';
 
 const WalletConnect = () => {
   const {
-    isConnected,
-    currentNetwork,
-    account,
-    balance,
-    USDTBalance,
-    loading,
-    error,
-    connectMetaMask,
-    connectTronLink,
-    disconnect,
-    refreshBalances,
-    isMetaMaskInstalled,
-    isTronLinkInstalled,
-    formatAddress,
-    formatAmount,
-  } = useWallet();
+    loginWithWallet: safeAuthLoginWallet,
+    loggedIn: safeAuthLoggedIn,
+    account: safeAuthAccount,
+    loading: safeAuthLoading,
+    initError: safeAuthInitError,
+    logout: safeAuthLogout,
+  } = useSafeAuth();
+  const { login, register, refreshUserProfile, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const [showNetworkSelector, setShowNetworkSelector] = useState(false);
-
-  // Detect browser and redirect to appropriate store
-  const getInstallUrl = (walletType) => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-    const isChrome = /chrome|crios/i.test(userAgent) && !/edge|edg|opr|firefox/i.test(userAgent);
-    const isFirefox = /firefox|fxios/i.test(userAgent);
-    const isEdge = /edge|edg/i.test(userAgent);
-    const isSafari = /safari/i.test(userAgent) && !/chrome|crios|firefox|fxios|edge|edg/i.test(userAgent);
-    const isIOS = /iphone|ipad|ipod/i.test(userAgent);
-    const isAndroid = /android/i.test(userAgent);
-
-    if (walletType === 'metamask') {
-      if (isMobile) {
-        if (isIOS) {
-          return 'https://apps.apple.com/app/metamask/id1438144202';
-        } else if (isAndroid) {
-          return 'https://play.google.com/store/apps/details?id=io.metamask';
-        }
-      } else {
-        if (isChrome || isEdge) {
-          return 'https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn';
-        } else if (isFirefox) {
-          return 'https://addons.mozilla.org/en-US/firefox/addon/ether-metamask/';
-        } else if (isSafari) {
-          return 'https://metamask.io/download/';
-        } else {
-          return 'https://metamask.io/download/';
-        }
-      }
-    } else if (walletType === 'tronlink') {
-      if (isMobile) {
-        if (isIOS) {
-          return 'https://apps.apple.com/app/tronlink/id1550840174';
-        } else if (isAndroid) {
-          return 'https://play.google.com/store/apps/details?id=com.tronlink';
-        }
-      } else {
-        if (isChrome || isEdge) {
-          return 'https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec';
-        } else if (isFirefox) {
-          return 'https://addons.mozilla.org/en-US/firefox/addon/tronlink/';
-        } else {
-          return 'https://www.tronlink.org/';
-        }
-      }
-    }
-    return '#';
-  };
-
-  const handleConnect = async (network) => {
-    // Check if wallet needs to be installed
-    if (network === 'BEP20' && !isMetaMaskInstalled()) {
-      window.open(getInstallUrl('metamask'), '_blank', 'noopener,noreferrer');
-      return;
-    }
-    
-    if (network === 'TRC20' && !isTronLinkInstalled()) {
-      window.open(getInstallUrl('tronlink'), '_blank', 'noopener,noreferrer');
-      return;
-    }
-    
-    // Wallet is installed, proceed with connection
+  // Handle Web3Auth wallet connection
+  const handleConnectWallet = async () => {
     try {
-      if (network === 'BEP20') {
-        await connectMetaMask();
-      } else if (network === 'TRC20') {
-        await connectTronLink();
+      setLoading(true);
+      setError('');
+
+      // If user is not authenticated, redirect to login
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
       }
-      setShowNetworkSelector(false);
-    } catch (error) {
-      console.error('Connection failed:', error);
+
+      // Login with SafeAuth (Web3Auth) - opens modal with Google and wallet options
+      const result = await safeAuthLoginWallet();
+      
+      if (!result) {
+        throw new Error('Failed to connect with SafeAuth');
+      }
+
+      // Get user info - could be from Google login or wallet
+      const userEmail = result.user?.email || result.user?.name || null;
+      const walletAddress = result.address;
+      
+      // Determine identifier: prefer email (from Google) over wallet address
+      const identifier = userEmail || `${walletAddress}@wallet.local`;
+      
+      // Use consistent password for Web3Auth users
+      const web3AuthPassword = 'Web3Auth_Default_Password_2024';
+      
+      // Register/Login with backend using AuthContext functions
+      // This ensures AuthContext state is properly updated
+      try {
+        // Try to login first (user might already exist)
+        try {
+          await login({
+            email: identifier,
+            password: web3AuthPassword,
+          });
+          
+          // Refresh user profile to ensure UI updates
+          if (refreshUserProfile) {
+            await refreshUserProfile();
+          }
+          
+          if (window.showToast) {
+            window.showToast('Wallet connected successfully!', 'success', 3000);
+          }
+        } catch (loginError) {
+          console.log('Login failed, trying to register...', loginError);
+          
+          // Register new user with consistent password
+          const isGoogleLogin = !!userEmail;
+          const email = identifier;
+          const username = isGoogleLogin 
+            ? (userEmail.split('@')[0] + '_' + Date.now().toString().substring(10))
+            : `wallet_${walletAddress.substring(2, 10)}_${Date.now().toString().substring(10)}`;
+          
+          await register({
+            username: username,
+            email: email,
+            password: web3AuthPassword,
+            confirmPassword: web3AuthPassword,
+          });
+
+          // Refresh user profile to ensure UI updates
+          if (refreshUserProfile) {
+            await refreshUserProfile();
+          }
+
+          if (window.showToast) {
+            window.showToast('Wallet registered successfully!', 'success', 3000);
+          }
+        }
+      } catch (authError) {
+        console.error('Authentication error:', authError);
+        // If registration fails because user exists, try login again
+        if (authError.message?.includes('already exists') || authError.response?.status === 409) {
+          try {
+            await login({
+              email: identifier,
+              password: web3AuthPassword,
+            });
+            
+            if (refreshUserProfile) {
+              await refreshUserProfile();
+            }
+            
+            if (window.showToast) {
+              window.showToast('Wallet connected successfully!', 'success', 3000);
+            }
+          } catch (retryLoginError) {
+            console.error('Retry login also failed:', retryLoginError);
+            throw new Error('Failed to authenticate with backend');
+          }
+        } else {
+          throw new Error('Failed to authenticate with backend');
+        }
+      }
+    } catch (err) {
+      console.error('Wallet connection error:', err);
+      setError(err.message || 'Failed to connect wallet');
+      if (window.showToast) {
+        window.showToast(err.message || 'Wallet connection failed', 'error', 5000);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDisconnect = () => {
-    disconnect();
+  const handleDisconnect = async () => {
+    try {
+      await safeAuthLogout();
+      if (window.showToast) {
+        window.showToast('Wallet disconnected', 'info', 2000);
+      }
+    } catch (error) {
+      console.error('Disconnect error:', error);
+    }
   };
 
-  const handleRefresh = () => {
-    refreshBalances();
-  };
-
-  if (isConnected) {
+  // Show connected state
+  if (safeAuthLoggedIn && safeAuthAccount) {
     return (
       <div className="wallet-connected">
         <div className="wallet-info">
           <div className="wallet-header">
             <div className="network-badge">
-              <span className="network-icon">
-                {currentNetwork === 'BEP20' ? '🦊' : '🔴'}
-              </span>
-              <span className="network-name">
-                {currentNetwork === 'BEP20' ? 'BSC' : 'Tron'}
-              </span>
+              <span className="network-icon">🔷</span>
+              <span className="network-name">BSC</span>
             </div>
             <div className="wallet-address">
-              {formatAddress(account)}
+              {safeAuthAccount.substring(0, 6)}...{safeAuthAccount.substring(safeAuthAccount.length - 4)}
             </div>
           </div>
-
-          {/* <div className="wallet-balances">
-            <div className="balance-item">
-              <span className="balance-label">Native:</span>
-              <span className="balance-value">
-                {formatAmount(balance)} {currentNetwork === 'BEP20' ? 'BNB' : 'TRX'}
-              </span>
-            </div>
-            <div className="balance-item">
-              <span className="balance-label">USDT:</span>
-              <span className="balance-value">
-                {formatAmount(USDTBalance)} USDT
-              </span>
-            </div>
-          </div> */}
         </div>
 
         <div className="wallet-actions">
           <button
-            className="refresh-btn"
-            onClick={handleRefresh}
-            disabled={loading}
-            title="Refresh balances"
-          >
-            🔄
-          </button>
-          <button
             className="disconnect-btn"
             onClick={handleDisconnect}
-            disabled={loading}
+            disabled={loading || safeAuthLoading}
           >
             Disconnect
           </button>
@@ -160,91 +167,56 @@ const WalletConnect = () => {
     );
   }
 
+  // Show connect button
   return (
     <div className="wallet-connect">
-      {!showNetworkSelector ? (
-        <button
-          className="connect-btn"
-          onClick={() => setShowNetworkSelector(true)}
-          disabled={loading}
-        >
-          <svg className='wallet-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-            <line x1="10" y1="9" x2="14" y2="9" />
-          </svg>
-          {loading ? 'Connecting...' : 'Connect Wallet'}
-          <svg className='dropdown-arrow' width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="6,9 12,15 18,9"></polyline>
-          </svg>
-        </button>
-      ) : (
-        <div className="network-selector">
-          <div className="selector-header">
-            <h3>Choose Network</h3>
-            <button
-              className="close-btn"
-              onClick={() => setShowNetworkSelector(false)}
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="network-options">
-            <div className="network-option">
-              <div className="network-info">
-                <div className="network-icon">🦊</div>
-              </div>
-              <button
-                className="network-btn"
-                onClick={() => handleConnect('BEP20')}
-                disabled={loading}
-              >
-                {!isMetaMaskInstalled() ? 'Install MetaMask' : 'Connect'}
-              </button>
-            </div>
-
-            <div className="network-option">
-              <div className="network-info">
-                <div className="network-icon">🔴</div>
-              </div>
-              <button
-                className="network-btn"
-                onClick={() => handleConnect('TRC20')}
-                disabled={loading}
-              >
-                {!isTronLinkInstalled() ? 'Install TronLink' : 'Connect'}
-              </button>
-            </div>
-          </div>
-
-          <div className="wallet-instructions">
-            <p>Don't have a wallet? Install one:</p>
-            <div className="wallet-links">
-              <a
-                href="https://metamask.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="wallet-link"
-              >
-                Install MetaMask
-              </a>
-              <a
-                href="https://www.tronlink.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="wallet-link"
-              >
-                Install TronLink
-              </a>
-            </div>
-          </div>
+      {safeAuthInitError && (
+        <div className="error-message" style={{ marginBottom: '8px' }}>
+          <span>⚠️ {safeAuthInitError}</span>
         </div>
       )}
+      
+      {safeAuthLoading && (
+        <div style={{ 
+          padding: '8px', 
+          backgroundColor: '#eef', 
+          border: '1px solid #ccf', 
+          borderRadius: '4px',
+          color: '#33c',
+          fontSize: '12px',
+          marginBottom: '8px'
+        }}>
+          🔄 Initializing Web3Auth...
+        </div>
+      )}
+
+      <button
+        className="connect-btn"
+        onClick={handleConnectWallet}
+        disabled={loading || safeAuthLoading || !!safeAuthInitError || !isAuthenticated}
+      >
+        <svg className='wallet-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+          <line x1="10" y1="9" x2="14" y2="9" />
+        </svg>
+        {loading || safeAuthLoading ? 'Connecting...' : 'Connect Wallet'}
+      </button>
 
       {error && (
         <div className="error-message">
           <span>⚠️ {error}</span>
+        </div>
+      )}
+
+      {!isAuthenticated && (
+        <div style={{ 
+          marginTop: '8px',
+          fontSize: '12px',
+          color: '#ffa500',
+          textAlign: 'center'
+        }}>
+          Please sign in first
         </div>
       )}
     </div>
