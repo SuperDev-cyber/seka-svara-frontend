@@ -65,6 +65,19 @@ export const SafeAuthProvider = ({ children }) => {
           config: { chainConfig },
         });
 
+        // Configure OpenloginAdapter for social logins (Google, etc.)
+        // This is REQUIRED for Google login and other social authentication methods
+        // The adapter handles social login providers configured in the Web3Auth dashboard
+        // IMPORTANT: Create adapter BEFORE Web3Auth instance in v9
+        const openloginAdapter = new OpenloginAdapter({
+          adapterSettings: {
+            clientId,
+            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+            uxMode: 'popup', // Use popup mode for better UX
+            // loginConfig is optional - Google should be configured in Web3Auth dashboard
+          },
+        });
+
         // Initialize Web3Auth
         // Use SAPPHIRE_MAINNET to match the project environment
         // IMPORTANT: Using @web3auth/modal requires MODAL mode in dashboard, not EMBED mode
@@ -83,28 +96,18 @@ export const SafeAuthProvider = ({ children }) => {
             primaryButton: 'externalLogin',
           },
           // Account Abstraction (Smart Accounts) Configuration
-          // This is REQUIRED when Smart Accounts are enabled in the Web3Auth dashboard
-          accountAbstractionConfig: {
-            chainConfig: [{
-              chainId: '0x38', // BSC Mainnet (56 in decimal)
-              rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/${clientId}`, // Web3Auth bundled RPC
-            }],
-          },
-        });
-
-        // Configure OpenloginAdapter for social logins (Google, etc.)
-        // This is REQUIRED for Google login and other social authentication methods
-        // The adapter handles social login providers configured in the Web3Auth dashboard
-        const openloginAdapter = new OpenloginAdapter({
-          adapterSettings: {
-            clientId,
-            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
-            uxMode: 'popup', // Use popup mode for better UX
-            // loginConfig is optional - Google should be configured in Web3Auth dashboard
-          },
+          // Temporarily commented out - may conflict with adapter registration in v9
+          // Uncomment if Smart Accounts are properly configured in dashboard
+          // accountAbstractionConfig: {
+          //   chainConfig: [{
+          //     chainId: '0x38', // BSC Mainnet (56 in decimal)
+          //     rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/${clientId}`, // Web3Auth bundled RPC
+          //   }],
+          // },
         });
 
         // Register the OpenloginAdapter with Web3Auth instance
+        // IMPORTANT: Must be called BEFORE initModal() in v9
         web3authInstance.configureAdapter(openloginAdapter);
 
         console.log('🔄 Initializing Web3Auth with:', {
