@@ -9,9 +9,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { user } = useAuth();
     const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
     
-    // ✅ Use Web3Auth wallet USDT balance instead of platform score
-    const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
-    
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
     const [withdrawalAddress, setWithdrawalAddress] = useState('');
     const [addressError, setAddressError] = useState('');
@@ -31,36 +28,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         { value: 'BEP20', label: 'BEP20 (BSC)', fee: 0 },
         { value: 'TRC20', label: 'TRC20 (TRON)', fee: 0 }
     ];
-
-    // ✅ Fetch Web3Auth wallet USDT balance when connected
-    useEffect(() => {
-        const fetchWalletBalance = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
-                try {
-                    const balance = await safeAuthGetUSDTBalance();
-                    setWalletUSDTBalance(balance);
-                    console.log('💰 WithdrawModal - Web3Auth USDT Balance:', balance);
-                } catch (error) {
-                    console.error('Error fetching wallet balance in WithdrawModal:', error);
-                    setWalletUSDTBalance('0');
-                }
-            } else {
-                setWalletUSDTBalance('0');
-            }
-        };
-
-        if (isOpen) {
-            fetchWalletBalance();
-            // Refresh every 5 seconds when SafeAuth is connected
-            let interval;
-            if (safeAuthLoggedIn && safeAuthAccount) {
-                interval = setInterval(fetchWalletBalance, 5000);
-            }
-            return () => {
-                if (interval) clearInterval(interval);
-            };
-        }
-    }, [isOpen, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     // Initialize withdrawal address with SafeAuth account when modal opens
     useEffect(() => {
@@ -108,8 +75,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     };
 
-    // ✅ Users can withdraw their full Web3Auth wallet USDT balance
-    const maxWithdrawable = parseFloat(walletUSDTBalance || '0');
+    // ✅ Users can withdraw up to their Platform Score (increases with deposits, decreases with withdrawals)
+    const maxWithdrawable = Number(user?.platformScore || 0);
     const currentNetwork = networks.find(network => network.value === selectedNetwork);
 
     // Validate withdrawal address
@@ -398,7 +365,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                     All funds in your account are available for withdrawal with no restrictions.
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Current Web3Auth Wallet Balance:</span>
+                                    <span style={{fontSize:'12px'}}>Current Platform Score:</span>
                                     <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize:'12px' }}>
                                         {maxWithdrawable.toFixed(2)} USDT
                                     </span>
@@ -509,8 +476,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                     }}>
                         <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#22c55e' }}>✅ Withdrawal Information</h3>
                         <ul style={{ fontSize: '12px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li><strong>Full Balance Available:</strong> You can withdraw your entire Web3Auth wallet USDT balance with no restrictions</li>
-                            <li>Withdrawal amount equals your Web3Auth wallet USDT balance</li>
+                            <li><strong>Full Balance Available:</strong> You can withdraw your entire Platform Score with no restrictions</li>
+                            <li>Withdrawal amount equals your Platform Score (increases with deposits, decreases with withdrawals)</li>
                             <li><strong>From:</strong> Your Web3Auth account address (where you deposited funds)</li>
                             <li><strong>To:</strong> The withdrawal address you specify above (any address of your choice)</li>
                             <li>Processing time: ~5-10 minutes</li>

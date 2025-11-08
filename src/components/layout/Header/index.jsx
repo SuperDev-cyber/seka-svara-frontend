@@ -307,7 +307,7 @@ const Header = () => {
                                     <div className='user-info'>
                                         <div className='user-email'>{user?.email}</div>
                                         <div className='user-balance'>
-                                            Balance: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(0)}
+                                            Balance: ${Number(user?.platformScore || 0).toFixed(2)}
                                         </div>
                                     </div>
                                     <div className='user-menu-divider'></div>
@@ -408,7 +408,7 @@ const Header = () => {
                             <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <button
                                     className='seka-balance-btn'
-                                    title={`USDT Balance - Your Web3Auth wallet USDT balance`}
+                                    title={`Platform Score - Increases with deposits, decreases with withdrawals`}
                                     style={{
                                         background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
                                         border: '2px solid rgb(249 148 38)',
@@ -416,7 +416,7 @@ const Header = () => {
                                         cursor: 'default'
                                     }}
                                 >
-                                    USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
+                                    USDT: {Number(user?.platformScore || 0).toFixed(2)}
                                 </button>
                             </div>
                             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
@@ -474,7 +474,7 @@ const Header = () => {
                                         <div className='mobile-user-name'>{user?.username}</div>
                                         <div className='mobile-user-email'>{user?.email}</div>
                                         <div className='mobile-user-balance'>
-                                            Balance: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(0)}
+                                            Balance: ${Number(user?.platformScore || 0).toFixed(2)}
                                         </div>
                                     </div>
                                 </div>

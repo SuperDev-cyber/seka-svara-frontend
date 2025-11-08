@@ -14,7 +14,7 @@ const SocialButtons = () => {
             if (!credentialResponse.credential) {
                 throw new Error('No credential received from Google');
             }
-
+            
             // Use AuthContext's loginWithGoogle which handles backend authentication
             await loginWithGoogle(credentialResponse.credential);
             

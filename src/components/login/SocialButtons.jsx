@@ -8,13 +8,13 @@ const SocialButtons = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || '/';
-
+  
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             if (!credentialResponse.credential) {
                 throw new Error('No credential received from Google');
             }
-
+            
             // Use AuthContext's loginWithGoogle which handles backend authentication
             await loginWithGoogle(credentialResponse.credential);
             

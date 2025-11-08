@@ -119,10 +119,9 @@ const BalanceCard = () => {
         );
     }
 
-    // ✅ Use Web3Auth wallet USDT balance instead of platform score
-    const displayBalance = safeAuthLoggedIn && safeAuthAccount 
-        ? parseFloat(walletUSDTBalance || '0') 
-        : Number(user?.platformScore || 0);
+    // ✅ Always use Platform Score (not Web3Auth wallet balance)
+    // Platform Score is the source of truth - it increases with deposits and decreases with withdrawals
+    const displayBalance = Number(user?.platformScore || 0);
 
     return (
         <div className='balance-section'>
@@ -154,17 +153,13 @@ const BalanceCard = () => {
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
-                            {safeAuthLoggedIn && safeAuthAccount 
-                                ? `${displayBalance.toFixed(2)} USDT`
-                                : `${displayBalance.toFixed(0)} USDT`}
+                            {displayBalance.toFixed(2)} USDT
                         </div>
                         <div className='network-name' style={{ opacity: 0.9 }}>
-                            {safeAuthLoggedIn && safeAuthAccount ? 'Web3Auth Wallet Balance' : 'Seka-Svara Score'}
+                            Platform Score
                         </div>
                         <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.8 }}>
-                            {safeAuthLoggedIn && safeAuthAccount 
-                                ? 'Your Web3Auth wallet USDT balance'
-                                : 'Used for all game activities'}
+                            Increases with deposits, decreases with withdrawals
                         </div>
                     </div>
                 </div>
