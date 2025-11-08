@@ -205,17 +205,20 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessageType('info');
             
             // Call backend to process withdrawal
-            // The toAddress is the user-entered withdrawal address
+            // fromAddress: User's Web3Auth account address (where funds were deposited)
+            // toAddress: User's chosen withdrawal address (where funds will be sent)
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
                 amount: withdrawAmount, // Amount in USDT
-                toAddress: withdrawalAddress.trim() // User-entered withdrawal address
+                fromAddress: safeAuthAccount, // ✅ Web3Auth account address (where user deposited funds)
+                toAddress: withdrawalAddress.trim() // User-entered withdrawal address (where funds will be sent)
             });
 
             console.log('✅ Withdrawal request sent:', {
                 network: selectedNetwork,
                 amount: withdrawAmount,
-                toAddress: withdrawalAddress.trim()
+                fromAddress: safeAuthAccount, // Web3Auth account address
+                toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
             setMessage(`✅ Withdrawal successful! ${withdrawAmount.toFixed(2)} USDT will be sent to ${withdrawalAddress.trim().substring(0, 6)}...${withdrawalAddress.trim().substring(withdrawalAddress.trim().length - 4)}`);
@@ -479,7 +482,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         <ul style={{ fontSize: '12px', lineHeight: '1.8', paddingLeft: '20px' }}>
                             <li><strong>Full Balance Available:</strong> You can withdraw your entire Web3Auth wallet USDT balance with no restrictions</li>
                             <li>Withdrawal amount equals your Web3Auth wallet USDT balance</li>
-                            <li>USDT will be sent to the address you specify above</li>
+                            <li><strong>From:</strong> Your Web3Auth account address (where you deposited funds)</li>
+                            <li><strong>To:</strong> The withdrawal address you specify above (any address of your choice)</li>
                             <li>Processing time: ~5-10 minutes</li>
                             <li>No withdrawal fees</li>
                         </ul>
