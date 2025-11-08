@@ -136,6 +136,40 @@ const HeroLeft = () => {
         disconnect();
     };
 
+    // ✅ Fetch SafeAuth wallet balances when connected
+    useEffect(() => {
+        const fetchSafeAuthBalances = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance) {
+                try {
+                    // Fetch USDT balance
+                    const usdtBalance = await safeAuthGetUSDTBalance();
+                    setSafeAuthUSDTBalance(usdtBalance);
+
+                    // Fetch BNB balance
+                    const bnbBalance = await safeAuthGetBNBBalance();
+                    setSafeAuthBNBBalance(bnbBalance);
+                } catch (error) {
+                    console.error('Error fetching SafeAuth balances:', error);
+                }
+            } else {
+                setSafeAuthUSDTBalance('0');
+                setSafeAuthBNBBalance('0');
+            }
+        };
+
+        fetchSafeAuthBalances();
+        
+        // Refresh every 5 seconds when SafeAuth is connected
+        let interval;
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            interval = setInterval(fetchSafeAuthBalances, 5000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
+
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
