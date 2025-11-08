@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Web3Auth } from '@web3auth/modal';
 import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
+import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ethers } from 'ethers';
 
 const SafeAuthContext = createContext();
@@ -66,6 +67,7 @@ export const SafeAuthProvider = ({ children }) => {
 
         // Initialize Web3Auth
         // Use SAPPHIRE_MAINNET to match the project environment
+        // IMPORTANT: Using @web3auth/modal requires MODAL mode in dashboard, not EMBED mode
         const web3authInstance = new Web3Auth({
           clientId,
           web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
@@ -89,6 +91,21 @@ export const SafeAuthProvider = ({ children }) => {
             }],
           },
         });
+
+        // Configure OpenloginAdapter for social logins (Google, etc.)
+        // This is REQUIRED for Google login and other social authentication methods
+        // The adapter handles social login providers configured in the Web3Auth dashboard
+        const openloginAdapter = new OpenloginAdapter({
+          adapterSettings: {
+            clientId,
+            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+            uxMode: 'popup', // Use popup mode for better UX
+            // loginConfig is optional - Google should be configured in Web3Auth dashboard
+          },
+        });
+
+        // Register the OpenloginAdapter with Web3Auth instance
+        web3authInstance.configureAdapter(openloginAdapter);
 
         console.log('🔄 Initializing Web3Auth with:', {
           clientId: clientId.substring(0, 20) + '...',
