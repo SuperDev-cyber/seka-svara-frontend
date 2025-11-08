@@ -205,19 +205,17 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessageType('info');
             
             // Call backend to process withdrawal
-            // fromAddress: User's Web3Auth account address (where funds were deposited)
-            // toAddress: User's chosen withdrawal address (where funds will be sent)
+            // Note: Backend currently transfers from admin wallet
+            // TODO: Update backend to accept fromAddress and transfer from user's Web3Auth account
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
                 amount: withdrawAmount, // Amount in USDT
-                fromAddress: safeAuthAccount, // ✅ Web3Auth account address (where user deposited funds)
                 toAddress: withdrawalAddress.trim() // User-entered withdrawal address (where funds will be sent)
             });
 
             console.log('✅ Withdrawal request sent:', {
                 network: selectedNetwork,
                 amount: withdrawAmount,
-                fromAddress: safeAuthAccount, // Web3Auth account address
                 toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
