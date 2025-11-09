@@ -92,9 +92,11 @@ const HeroLeft = () => {
     };
 
     // ✅ Fetch SafeAuth wallet balances when connected (BEP20 and ERC20)
+    // Only fetch if both Web3Auth is connected AND user is authenticated
     useEffect(() => {
         const fetchSafeAuthBalances = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetERC20USDTBalance && safeAuthGetBNBBalance) {
+            // Only fetch if Web3Auth is connected AND user is authenticated
+            if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated && safeAuthGetUSDTBalance && safeAuthGetERC20USDTBalance && safeAuthGetBNBBalance) {
                 try {
                     // Fetch BEP20 USDT balance
                     const bep20USDTBalance = await safeAuthGetUSDTBalance();
@@ -114,6 +116,7 @@ const HeroLeft = () => {
                     setSafeAuthBNBBalance('0');
                 }
             } else {
+                // Clear balances if not authenticated or not connected
                 setSafeAuthBEP20USDTBalance('0');
                 setSafeAuthERC20USDTBalance('0');
                 setSafeAuthBNBBalance('0');
@@ -122,16 +125,16 @@ const HeroLeft = () => {
 
         fetchSafeAuthBalances();
         
-        // Refresh every 5 seconds when SafeAuth is connected
+        // Refresh every 5 seconds when SafeAuth is connected AND authenticated
         let interval;
-        if (safeAuthLoggedIn && safeAuthAccount) {
+        if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated) {
             interval = setInterval(fetchSafeAuthBalances, 5000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetERC20USDTBalance, safeAuthGetBNBBalance]);
+    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance, safeAuthGetERC20USDTBalance, safeAuthGetBNBBalance]);
 
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth

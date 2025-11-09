@@ -249,11 +249,15 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
+      // Clear backend session
       await apiService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear all auth state
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      // Clear all tokens and user data from localStorage
+      apiService.clearTokens();
     }
   };
 

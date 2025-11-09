@@ -12,6 +12,7 @@ const BalanceCard = () => {
     const [erc20USDTBalance, setErc20USDTBalance] = useState('0');
 
     // ✅ Fetch Web3Auth wallet balances (BEP20 and ERC20) when connected
+    // Only fetch if Web3Auth is connected (balances will be 0 if not connected)
     useEffect(() => {
         const fetchWalletBalances = async () => {
             if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetERC20USDTBalance) {
@@ -31,6 +32,7 @@ const BalanceCard = () => {
                     setErc20USDTBalance('0');
                 }
             } else {
+                // Clear balances when not connected
                 setBep20USDTBalance('0');
                 setErc20USDTBalance('0');
             }

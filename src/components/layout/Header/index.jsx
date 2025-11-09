@@ -222,11 +222,30 @@ const Header = () => {
 
     const handleLogout = async () => {
         try {
+            // Logout from Web3Auth first (if connected)
+            if (safeAuthLoggedIn) {
+                try {
+                    await safeAuthLogout();
+                } catch (error) {
+                    console.error('Web3Auth logout error:', error);
+                }
+            }
+            
+            // Then logout from backend and clear auth state
             await logout();
+            
+            // Clear all state and navigate
             navigate('/');
             setShowUserMenu(false);
+            
+            if (window.showToast) {
+                window.showToast('Logged out successfully', 'success', 2000);
+            }
         } catch (error) {
             console.error('Logout failed:', error);
+            // Even if logout fails, clear local state
+            navigate('/');
+            setShowUserMenu(false);
         }
     };
 

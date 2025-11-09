@@ -484,8 +484,9 @@ export const SafeAuthProvider = ({ children }) => {
       ];
 
       // Create provider for Ethereum Mainnet
-      // Note: Web3Auth provider might be on BSC, so we need to create a separate provider for Ethereum
-      const ethProvider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/YOUR_INFURA_KEY');
+      // Use public RPC endpoint (no API key required)
+      // Alternative: Use Web3Auth bundled RPC or Alchemy/Infura with proper key
+      const ethProvider = new ethers.providers.JsonRpcProvider('https://eth.llamarpc.com');
       const usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, ethProvider);
       
       const [balance, decimals] = await Promise.all([
@@ -511,8 +512,8 @@ export const SafeAuthProvider = ({ children }) => {
     }
 
     try {
-      // Create provider for Ethereum Mainnet
-      const ethProvider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/YOUR_INFURA_KEY');
+      // Create provider for Ethereum Mainnet using public RPC
+      const ethProvider = new ethers.providers.JsonRpcProvider('https://eth.llamarpc.com');
       const ethBalance = await ethProvider.getBalance(account);
       const formattedBalance = ethers.utils.formatEther(ethBalance);
       return parseFloat(formattedBalance).toFixed(4);
