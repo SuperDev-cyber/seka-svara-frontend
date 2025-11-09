@@ -190,8 +190,8 @@ const HeroLeft = () => {
                 )}
                             </div>
                             
-            {/* Connected Wallet Info - Show SafeAuth wallet if connected, otherwise show MetaMask/TronLink */}
-            {(safeAuthLoggedIn && safeAuthAccount) ? (
+            {/* Connected Wallet Info - Show SafeAuth wallet if connected AND authenticated, otherwise show MetaMask/TronLink */}
+            {(safeAuthLoggedIn && safeAuthAccount && isAuthenticated) ? (
                 <>
                     {/* BSC (BEP20) Network - New Card Design */}
                     <div className='connected-wallet-info'>
