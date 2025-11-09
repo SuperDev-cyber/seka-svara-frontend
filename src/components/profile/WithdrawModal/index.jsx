@@ -123,11 +123,11 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         
         const trimmedAddress = address.trim();
         
-        // BEP20 and ERC20 use the same address format (Ethereum-compatible)
-        // Both use 0x followed by 40 hex characters
-        if (selectedNetwork === 'BEP20' || selectedNetwork === 'ERC20') {
+        // BEP20 uses Ethereum-compatible address format
+        // Uses 0x followed by 40 hex characters
+        if (selectedNetwork === 'BEP20') {
             if (!/^0x[a-fA-F0-9]{40}$/.test(trimmedAddress)) {
-                return `Invalid ${selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} address format. Must be 0x followed by 40 hexadecimal characters.`;
+                return `Invalid BSC address format. Must be 0x followed by 40 hexadecimal characters.`;
             }
         }
         
@@ -330,7 +330,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         marginBottom: '20px'
                     }}>
                             <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px', color: '#22c55e' }}>
-                                💰 Source Address (Your Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} Account):
+                                💰 Source Address (Your Web3Auth BSC Account):
                         </div>
                         <div style={{
                             background: '#1a1a1a',
@@ -405,7 +405,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         )}
                         {!addressError && withdrawalAddress && (
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#22c55e' }}>
-                                ✅ Valid {selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} address
+                                ✅ Valid BSC address
                             </div>
                         )}
                         {!safeAuthLoggedIn && (
