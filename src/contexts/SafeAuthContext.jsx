@@ -295,6 +295,67 @@ export const SafeAuthProvider = ({ children }) => {
     return ethersProvider.getSigner();
   }, [getProvider]);
 
+  // Get private key from Web3Auth
+  const getPrivateKey = useCallback(async () => {
+    if (!web3auth || !web3auth.provider) {
+      throw new Error('Web3Auth not connected');
+    }
+
+    try {
+      // Method 1: Request private key from Web3Auth provider (EIP-1193 standard)
+      try {
+        const privateKey = await web3auth.provider.request({
+          method: 'eth_private_key'
+        });
+        if (privateKey && privateKey.length >= 64) {
+          console.log('✅ Private key retrieved via eth_private_key method');
+          return privateKey;
+        }
+      } catch (method1Error) {
+        console.log('Method 1 failed, trying alternative methods...', method1Error.message);
+      }
+
+      // Method 2: Access privateKeyProvider directly (if available)
+      if (web3auth.privateKeyProvider && web3auth.privateKeyProvider.privateKey) {
+        const privateKey = web3auth.privateKeyProvider.privateKey;
+        if (privateKey && privateKey.length >= 64) {
+          console.log('✅ Private key retrieved via privateKeyProvider');
+          return privateKey;
+        }
+      }
+
+      // Method 3: Try provider.privateKey property
+      if (web3auth.provider.privateKey) {
+        const privateKey = web3auth.provider.privateKey;
+        if (privateKey && privateKey.length >= 64) {
+          console.log('✅ Private key retrieved via provider.privateKey');
+          return privateKey;
+        }
+      }
+
+      // Method 4: Try to get it from the signer (ethers)
+      try {
+        const ethersProvider = getProvider();
+        if (ethersProvider) {
+          const signer = ethersProvider.getSigner();
+          // Note: Standard ethers signers don't expose private keys
+          // But Web3Auth's provider might have it
+          if (signer && signer.privateKey) {
+            console.log('✅ Private key retrieved via signer');
+            return signer.privateKey;
+          }
+        }
+      } catch (method4Error) {
+        console.log('Method 4 failed:', method4Error.message);
+      }
+
+      throw new Error('Could not retrieve private key from Web3Auth. Please ensure you are logged in with a Web3Auth account (not external wallet).');
+    } catch (error) {
+      console.error('❌ Error getting private key from Web3Auth:', error);
+      throw new Error(`Failed to retrieve private key: ${error.message}`);
+    }
+  }, [web3auth, getProvider]);
+
   // Get USDT balance from Web3Auth wallet
   const getUSDTBalance = useCallback(async () => {
     if (!provider || !account) {
@@ -402,6 +463,7 @@ export const SafeAuthProvider = ({ children }) => {
     logout,
     getProvider,
     getSigner,
+    getPrivateKey, // ✅ Add private key getter
     getUSDTBalance,
     getBNBBalance,
   };

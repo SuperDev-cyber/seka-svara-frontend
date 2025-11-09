@@ -7,7 +7,7 @@ import apiService from '../../../services/api';
 const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
     const { user } = useAuth();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth();
     
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
     const [withdrawalAddress, setWithdrawalAddress] = useState('');
@@ -204,17 +204,35 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
         try {
             setIsProcessing(true);
+            setMessage('Retrieving private key from Web3Auth...');
+            setMessageType('info');
+            
+            // ✅ Get user's private key from Web3Auth
+            let userPrivateKey;
+            try {
+                userPrivateKey = await safeAuthGetPrivateKey();
+                console.log('✅ Private key retrieved from Web3Auth');
+            } catch (keyError) {
+                console.error('❌ Failed to get private key:', keyError);
+                setMessage(`Failed to retrieve private key: ${keyError.message}. Please ensure you are logged in to Web3Auth.`);
+                setMessageType('error');
+                setIsProcessing(false);
+                return;
+            }
+
             setMessage('Processing withdrawal...');
             setMessageType('info');
             
             // Call backend to process withdrawal
             // fromAddress: User's Web3Auth account address (where funds were deposited)
             // toAddress: User's chosen withdrawal address (where funds will be sent)
+            // privateKey: User's private key from Web3Auth (for signing transaction)
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
                 amount: withdrawAmount, // Amount in USDT
                 fromAddress: safeAuthAccount, // ✅ User's Web3Auth account address (where user deposited funds)
-                toAddress: withdrawalAddress.trim() // User-entered withdrawal address (where funds will be sent)
+                toAddress: withdrawalAddress.trim(), // User-entered withdrawal address (where funds will be sent)
+                privateKey: userPrivateKey // ✅ User's private key from Web3Auth
             });
 
             console.log('✅ Withdrawal request sent:', {
