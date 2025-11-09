@@ -279,7 +279,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             console.log('✅ Withdrawal request sent:', {
                 network: selectedNetwork,
                 amount: withdrawAmount,
-                fromAddress: safeAuthAccount, // Web3Auth account address
+                fromAddress: fromAddress, // Web3Auth account address (BEP20 or TRC20)
                 toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
@@ -337,7 +337,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
                 <div className="modal-content">
                     {/* Source Address Display - Web3Auth Account (where funds are withdrawn from) */}
-                    {safeAuthLoggedIn && safeAuthAccount && (
+                    {safeAuthLoggedIn && (selectedNetwork === 'BEP20' ? safeAuthAccount : trc20Address) && (
                     <div className="info-box" style={{
                             background: 'linear-gradient(135deg, #22c55e15 0%, #16a34a15 100%)',
                             border: '2px solid #22c55e',
@@ -346,7 +346,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         marginBottom: '20px'
                     }}>
                             <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px', color: '#22c55e' }}>
-                                💰 Source Address (Your Web3Auth Account):
+                                💰 Source Address (Your Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'TRON'} Account):
                         </div>
                         <div style={{
                             background: '#1a1a1a',
@@ -357,10 +357,10 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             fontFamily: 'monospace',
                                 color: '#22c55e'
                         }}>
-                                {safeAuthAccount}
+                                {selectedNetwork === 'BEP20' ? safeAuthAccount : trc20Address}
                             </div>
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#4ade80' }}>
-                                ✅ Funds will be withdrawn from this Web3Auth account address
+                                ✅ Funds will be withdrawn from this Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'TRON'} account address
                             </div>
                         </div>
                     )}
