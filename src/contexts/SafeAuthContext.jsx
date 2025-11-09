@@ -577,9 +577,32 @@ export const SafeAuthProvider = ({ children }) => {
       // Get USDT contract instance
       const usdtContract = await tronWeb.contract(USDT_ABI, USDT_CONTRACT);
       
+      // Convert base58 address to hex format for contract calls
+      // TronWeb contract calls require hex format addresses
+      let ownerAddressHex;
+      try {
+        // Try to convert base58 to hex
+        ownerAddressHex = tronWeb.address.toHex(trc20Address);
+      } catch (convertError) {
+        // If conversion fails, try using the address directly
+        // Some TronWeb versions accept base58 directly
+        ownerAddressHex = trc20Address;
+      }
+      
+      console.log('🔍 TRC20 balance check:', {
+        base58Address: trc20Address,
+        hexAddress: ownerAddressHex,
+        contract: USDT_CONTRACT
+      });
+      
       // Get balance and decimals
+      // TronWeb contract balanceOf requires the address parameter
       const [balance, decimals] = await Promise.all([
-        usdtContract.balanceOf(trc20Address).call(),
+        usdtContract.balanceOf(ownerAddressHex).call().catch(async (error) => {
+          // If hex format fails, try base58 format directly
+          console.log('⚠️ Hex format failed, trying base58 format...', error.message);
+          return await usdtContract.balanceOf(trc20Address).call();
+        }),
         usdtContract.decimals().call().catch(() => 6), // Default to 6 if decimals call fails
       ]);
 
