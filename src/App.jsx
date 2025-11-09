@@ -43,8 +43,8 @@ function App() {
           {/* Public routes */}
           {/* Registration and Login routes removed - Web3Auth is the only authentication method */}
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/terms-of-service" element={<><Header /><TermsOfService /><Footer /></>} />
-          <Route path="/privacy-policy" element={<><Header /><PrivacyPolicy /><Footer /></>} />
+          <Route path="/terms-of-service" element={<><TermsOfService /><Footer /></>} />
+          <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /></>} />
           
           {/* Protected routes */}
           <Route path="/profile" element={
