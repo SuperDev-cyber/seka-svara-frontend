@@ -19,20 +19,55 @@ const WalletConnect = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-authenticate with backend if Web3Auth is already connected but backend is not authenticated
+  // Auto-authenticate if Web3Auth is already connected but AuthContext is not authenticated
+  // ✅ WALLET CONNECTION = IMMEDIATE AUTHENTICATION
   useEffect(() => {
     const autoAuth = async () => {
       if (safeAuthLoggedIn && safeAuthAccount && !isAuthenticated && !loading && !safeAuthLoading) {
-        console.log('🔄 Web3Auth connected but backend not authenticated, auto-authenticating...');
+        console.log('🔄 Web3Auth connected, authenticating immediately...');
         try {
           const userInfo = safeAuthUser;
           const email = userInfo?.email;
           const name = userInfo?.name;
           
-          const authResponse = await apiService.loginWithWeb3Auth(safeAuthAccount, email, name);
-          console.log('✅ Auto-authentication successful:', authResponse);
-          
-          await refreshUserProfile();
+          // ✅ IMMEDIATE AUTHENTICATION - Create user object from wallet
+          const walletUser = {
+            id: safeAuthAccount,
+            username: email ? email.split('@')[0] + '_web3' : 'user_' + safeAuthAccount.substring(2, 10),
+            email: email || `${safeAuthAccount}@web3auth.local`,
+            bep20WalletAddress: safeAuthAccount,
+            erc20WalletAddress: safeAuthAccount,
+            platformScore: 0,
+            balance: 0,
+            role: 'USER',
+          };
+
+          // Authenticate immediately via wallet connection
+          await login({
+            walletAddress: safeAuthAccount,
+            email,
+            name,
+            isWeb3Auth: true,
+            user: walletUser
+          });
+
+          console.log('✅ User authenticated immediately via wallet connection');
+
+          // Register/login on backend in background (non-blocking)
+          apiService.loginWithWeb3Auth(safeAuthAccount, email, name)
+            .then((authResponse) => {
+              console.log('✅ Backend registration successful:', authResponse);
+              refreshUserProfile().catch(err => console.error('Profile refresh failed:', err));
+            })
+            .catch((error) => {
+              console.error('❌ Backend registration failed (non-blocking):', error);
+              // Retry in background
+              setTimeout(() => {
+                apiService.loginWithWeb3Auth(safeAuthAccount, email, name)
+                  .then(() => refreshUserProfile())
+                  .catch(err => console.error('Retry failed:', err));
+              }, 10000);
+            });
         } catch (error) {
           console.error('❌ Auto-authentication failed:', error);
         }
@@ -40,7 +75,7 @@ const WalletConnect = () => {
     };
 
     autoAuth();
-  }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthUser, loading, safeAuthLoading, refreshUserProfile]);
+  }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthUser, loading, safeAuthLoading, login, refreshUserProfile]);
 
   // Handle Web3Auth wallet connection - WALLET CONNECTION = IMMEDIATE AUTHENTICATION
   const handleConnectWallet = async () => {

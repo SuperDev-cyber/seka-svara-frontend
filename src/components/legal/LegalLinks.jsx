@@ -12,6 +12,7 @@ const LegalLinks = ({ variant = 'inline' }) => {
     return (
       <>
         <div className="legal-links-modal">
+          By signing in, you agree to our{' '}
           <button 
             className="legal-link-button" 
             onClick={() => setShowTerms(true)}
@@ -19,7 +20,7 @@ const LegalLinks = ({ variant = 'inline' }) => {
           >
             Terms of Service
           </button>
-          <span className="legal-links-separator">and</span>
+          {' '}and{' '}
           <button 
             className="legal-link-button" 
             onClick={() => setShowPrivacy(true)}
@@ -27,6 +28,7 @@ const LegalLinks = ({ variant = 'inline' }) => {
           >
             Privacy Policy
           </button>
+          .
         </div>
         {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
         {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
