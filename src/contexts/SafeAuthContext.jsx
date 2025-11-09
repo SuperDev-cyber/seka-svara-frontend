@@ -4,19 +4,7 @@ import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ethers } from 'ethers';
-// Dynamic import for TronWeb to avoid constructor issues in ESM
-let TronWeb;
-if (typeof window !== 'undefined') {
-  // Use dynamic import for browser environment
-  import('tronweb').then((module) => {
-    TronWeb = module.default || module;
-  }).catch(() => {
-    // Fallback: try require if available
-    if (typeof require !== 'undefined') {
-      TronWeb = require('tronweb');
-    }
-  });
-}
+// TronWeb will be dynamically imported when needed to avoid constructor issues in ESM
 
 const SafeAuthContext = createContext();
 
@@ -520,12 +508,9 @@ export const SafeAuthProvider = ({ children }) => {
         return '0';
       }
 
-      // Dynamically import TronWeb to avoid constructor issues
-      let TronWebModule = TronWeb;
-      if (!TronWebModule || typeof TronWebModule !== 'function') {
-        const tronWebModule = await import('tronweb');
-        TronWebModule = tronWebModule.default || tronWebModule;
-      }
+      // Dynamically import TronWeb to avoid constructor issues in ESM
+      const tronWebModule = await import('tronweb');
+      const TronWebModule = tronWebModule.default || tronWebModule;
 
       if (!TronWebModule || typeof TronWebModule !== 'function') {
         throw new Error('TronWeb is not available');
@@ -590,12 +575,9 @@ export const SafeAuthProvider = ({ children }) => {
         return '0';
       }
 
-      // Dynamically import TronWeb to avoid constructor issues
-      let TronWebModule = TronWeb;
-      if (!TronWebModule || typeof TronWebModule !== 'function') {
-        const tronWebModule = await import('tronweb');
-        TronWebModule = tronWebModule.default || tronWebModule;
-      }
+      // Dynamically import TronWeb to avoid constructor issues in ESM
+      const tronWebModule = await import('tronweb');
+      const TronWebModule = tronWebModule.default || tronWebModule;
 
       if (!TronWebModule || typeof TronWebModule !== 'function') {
         throw new Error('TronWeb is not available');
