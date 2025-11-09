@@ -20,7 +20,11 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     networks,
   } = useWallet();
   const { user } = useAuth();
-  const { account: safeAuthAccount, loggedIn: safeAuthLoggedIn } = useSafeAuth();
+  const { 
+    account: safeAuthAccount, 
+    loggedIn: safeAuthLoggedIn,
+    getTRC20Address: safeAuthGetTRC20Address 
+  } = useSafeAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
   const [amount, setAmount] = useState('');
@@ -32,55 +36,43 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [showQR, setShowQR] = useState(false);
   const [walletAddresses, setWalletAddresses] = useState({ BEP20: null, TRC20: null });
   const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [trc20Address, setTrc20Address] = useState(null);
 
   // Get deposit address based on selected network
   // For BEP20: Use Web3Auth account address (Ethereum-compatible, works on BSC)
-  // For TRC20: Use backend-generated TRC20 address (TRON format: T...)
+  // For TRC20: Use Web3Auth-derived TRC20 address (from private key)
   const depositAddress = selectedNetwork === 'BEP20' && safeAuthAccount 
     ? safeAuthAccount 
     : selectedNetwork === 'TRC20' 
-      ? (walletAddresses.TRC20 || '')
+      ? (trc20Address || '')
       : '';
 
-  // Fetch wallet addresses from backend when modal opens or network changes
+  // ✅ Fetch TRC20 address from Web3Auth when TRC20 is selected
   useEffect(() => {
-    const fetchAddresses = async () => {
-      if (isOpen && user) {
+    const fetchTRC20Address = async () => {
+      if (isOpen && selectedNetwork === 'TRC20' && safeAuthLoggedIn && safeAuthGetTRC20Address) {
         try {
           setLoadingAddresses(true);
-          const addresses = await apiService.get('/wallet/addresses');
-          setWalletAddresses({
-            BEP20: addresses.BEP20 || null,
-            TRC20: addresses.TRC20 || null,
-          });
-          
-          // ✅ If TRC20 address doesn't exist, generate it automatically
-          if (!addresses.TRC20) {
-            try {
-              console.log('🔄 TRC20 address not found, generating...');
-              const generated = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
-              const trc20Address = generated.address || generated.TRC20 || generated;
-              if (trc20Address) {
-                setWalletAddresses(prev => ({ ...prev, TRC20: trc20Address }));
-                console.log('✅ TRC20 address generated:', trc20Address);
-              }
-            } catch (error) {
-              console.error('❌ Failed to generate TRC20 address:', error);
-              // Don't show error to user - address will be generated on first deposit attempt
-            }
+          console.log('🔄 Fetching TRC20 address from Web3Auth...');
+          const address = await safeAuthGetTRC20Address();
+          if (address) {
+            setTrc20Address(address);
+            console.log('✅ TRC20 address from Web3Auth:', address);
           } else {
-            console.log('✅ TRC20 address found:', addresses.TRC20);
+            console.warn('⚠️ Failed to get TRC20 address from Web3Auth');
           }
         } catch (error) {
-          console.error('❌ Failed to fetch wallet addresses:', error);
+          console.error('❌ Error fetching TRC20 address from Web3Auth:', error);
         } finally {
           setLoadingAddresses(false);
         }
+      } else if (selectedNetwork !== 'TRC20') {
+        setTrc20Address(null);
       }
     };
 
-    fetchAddresses();
-  }, [isOpen, user, selectedNetwork]);
+    fetchTRC20Address();
+  }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthGetTRC20Address]);
 
   // Reset state when modal opens
   useEffect(() => {

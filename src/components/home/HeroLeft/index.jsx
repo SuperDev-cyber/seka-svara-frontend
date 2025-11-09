@@ -23,10 +23,20 @@ const HeroLeft = () => {
         formatAddress,
         formatAmount,
     } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
+    const { 
+      loggedIn: safeAuthLoggedIn, 
+      account: safeAuthAccount, 
+      getUSDTBalance: safeAuthGetUSDTBalance, 
+      getBNBBalance: safeAuthGetBNBBalance,
+      getTRC20Address: safeAuthGetTRC20Address,
+      getTRC20USDTBalance: safeAuthGetTRC20USDTBalance,
+      getTRXBalance: safeAuthGetTRXBalance,
+      loginWithWallet: safeAuthLoginWallet 
+    } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
     const [trc20USDTBalance, setTrc20USDTBalance] = useState('0');
+    const [trc20TRXBalance, setTrc20TRXBalance] = useState('0');
     const [trc20Address, setTrc20Address] = useState(null);
 
     // Removed showWalletDropdown and dropdownRef - no longer needed with Web3Auth
@@ -121,46 +131,52 @@ const HeroLeft = () => {
         };
     }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
 
-    // ✅ Fetch TRC20 balance from backend (user's TRC20 address)
+    // ✅ Fetch TRC20 balance from Web3Auth (user's TRC20 address derived from Web3Auth private key)
     useEffect(() => {
         const fetchTRC20Balance = async () => {
-            if (isAuthenticated && user) {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetTRC20Address && safeAuthGetTRC20USDTBalance && safeAuthGetTRXBalance) {
                 try {
-                    // Get TRC20 address first
-                    const addresses = await apiService.get('/wallet/addresses');
-                    if (addresses.TRC20) {
-                        setTrc20Address(addresses.TRC20);
+                    // Get TRC20 address from Web3Auth
+                    const address = await safeAuthGetTRC20Address();
+                    if (address) {
+                        setTrc20Address(address);
                         
                         // Get TRC20 USDT balance
-                        const balanceData = await apiService.get('/wallet/trc20-balance');
-                        setTrc20USDTBalance(balanceData.balanceFormatted || '0');
+                        const usdtBalance = await safeAuthGetTRC20USDTBalance();
+                        setTrc20USDTBalance(usdtBalance);
+                        
+                        // Get TRX balance
+                        const trxBalance = await safeAuthGetTRXBalance();
+                        setTrc20TRXBalance(trxBalance);
                     } else {
-                        // TRC20 address doesn't exist yet - will be generated on first deposit
                         setTrc20Address(null);
                         setTrc20USDTBalance('0');
+                        setTrc20TRXBalance('0');
                     }
                 } catch (error) {
-                    console.error('Error fetching TRC20 balance:', error);
+                    console.error('Error fetching TRC20 balance from Web3Auth:', error);
                     setTrc20USDTBalance('0');
+                    setTrc20TRXBalance('0');
                 }
             } else {
                 setTrc20USDTBalance('0');
+                setTrc20TRXBalance('0');
                 setTrc20Address(null);
             }
         };
 
         fetchTRC20Balance();
         
-        // Refresh every 5 seconds when authenticated
+        // Refresh every 5 seconds when Web3Auth is connected
         let interval;
-        if (isAuthenticated && user) {
+        if (safeAuthLoggedIn && safeAuthAccount) {
             interval = setInterval(fetchTRC20Balance, 5000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [isAuthenticated, user]);
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetTRC20Address, safeAuthGetTRC20USDTBalance, safeAuthGetTRXBalance]);
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth
 
@@ -242,7 +258,7 @@ const HeroLeft = () => {
                     </div>
                     
                     {/* TRON (TRC20) Network */}
-                    {isAuthenticated && trc20Address && (
+                    {safeAuthLoggedIn && trc20Address && (
                         <div className='connected-wallet-info' style={{ marginTop: '15px' }}>
                             <div className='wallet-status'>
                                 <div className='network-indicator'>
@@ -260,7 +276,7 @@ const HeroLeft = () => {
                                 </div>
                                 <div className='balance-item'>
                                     <span className='balance-label'>TRX</span>
-                                    <span className='balance-value'>-</span>
+                                    <span className='balance-value'>{parseFloat(trc20TRXBalance || '0').toFixed(4)}</span>
                                 </div>
                             </div>
                         </div>

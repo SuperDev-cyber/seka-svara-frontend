@@ -4,6 +4,7 @@ import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ethers } from 'ethers';
+import TronWeb from 'tronweb';
 
 const SafeAuthContext = createContext();
 
@@ -449,6 +450,128 @@ export const SafeAuthProvider = ({ children }) => {
     }
   }, [provider, account, getProvider]);
 
+  // ✅ Get TRC20 address from Web3Auth private key
+  const getTRC20Address = useCallback(async () => {
+    if (!loggedIn || !account) {
+      return null;
+    }
+
+    try {
+      // Get private key from Web3Auth
+      const privateKey = await getPrivateKey();
+      if (!privateKey) {
+        throw new Error('Failed to retrieve private key');
+      }
+
+      // Convert private key to Tron address using TronWeb
+      // TronWeb can derive Tron address from private key
+      const tronWeb = new TronWeb({
+        fullHost: 'https://api.trongrid.io',
+      });
+
+      // Remove '0x' prefix if present
+      const cleanPrivateKey = privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey;
+      
+      // Create TronWeb instance with private key to get address
+      const tronAddress = tronWeb.address.fromPrivateKey(cleanPrivateKey);
+      
+      console.log('✅ TRC20 address derived from Web3Auth private key:', tronAddress);
+      return tronAddress;
+    } catch (error) {
+      console.error('❌ Error getting TRC20 address from Web3Auth:', error);
+      return null;
+    }
+  }, [loggedIn, account, getPrivateKey]);
+
+  // ✅ Get TRC20 USDT balance from Web3Auth wallet
+  const getTRC20USDTBalance = useCallback(async () => {
+    if (!loggedIn || !account) {
+      return '0';
+    }
+
+    try {
+      // Get TRC20 address
+      const trc20Address = await getTRC20Address();
+      if (!trc20Address) {
+        return '0';
+      }
+
+      // Initialize TronWeb
+      const tronWeb = new TronWeb({
+        fullHost: 'https://api.trongrid.io',
+      });
+
+      // USDT contract address on Tron Mainnet
+      const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+      
+      // USDT ABI (minimal for balanceOf and decimals)
+      const USDT_ABI = [
+        {
+          constant: true,
+          inputs: [{ name: '_owner', type: 'address' }],
+          name: 'balanceOf',
+          outputs: [{ name: 'balance', type: 'uint256' }],
+          type: 'function',
+        },
+        {
+          constant: true,
+          inputs: [],
+          name: 'decimals',
+          outputs: [{ name: '', type: 'uint8' }],
+          type: 'function',
+        },
+      ];
+
+      // Get USDT contract instance
+      const usdtContract = await tronWeb.contract(USDT_ABI, USDT_CONTRACT);
+      
+      // Get balance and decimals
+      const [balance, decimals] = await Promise.all([
+        usdtContract.balanceOf(trc20Address).call(),
+        usdtContract.decimals().call().catch(() => 6), // Default to 6 if decimals call fails
+      ]);
+
+      // Format balance (USDT on Tron uses 6 decimals)
+      const formattedBalance = balance / Math.pow(10, decimals);
+      
+      console.log('✅ TRC20 USDT balance:', formattedBalance);
+      return formattedBalance.toFixed(2);
+    } catch (error) {
+      console.error('❌ Error fetching TRC20 USDT balance:', error);
+      return '0';
+    }
+  }, [loggedIn, account, getTRC20Address]);
+
+  // ✅ Get TRX balance from Web3Auth wallet
+  const getTRXBalance = useCallback(async () => {
+    if (!loggedIn || !account) {
+      return '0';
+    }
+
+    try {
+      // Get TRC20 address
+      const trc20Address = await getTRC20Address();
+      if (!trc20Address) {
+        return '0';
+      }
+
+      // Initialize TronWeb
+      const tronWeb = new TronWeb({
+        fullHost: 'https://api.trongrid.io',
+      });
+
+      // Get TRX balance (in sun, need to convert to TRX)
+      const balance = await tronWeb.trx.getBalance(trc20Address);
+      const trxBalance = tronWeb.fromSun(balance);
+      
+      console.log('✅ TRX balance:', trxBalance);
+      return parseFloat(trxBalance).toFixed(4);
+    } catch (error) {
+      console.error('❌ Error fetching TRX balance:', error);
+      return '0';
+    }
+  }, [loggedIn, account, getTRC20Address]);
+
   const value = {
     web3auth,
     provider,
@@ -464,8 +587,11 @@ export const SafeAuthProvider = ({ children }) => {
     getProvider,
     getSigner,
     getPrivateKey, // ✅ Add private key getter
-    getUSDTBalance,
-    getBNBBalance,
+    getUSDTBalance, // BEP20 USDT balance
+    getBNBBalance, // BNB balance
+    getTRC20Address, // ✅ Get TRC20 address from Web3Auth
+    getTRC20USDTBalance, // ✅ Get TRC20 USDT balance
+    getTRXBalance, // ✅ Get TRX balance
   };
 
   return (
