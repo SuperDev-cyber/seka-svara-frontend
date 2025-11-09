@@ -450,79 +450,6 @@ export const SafeAuthProvider = ({ children }) => {
     }
   }, [provider, account, getProvider]);
 
-  // Get ERC20 USDT balance from Web3Auth wallet (Ethereum Mainnet)
-  const getERC20USDTBalance = useCallback(async () => {
-    if (!provider || !account) {
-      return '0';
-    }
-
-    try {
-      const ethersProvider = getProvider();
-      if (!ethersProvider) {
-        return '0';
-      }
-
-      // USDT contract address on Ethereum Mainnet
-      const USDT_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
-      
-      // Minimal USDT ABI for balanceOf
-      const USDT_ABI = [
-        {
-          "constant": true,
-          "inputs": [{"name": "_owner", "type": "address"}],
-          "name": "balanceOf",
-          "outputs": [{"name": "balance", "type": "uint256"}],
-          "type": "function"
-        },
-        {
-          "constant": true,
-          "inputs": [],
-          "name": "decimals",
-          "outputs": [{"name": "", "type": "uint8"}],
-          "type": "function"
-        }
-      ];
-
-      // Create provider for Ethereum Mainnet
-      // Use Web3Auth bundled RPC (same pattern as BSC) for consistency and reliability
-      const ethRpcUrl = `https://api.web3auth.io/infura-service/v1/0x1/${clientId}`;
-      const ethProvider = new ethers.providers.JsonRpcProvider(ethRpcUrl);
-      const usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, ethProvider);
-      
-      const [balance, decimals] = await Promise.all([
-        usdtContract.balanceOf(account),
-        usdtContract.decimals()
-      ]);
-      
-      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
-      const finalBalance = parseFloat(formattedBalance).toFixed(2);
-      
-      console.log('✅ ERC20 USDT Balance:', finalBalance);
-      return finalBalance;
-    } catch (error) {
-      console.error('❌ Error fetching ERC20 USDT balance:', error);
-      return '0';
-    }
-  }, [provider, account, getProvider]);
-
-  // Get ETH balance from Web3Auth wallet (Ethereum Mainnet)
-  const getETHBalance = useCallback(async () => {
-    if (!provider || !account) {
-      return '0';
-    }
-
-    try {
-      // Create provider for Ethereum Mainnet using Web3Auth bundled RPC
-      const ethRpcUrl = `https://api.web3auth.io/infura-service/v1/0x1/${clientId}`;
-      const ethProvider = new ethers.providers.JsonRpcProvider(ethRpcUrl);
-      const ethBalance = await ethProvider.getBalance(account);
-      const formattedBalance = ethers.utils.formatEther(ethBalance);
-      return parseFloat(formattedBalance).toFixed(4);
-    } catch (error) {
-      console.error('Error fetching ETH balance from Web3Auth wallet:', error);
-      return '0';
-    }
-  }, [provider, account]);
 
 
   const value = {
@@ -542,8 +469,6 @@ export const SafeAuthProvider = ({ children }) => {
     getPrivateKey, // ✅ Add private key getter
     getUSDTBalance, // BEP20 USDT balance
     getBNBBalance, // BNB balance
-    getERC20USDTBalance, // ERC20 USDT balance (Ethereum Mainnet)
-    getETHBalance, // ETH balance (Ethereum Mainnet)
   };
 
   return (

@@ -11,7 +11,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         loggedIn: safeAuthLoggedIn, 
         account: safeAuthAccount, 
         getUSDTBalance: safeAuthGetUSDTBalance,
-        getERC20USDTBalance: safeAuthGetERC20USDTBalance,
         getPrivateKey: safeAuthGetPrivateKey 
     } = useSafeAuth();
     
@@ -42,20 +41,14 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     }, [isOpen]);
 
-    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20 or ERC20)
+    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20 only)
     useEffect(() => {
         const fetchWalletBalance = async () => {
-            if (isOpen && safeAuthLoggedIn && safeAuthAccount) {
+            if (isOpen && safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
                 try {
-                    if (selectedNetwork === 'ERC20' && safeAuthGetERC20USDTBalance) {
-                        const balance = await safeAuthGetERC20USDTBalance();
-                        setWalletUSDTBalance(balance);
-                        console.log('💰 WithdrawModal - ERC20 USDT Balance:', balance);
-                    } else if (selectedNetwork === 'BEP20' && safeAuthGetUSDTBalance) {
-                        const balance = await safeAuthGetUSDTBalance();
-                        setWalletUSDTBalance(balance);
-                        console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
-                    }
+                    const balance = await safeAuthGetUSDTBalance();
+                    setWalletUSDTBalance(balance);
+                    console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
                 } catch (error) {
                     console.error('Error fetching wallet balance in WithdrawModal:', error);
                     setWalletUSDTBalance('0');
@@ -76,7 +69,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 if (interval) clearInterval(interval);
             };
         }
-    }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetERC20USDTBalance]);
+    }, [isOpen, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     // Fetch wagering stats and balance
     useEffect(() => {
@@ -234,7 +227,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
                 amount: withdrawAmount, // Amount in USDT
-                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20 or ERC20)
+                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20)
                 toAddress: withdrawalAddress.trim(), // User-entered withdrawal address (where funds will be sent)
                 privateKey: userPrivateKey // ✅ User's private key from Web3Auth
             });
@@ -242,7 +235,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             console.log('✅ Withdrawal request sent:', {
                 network: selectedNetwork,
                 amount: withdrawAmount,
-                fromAddress: fromAddress, // Web3Auth account address (BEP20 or ERC20)
+                fromAddress: fromAddress, // Web3Auth account address (BEP20)
                 toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
@@ -320,7 +313,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 }}
                             >
                                 <option value="BEP20">BEP20 (BSC)</option>
-                                <option value="ERC20">ERC20 (Ethereum)</option>
                             </select>
                             <svg className="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                                 <polyline points="6,9 12,15 18,9"/>
@@ -352,7 +344,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 {safeAuthAccount}
                             </div>
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#4ade80' }}>
-                                ✅ Funds will be withdrawn from this Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} account address
+                                ✅ Funds will be withdrawn from this Web3Auth BSC account address
                             </div>
                         </div>
                     )}
@@ -373,7 +365,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 type="text"
                                 value={withdrawalAddress}
                                 onChange={handleAddressChange}
-                                placeholder={selectedNetwork === 'BEP20' || selectedNetwork === 'ERC20' ? '0x...' : '0x...'}
+                                placeholder="0x..."
                                 style={{
                                     flex: 1,
                                     background: '#1a1a1a',

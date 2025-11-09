@@ -24,6 +24,35 @@ const Header = () => {
     const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, logout: safeAuthLogout } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
 
+    // Fetch SafeAuth wallet USDT balance when connected
+    useEffect(() => {
+        const fetchSafeAuthBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && isAuthenticated) {
+                try {
+                    const balance = await safeAuthGetUSDTBalance();
+                    setSafeAuthUSDTBalance(balance);
+                } catch (error) {
+                    console.error('Error fetching SafeAuth balance in Header:', error);
+                    setSafeAuthUSDTBalance('0');
+                }
+            } else {
+                setSafeAuthUSDTBalance('0');
+            }
+        };
+
+        fetchSafeAuthBalance();
+        
+        // Refresh every 5 seconds when SafeAuth is connected
+        let interval;
+        if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated) {
+            interval = setInterval(fetchSafeAuthBalance, 5000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance]);
+
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
         if (isConnected && currentNetwork && isAuthenticated) {
@@ -297,6 +326,26 @@ const Header = () => {
                         {t('gameLobby')}
                     </Link>
                 </nav>
+
+                {/* Balance Display - Small, at top of header */}
+                {safeAuthLoggedIn && safeAuthAccount && isAuthenticated && (
+                    <div className='header-balance-display' style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                        color: '#fff',
+                        padding: '4px 12px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                        <span style={{ opacity: 0.7 }}>USDT:</span>
+                        <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
+                            {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
+                        </span>
+                    </div>
+                )}
 
                 {/* Mobile Menu Button */}
                 <button className='mobile-menu-btn' onClick={toggleMobileMenu}>

@@ -109,7 +109,6 @@ const WalletConnect = () => {
         username: email ? email.split('@')[0] + '_web3' : 'user_' + walletAddress.substring(2, 10),
         email: email || `${walletAddress}@web3auth.local`,
         bep20WalletAddress: walletAddress,
-        erc20WalletAddress: walletAddress,
         platformScore: 0,
         balance: 0,
         role: 'USER',

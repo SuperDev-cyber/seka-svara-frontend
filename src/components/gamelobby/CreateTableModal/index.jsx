@@ -11,8 +11,7 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
     const [showInviteModal, setShowInviteModal] = useState(false);
 
     const networks = [
-        { value: 'BEP20', label: 'BEP20 (BSC)' },
-        { value: 'ERC20', label: 'ERC20 (ETH)' }
+        { value: 'BEP20', label: 'BEP20 (BSC)' }
     ];
 
     const handleSubmit = (e) => {

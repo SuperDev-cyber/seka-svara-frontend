@@ -20,7 +20,7 @@ const TermsOfServiceContent = () => {
       <section>
         <h3>2. Description of Service</h3>
         <p>
-          Seka Svara is an online gaming platform that allows users to play card games using blockchain technology. The Platform uses Web3Auth for wallet authentication and supports deposits and withdrawals via BEP20 (BSC) and ERC20 (Ethereum) networks.
+          Seka Svara is an online gaming platform that allows users to play card games using blockchain technology. The Platform uses Web3Auth for wallet authentication and supports deposits and withdrawals via BEP20 (BSC) network.
         </p>
         <p>
           The Platform provides:
@@ -66,10 +66,10 @@ const TermsOfServiceContent = () => {
       <section>
         <h3>5. Deposits and Withdrawals</h3>
         <p>
-          <strong>Deposits:</strong> You may deposit USDT to your Platform account using supported networks (BEP20 or ERC20). Deposits are credited to your Platform Score after blockchain confirmation.
+          <strong>Deposits:</strong> You may deposit USDT to your Platform account using the BEP20 network. Deposits are credited to your Platform Score after blockchain confirmation.
         </p>
         <p>
-          <strong>Withdrawals:</strong> You may withdraw USDT from your Web3Auth wallet to any valid address. Withdrawals are processed using your wallet's private key and require sufficient network tokens (BNB for BEP20, ETH for ERC20) for gas fees.
+          <strong>Withdrawals:</strong> You may withdraw USDT from your Web3Auth wallet to any valid address. Withdrawals are processed using your wallet's private key and require sufficient BNB for gas fees.
         </p>
         <p>
           <strong>Important Notes:</strong>

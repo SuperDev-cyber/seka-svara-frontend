@@ -27,12 +27,10 @@ const HeroLeft = () => {
       loggedIn: safeAuthLoggedIn, 
       account: safeAuthAccount, 
       getUSDTBalance: safeAuthGetUSDTBalance, 
-      getERC20USDTBalance: safeAuthGetERC20USDTBalance,
       getBNBBalance: safeAuthGetBNBBalance,
       loginWithWallet: safeAuthLoginWallet 
     } = useSafeAuth();
     const [safeAuthBEP20USDTBalance, setSafeAuthBEP20USDTBalance] = useState('0');
-    const [safeAuthERC20USDTBalance, setSafeAuthERC20USDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
     // Removed showWalletDropdown and dropdownRef - no longer needed with Web3Auth
@@ -91,20 +89,16 @@ const HeroLeft = () => {
         disconnect();
     };
 
-    // ✅ Fetch SafeAuth wallet balances when connected (BEP20 and ERC20)
+    // ✅ Fetch SafeAuth wallet balances when connected (BEP20 only)
     // Only fetch if both Web3Auth is connected AND user is authenticated
     useEffect(() => {
         const fetchSafeAuthBalances = async () => {
             // Only fetch if Web3Auth is connected AND user is authenticated
-            if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated && safeAuthGetUSDTBalance && safeAuthGetERC20USDTBalance && safeAuthGetBNBBalance) {
+            if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated && safeAuthGetUSDTBalance && safeAuthGetBNBBalance) {
                 try {
                     // Fetch BEP20 USDT balance
                     const bep20USDTBalance = await safeAuthGetUSDTBalance();
                     setSafeAuthBEP20USDTBalance(bep20USDTBalance);
-
-                    // Fetch ERC20 USDT balance (Ethereum Mainnet)
-                    const erc20USDTBalance = await safeAuthGetERC20USDTBalance();
-                    setSafeAuthERC20USDTBalance(erc20USDTBalance);
 
                     // Fetch BNB balance (native gas token)
                     const bnbBalance = await safeAuthGetBNBBalance();
@@ -112,13 +106,11 @@ const HeroLeft = () => {
                 } catch (error) {
                     console.error('Error fetching SafeAuth balances:', error);
                     setSafeAuthBEP20USDTBalance('0');
-                    setSafeAuthERC20USDTBalance('0');
                     setSafeAuthBNBBalance('0');
                 }
             } else {
                 // Clear balances if not authenticated or not connected
                 setSafeAuthBEP20USDTBalance('0');
-                setSafeAuthERC20USDTBalance('0');
                 setSafeAuthBNBBalance('0');
             }
         };
@@ -134,7 +126,7 @@ const HeroLeft = () => {
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance, safeAuthGetERC20USDTBalance, safeAuthGetBNBBalance]);
+    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
 
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth
@@ -215,26 +207,6 @@ const HeroLeft = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* ERC20 (Ethereum) Network - New Card Design */}
-                    <div className='connected-wallet-info' style={{ marginTop: '1rem' }}>
-                        <div className='wallet-status'>
-                            <div className='network-indicator'>
-                                <span className='network-dot' style={{ background: '#627EEA' }}></span>
-                                <span>ETH</span>
-                            </div>
-                            <div className='wallet-address-pill'>
-                                {safeAuthAccount ? `${safeAuthAccount.substring(0, 6)}...${safeAuthAccount.substring(safeAuthAccount.length - 4)}` : ''}
-                            </div>
-                        </div>
-                        <div className='wallet-balance-gradient'> 
-                            <div className='balance-item'>
-                                <span className='balance-label'>ERC20 USDT</span>
-                                <span className='balance-value'>{parseFloat(safeAuthERC20USDTBalance || '0').toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
                 </>
             ) : isConnected ? (
                 <div className='connected-wallet-info'>
