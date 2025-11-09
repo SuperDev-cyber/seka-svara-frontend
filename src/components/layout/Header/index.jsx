@@ -21,7 +21,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, logout: safeAuthLogout } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
 
     // Fetch Seka contract balance when wallet is connected
