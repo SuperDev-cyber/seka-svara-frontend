@@ -1,10 +1,17 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSafeAuth } from '../contexts/SafeAuthContext';
 
 const ProtectedRoute = ({ children, requireAuth = true, adminOnly = false }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
+  const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount } = useSafeAuth();
   const location = useLocation();
+
+  // ✅ WALLET CONNECTION = AUTHENTICATION
+  // If Web3Auth wallet is connected, user is considered authenticated
+  const isWalletAuthenticated = safeAuthLoggedIn && safeAuthAccount;
+  const effectivelyAuthenticated = isAuthenticated || isWalletAuthenticated;
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -18,9 +25,10 @@ const ProtectedRoute = ({ children, requireAuth = true, adminOnly = false }) => 
     );
   }
 
-  // If authentication is required but user is not authenticated
-  if (requireAuth && !isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // If authentication is required but user is not authenticated (neither backend nor wallet)
+  if (requireAuth && !effectivelyAuthenticated) {
+    // Redirect to home page instead of /login (which doesn't exist)
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // If admin access is required but user is not admin
@@ -29,7 +37,7 @@ const ProtectedRoute = ({ children, requireAuth = true, adminOnly = false }) => 
   }
 
   // If user is authenticated but trying to access auth pages
-  if (!requireAuth && isAuthenticated) {
+  if (!requireAuth && effectivelyAuthenticated) {
     return <Navigate to="/" replace />;
   }
 

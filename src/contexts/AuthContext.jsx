@@ -119,14 +119,35 @@ export const AuthProvider = ({ children }) => {
               payload: { user },
             });
           } else {
+            // Check if token is a Web3Auth temporary token
+            const token = localStorage.getItem('authToken');
+            try {
+              const tokenData = JSON.parse(atob(token));
+              if (tokenData.isWeb3Auth && tokenData.walletAddress) {
+                // This is a Web3Auth token, user should be authenticated via wallet
+                console.log('✅ AuthContext: Web3Auth token found, user authenticated via wallet');
+                // Don't try to fetch from API, wallet connection is sufficient
+                dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+                return;
+              }
+            } catch (e) {
+              // Not a Web3Auth token, continue with normal flow
+            }
+            
             console.log('🔄 AuthContext: Getting user profile from API...');
             // Try to get user profile
-            const userProfile = await apiService.getUserProfile();
-            console.log('📥 AuthContext: User profile from API:', userProfile);
-            dispatch({
-              type: AUTH_ACTIONS.LOGIN_SUCCESS,
-              payload: { user: userProfile },
-            });
+            try {
+              const userProfile = await apiService.getUserProfile();
+              console.log('📥 AuthContext: User profile from API:', userProfile);
+              dispatch({
+                type: AUTH_ACTIONS.LOGIN_SUCCESS,
+                payload: { user: userProfile },
+              });
+            } catch (apiError) {
+              // API call failed, but if we have a Web3Auth token, user is still authenticated
+              console.log('⚠️ AuthContext: API call failed, but user may be authenticated via wallet');
+              dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+            }
           }
         } else {
           console.log('❌ AuthContext: No token found, user not authenticated');
@@ -134,6 +155,18 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('❌ AuthContext: Auth check failed:', error);
+        // Don't clear tokens if it's a Web3Auth authentication
+        const token = localStorage.getItem('authToken');
+        try {
+          const tokenData = JSON.parse(atob(token));
+          if (tokenData.isWeb3Auth) {
+            console.log('✅ AuthContext: Web3Auth token preserved despite error');
+            dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+            return;
+          }
+        } catch (e) {
+          // Not a Web3Auth token, clear it
+        }
         apiService.clearTokens();
         dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
       }
@@ -146,6 +179,30 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      
+      // ✅ Handle Web3Auth immediate authentication (wallet connection = authentication)
+      if (credentials.isWeb3Auth && credentials.user) {
+        // Wallet connection is immediate authentication - no backend call needed upfront
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: { user: credentials.user },
+        });
+        
+        // Store wallet user in localStorage
+        apiService.setUser(credentials.user);
+        // Create a temporary token for session management
+        const tempToken = btoa(JSON.stringify({ 
+          walletAddress: credentials.walletAddress, 
+          timestamp: Date.now(),
+          isWeb3Auth: true 
+        }));
+        localStorage.setItem('authToken', tempToken);
+        
+        console.log('✅ User authenticated immediately via wallet connection');
+        return { user: credentials.user, access_token: tempToken };
+      }
+      
+      // Traditional login flow
       const response = await apiService.login(credentials);
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,

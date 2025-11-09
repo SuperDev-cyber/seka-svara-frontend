@@ -15,7 +15,7 @@ const WalletConnect = () => {
     initError: safeAuthInitError,
     logout: safeAuthLogout,
   } = useSafeAuth();
-  const { refreshUserProfile, isAuthenticated } = useAuth();
+  const { refreshUserProfile, isAuthenticated, login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -42,7 +42,7 @@ const WalletConnect = () => {
     autoAuth();
   }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthUser, loading, safeAuthLoading, refreshUserProfile]);
 
-  // Handle Web3Auth wallet connection - AUTOMATICALLY REGISTERS/LOGS IN USER
+  // Handle Web3Auth wallet connection - WALLET CONNECTION = IMMEDIATE AUTHENTICATION
   const handleConnectWallet = async () => {
     try {
       setLoading(true);
@@ -68,25 +68,56 @@ const WalletConnect = () => {
 
       console.log('✅ Web3Auth connected:', { walletAddress, email, name });
 
-      // Step 2: Automatically register/login user on backend
-      try {
-        const authResponse = await apiService.loginWithWeb3Auth(walletAddress, email, name);
-        console.log('✅ Backend authentication successful:', authResponse);
-        
-        // Step 3: Refresh user profile to get latest data
-        await refreshUserProfile();
-        
-        if (window.showToast) {
-          window.showToast('Wallet connected and authenticated successfully!', 'success', 3000);
-        }
-      } catch (authError) {
-        console.error('❌ Backend authentication error:', authError);
-        // Even if backend auth fails, wallet is still connected
-        if (window.showToast) {
-          window.showToast('Wallet connected, but authentication failed. Please try again.', 'error', 5000);
-        }
-        throw authError;
+      // ✅ WALLET CONNECTION = IMMEDIATE AUTHENTICATION
+      // Create a minimal user object from wallet info for immediate authentication
+      const walletUser = {
+        id: walletAddress, // Use wallet address as temporary ID
+        username: email ? email.split('@')[0] + '_web3' : 'user_' + walletAddress.substring(2, 10),
+        email: email || `${walletAddress}@web3auth.local`,
+        bep20WalletAddress: walletAddress,
+        erc20WalletAddress: walletAddress,
+        platformScore: 0,
+        balance: 0,
+        role: 'USER',
+      };
+
+      // Immediately authenticate user via AuthContext (this updates global auth state)
+      // Use the login function which properly updates the context
+      await login({
+        walletAddress,
+        email,
+        name,
+        isWeb3Auth: true,
+        user: walletUser
+      });
+
+      console.log('✅ User authenticated immediately via wallet connection');
+
+      if (window.showToast) {
+        window.showToast('Wallet connected! You are now authenticated.', 'success', 3000);
       }
+
+      // Step 2: Register/login user on backend in the background (non-blocking)
+      // This happens asynchronously and doesn't block the user experience
+      apiService.loginWithWeb3Auth(walletAddress, email, name)
+        .then((authResponse) => {
+          console.log('✅ Backend authentication successful:', authResponse);
+          // Update with real user data from backend
+          refreshUserProfile().catch(err => {
+            console.error('Failed to refresh profile:', err);
+          });
+        })
+        .catch((authError) => {
+          console.error('❌ Backend authentication error (non-blocking):', authError);
+          // Backend auth failed, but user is still authenticated via wallet
+          // We'll retry in the background
+          setTimeout(() => {
+            apiService.loginWithWeb3Auth(walletAddress, email, name)
+              .then(() => refreshUserProfile())
+              .catch(err => console.error('Retry failed:', err));
+          }, 5000);
+        });
+
     } catch (err) {
       console.error('Wallet connection error:', err);
       setError(err.message || 'Failed to connect wallet');
