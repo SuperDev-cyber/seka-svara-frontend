@@ -54,17 +54,25 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             TRC20: addresses.TRC20 || null,
           });
           
-          // If TRC20 address doesn't exist, generate it
-          if (selectedNetwork === 'TRC20' && !addresses.TRC20) {
+          // ✅ If TRC20 address doesn't exist, generate it automatically
+          if (!addresses.TRC20) {
             try {
+              console.log('🔄 TRC20 address not found, generating...');
               const generated = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
-              setWalletAddresses(prev => ({ ...prev, TRC20: generated.address || generated.TRC20 }));
+              const trc20Address = generated.address || generated.TRC20 || generated;
+              if (trc20Address) {
+                setWalletAddresses(prev => ({ ...prev, TRC20: trc20Address }));
+                console.log('✅ TRC20 address generated:', trc20Address);
+              }
             } catch (error) {
-              console.error('Failed to generate TRC20 address:', error);
+              console.error('❌ Failed to generate TRC20 address:', error);
+              // Don't show error to user - address will be generated on first deposit attempt
             }
+          } else {
+            console.log('✅ TRC20 address found:', addresses.TRC20);
           }
         } catch (error) {
-          console.error('Failed to fetch wallet addresses:', error);
+          console.error('❌ Failed to fetch wallet addresses:', error);
         } finally {
           setLoadingAddresses(false);
         }

@@ -26,6 +26,8 @@ const HeroLeft = () => {
     const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
+    const [trc20USDTBalance, setTrc20USDTBalance] = useState('0');
+    const [trc20Address, setTrc20Address] = useState(null);
 
     // Removed showWalletDropdown and dropdownRef - no longer needed with Web3Auth
 
@@ -42,7 +44,7 @@ const HeroLeft = () => {
         }
         
         // Navigate to game lobby (Web3Auth wallet connection is handled separately)
-        navigate('/gamelobby');
+            navigate('/gamelobby');
     };
 
     // Handle Connect Wallet button click - opens Web3Auth modal
@@ -55,7 +57,7 @@ const HeroLeft = () => {
             navigate('/login');
             return;
         }
-
+        
         // If SafeAuth is already connected, do nothing
         if (safeAuthLoggedIn && safeAuthAccount) {
             if (window.showToast) {
@@ -63,7 +65,7 @@ const HeroLeft = () => {
             }
             return;
         }
-
+        
         // Open Web3Auth modal
         try {
             await safeAuthLoginWallet();
@@ -83,12 +85,12 @@ const HeroLeft = () => {
         disconnect();
     };
 
-    // ✅ Fetch SafeAuth wallet balances when connected
+    // ✅ Fetch SafeAuth wallet balances when connected (BEP20)
     useEffect(() => {
         const fetchSafeAuthBalances = async () => {
             if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance) {
                 try {
-                    // Fetch USDT balance
+                    // Fetch USDT balance (BEP20)
                     const usdtBalance = await safeAuthGetUSDTBalance();
                     setSafeAuthUSDTBalance(usdtBalance);
 
@@ -118,6 +120,47 @@ const HeroLeft = () => {
             if (interval) clearInterval(interval);
         };
     }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
+
+    // ✅ Fetch TRC20 balance from backend (user's TRC20 address)
+    useEffect(() => {
+        const fetchTRC20Balance = async () => {
+            if (isAuthenticated && user) {
+                try {
+                    // Get TRC20 address first
+                    const addresses = await apiService.get('/wallet/addresses');
+                    if (addresses.TRC20) {
+                        setTrc20Address(addresses.TRC20);
+                        
+                        // Get TRC20 USDT balance
+                        const balanceData = await apiService.get('/wallet/trc20-balance');
+                        setTrc20USDTBalance(balanceData.balanceFormatted || '0');
+                    } else {
+                        // TRC20 address doesn't exist yet - will be generated on first deposit
+                        setTrc20Address(null);
+                        setTrc20USDTBalance('0');
+                    }
+                } catch (error) {
+                    console.error('Error fetching TRC20 balance:', error);
+                    setTrc20USDTBalance('0');
+                }
+            } else {
+                setTrc20USDTBalance('0');
+                setTrc20Address(null);
+            }
+        };
+
+        fetchTRC20Balance();
+        
+        // Refresh every 5 seconds when authenticated
+        let interval;
+        if (isAuthenticated && user) {
+            interval = setInterval(fetchTRC20Balance, 5000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isAuthenticated, user]);
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth
 
@@ -170,31 +213,59 @@ const HeroLeft = () => {
                         {loading ? 'Connecting...' : !isAuthenticated ? 'Sign In Required' : 'Connect Wallet'}
                     </button>
                 )}
-            </div>
-
+                            </div>
+                            
             {/* Connected Wallet Info - Show SafeAuth wallet if connected, otherwise show MetaMask/TronLink */}
             {(safeAuthLoggedIn && safeAuthAccount) ? (
-                <div className='connected-wallet-info'>
-                    <div className='wallet-status'>
-                        <div className='network-indicator'>
-                            🟡
-                            <span>BSC</span>
+                <>
+                    {/* BSC (BEP20) Network */}
+                    <div className='connected-wallet-info'>
+                        <div className='wallet-status'>
+                            <div className='network-indicator'>
+                                🟡
+                                <span>BSC</span>
+                            </div>
+                            <div className='wallet-address'>
+                                {safeAuthAccount ? `${safeAuthAccount.substring(0, 6)}...${safeAuthAccount.substring(safeAuthAccount.length - 4)}` : ''}
+                            </div>
                         </div>
-                        <div className='wallet-address'>
-                            {safeAuthAccount ? `${safeAuthAccount.substring(0, 6)}...${safeAuthAccount.substring(safeAuthAccount.length - 4)}` : ''}
+                        <div className='wallet-balance'> 
+                            <div className='balance-item'>
+                                <span className='balance-label'>USDT</span>
+                                <span className='balance-value'>{safeAuthLoggedIn && safeAuthAccount ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}</span>
+                            </div>
+                            <div className='balance-item'>
+                                <span className='balance-label'>BNB</span>
+                                <span className='balance-value'>{parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</span>
+                            </div>
                         </div>
                     </div>
-                    <div className='wallet-balance'> 
-                        <div className='balance-item'>
-                            <span className='balance-label'>USDT</span>
-                            <span className='balance-value'>{safeAuthLoggedIn && safeAuthAccount ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}</span>
+                    
+                    {/* TRON (TRC20) Network */}
+                    {isAuthenticated && trc20Address && (
+                        <div className='connected-wallet-info' style={{ marginTop: '15px' }}>
+                            <div className='wallet-status'>
+                                <div className='network-indicator'>
+                                    🔴
+                                    <span>TRON</span>
+                                </div>
+                                <div className='wallet-address'>
+                                    {trc20Address ? `${trc20Address.substring(0, 6)}...${trc20Address.substring(trc20Address.length - 4)}` : ''}
+                                </div>
+                            </div>
+                            <div className='wallet-balance'> 
+                                <div className='balance-item'>
+                                    <span className='balance-label'>USDT</span>
+                                    <span className='balance-value'>{parseFloat(trc20USDTBalance || '0').toFixed(2)}</span>
+                                </div>
+                                <div className='balance-item'>
+                                    <span className='balance-label'>TRX</span>
+                                    <span className='balance-value'>-</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className='balance-item'>
-                            <span className='balance-label'>BNB</span>
-                            <span className='balance-value'>{parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</span>
-                        </div>
-                    </div>
-                </div>
+                    )}
+                </>
             ) : isConnected ? (
                 <div className='connected-wallet-info'>
                     <div className='wallet-status'>
