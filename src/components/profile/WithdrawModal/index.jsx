@@ -7,7 +7,14 @@ import apiService from '../../../services/api';
 const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const { isConnected, account, currentNetwork: connectedNetwork, getBalance } = useWallet();
     const { user } = useAuth();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth();
+    const { 
+        loggedIn: safeAuthLoggedIn, 
+        account: safeAuthAccount, 
+        getUSDTBalance: safeAuthGetUSDTBalance,
+        getTRC20USDTBalance: safeAuthGetTRC20USDTBalance,
+        getTRC20Address: safeAuthGetTRC20Address,
+        getPrivateKey: safeAuthGetPrivateKey 
+    } = useSafeAuth();
     
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
     const [withdrawalAddress, setWithdrawalAddress] = useState('');
@@ -18,6 +25,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const [messageType, setMessageType] = useState(''); // 'success', 'error', 'info'
     const [copied, setCopied] = useState(false);
     const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
+    const [trc20Address, setTrc20Address] = useState(null);
     
     // Wagering stats
     const [totalWagered, setTotalWagered] = useState(0);
@@ -40,14 +48,28 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     }, [isOpen]);
 
-    // ✅ Fetch Web3Auth wallet USDT balance when modal opens
+    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20 or TRC20 based on selected network)
     useEffect(() => {
         const fetchWalletBalance = async () => {
-            if (isOpen && safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
+            if (isOpen && safeAuthLoggedIn && safeAuthAccount) {
                 try {
-                    const balance = await safeAuthGetUSDTBalance();
-                    setWalletUSDTBalance(balance);
-                    console.log('💰 WithdrawModal - Web3Auth USDT Balance:', balance);
+                    if (selectedNetwork === 'TRC20' && safeAuthGetTRC20USDTBalance) {
+                        // Fetch TRC20 USDT balance
+                        const balance = await safeAuthGetTRC20USDTBalance();
+                        setWalletUSDTBalance(balance);
+                        console.log('💰 WithdrawModal - TRC20 USDT Balance:', balance);
+                        
+                        // Also fetch TRC20 address
+                        if (safeAuthGetTRC20Address) {
+                            const address = await safeAuthGetTRC20Address();
+                            setTrc20Address(address);
+                        }
+                    } else if (selectedNetwork === 'BEP20' && safeAuthGetUSDTBalance) {
+                        // Fetch BEP20 USDT balance
+                        const balance = await safeAuthGetUSDTBalance();
+                        setWalletUSDTBalance(balance);
+                        console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
+                    }
                 } catch (error) {
                     console.error('Error fetching wallet balance in WithdrawModal:', error);
                     setWalletUSDTBalance('0');
@@ -68,7 +90,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 if (interval) clearInterval(interval);
             };
         }
-    }, [isOpen, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
+    }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetTRC20USDTBalance, safeAuthGetTRC20Address]);
 
     // Fetch wagering stats and balance
     useEffect(() => {
@@ -223,14 +245,33 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessage('Processing withdrawal...');
             setMessageType('info');
             
+            // Determine fromAddress based on network
+            // For BEP20: Use Web3Auth BSC address
+            // For TRC20: Use Web3Auth TRC20 address (derived from private key)
+            let fromAddress = safeAuthAccount;
+            if (selectedNetwork === 'TRC20') {
+                if (!trc20Address) {
+                    // Fetch TRC20 address if not already fetched
+                    const address = await safeAuthGetTRC20Address();
+                    if (address) {
+                        fromAddress = address;
+                        setTrc20Address(address);
+                    } else {
+                        throw new Error('Failed to get TRC20 address from Web3Auth');
+                    }
+                } else {
+                    fromAddress = trc20Address;
+                }
+            }
+            
             // Call backend to process withdrawal
-            // fromAddress: User's Web3Auth account address (where funds were deposited)
+            // fromAddress: User's Web3Auth account address (BEP20 or TRC20, where funds were deposited)
             // toAddress: User's chosen withdrawal address (where funds will be sent)
             // privateKey: User's private key from Web3Auth (for signing transaction)
             const response = await apiService.post('/wallet/withdraw', {
                 network: selectedNetwork,
                 amount: withdrawAmount, // Amount in USDT
-                fromAddress: safeAuthAccount, // ✅ User's Web3Auth account address (where user deposited funds)
+                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20 or TRC20)
                 toAddress: withdrawalAddress.trim(), // User-entered withdrawal address (where funds will be sent)
                 privateKey: userPrivateKey // ✅ User's private key from Web3Auth
             });
@@ -297,25 +338,25 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 <div className="modal-content">
                     {/* Source Address Display - Web3Auth Account (where funds are withdrawn from) */}
                     {safeAuthLoggedIn && safeAuthAccount && (
-                        <div className="info-box" style={{
+                    <div className="info-box" style={{
                             background: 'linear-gradient(135deg, #22c55e15 0%, #16a34a15 100%)',
                             border: '2px solid #22c55e',
-                            padding: '15px',
-                            borderRadius: '12px',
-                            marginBottom: '20px'
-                        }}>
+                        padding: '15px',
+                        borderRadius: '12px',
+                        marginBottom: '20px'
+                    }}>
                             <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px', color: '#22c55e' }}>
                                 💰 Source Address (Your Web3Auth Account):
-                            </div>
-                            <div style={{
-                                background: '#1a1a1a',
-                                padding: '10px',
-                                borderRadius: '8px',
-                                fontSize: '12px',
-                                wordBreak: 'break-all',
-                                fontFamily: 'monospace',
+                        </div>
+                        <div style={{
+                            background: '#1a1a1a',
+                            padding: '10px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            wordBreak: 'break-all',
+                            fontFamily: 'monospace',
                                 color: '#22c55e'
-                            }}>
+                        }}>
                                 {safeAuthAccount}
                             </div>
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#4ade80' }}>
@@ -343,7 +384,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             <svg className="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="6,9 12,15 18,9"/>
                             </svg>
-                        </div> 
+                        </div>
                     </div>
 
                     {/* Wallet Address Input - User can enter arbitrary address - AFTER Network Selection */}
