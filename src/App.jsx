@@ -41,16 +41,7 @@ function App() {
               <NotificationManager />
           <Routes>
           {/* Public routes */}
-          <Route path="/register" element={
-            <ProtectedRoute requireAuth={false}>
-              <Register />
-            </ProtectedRoute>
-          } />
-          <Route path="/login" element={
-            <ProtectedRoute requireAuth={false}>
-              <Login />
-            </ProtectedRoute>
-          } />
+          {/* Registration and Login routes removed - Web3Auth is the only authentication method */}
           <Route path="/admin/login" element={<AdminLogin />} />
           
           {/* Protected routes */}

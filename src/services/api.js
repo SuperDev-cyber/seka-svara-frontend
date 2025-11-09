@@ -460,6 +460,31 @@ class ApiService {
     
     return response;
   }
+
+  async loginWithWeb3Auth(walletAddress, email, name) {
+    // This endpoint doesn't require authentication, so we use fetch directly
+    const response = await fetch(`${this.baseURL}/auth/web3auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ walletAddress, email, name }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.access_token) {
+      this.setTokens(data.access_token, data.refresh_token);
+      this.setUser(data.user);
+    }
+    
+    return data;
+  }
 }
 
 // Create and export a singleton instance

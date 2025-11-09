@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSafeAuth } from '../../contexts/SafeAuthContext';
+import { useAuth } from '../../contexts/AuthContext';
+import apiService from '../../services/api';
 import './WalletConnect.css';
 
 const WalletConnect = () => {
@@ -7,30 +9,82 @@ const WalletConnect = () => {
     loginWithWallet: safeAuthLoginWallet,
     loggedIn: safeAuthLoggedIn,
     account: safeAuthAccount,
+    user: safeAuthUser,
     loading: safeAuthLoading,
     initError: safeAuthInitError,
     logout: safeAuthLogout,
   } = useSafeAuth();
+  const { refreshUserProfile, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Handle Web3Auth wallet connection - PURELY FRONTEND, NO BACKEND CALLS
+  // Auto-authenticate with backend if Web3Auth is already connected but backend is not authenticated
+  useEffect(() => {
+    const autoAuth = async () => {
+      if (safeAuthLoggedIn && safeAuthAccount && !isAuthenticated && !loading && !safeAuthLoading) {
+        console.log('🔄 Web3Auth connected but backend not authenticated, auto-authenticating...');
+        try {
+          const userInfo = safeAuthUser;
+          const email = userInfo?.email;
+          const name = userInfo?.name;
+          
+          const authResponse = await apiService.loginWithWeb3Auth(safeAuthAccount, email, name);
+          console.log('✅ Auto-authentication successful:', authResponse);
+          
+          await refreshUserProfile();
+        } catch (error) {
+          console.error('❌ Auto-authentication failed:', error);
+        }
+      }
+    };
+
+    autoAuth();
+  }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthUser, loading, safeAuthLoading, refreshUserProfile]);
+
+  // Handle Web3Auth wallet connection - AUTOMATICALLY REGISTERS/LOGS IN USER
   const handleConnectWallet = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Login with SafeAuth (Web3Auth) - opens modal with Google and wallet options
-      // This is purely frontend - no backend calls
+      // Step 1: Login with SafeAuth (Web3Auth) - opens modal with Google and wallet options
       const result = await safeAuthLoginWallet();
       
       if (!result) {
         throw new Error('Failed to connect with SafeAuth');
       }
 
-      // Wallet connected successfully - no backend authentication needed
-      if (window.showToast) {
-        window.showToast('Wallet connected successfully!', 'success', 3000);
+      // Get wallet address from result or from safeAuthAccount
+      const walletAddress = result.address || safeAuthAccount;
+      if (!walletAddress) {
+        throw new Error('Failed to get wallet address from Web3Auth');
+      }
+
+      // Get user info from result or from safeAuthUser
+      const userInfo = result.user || safeAuthUser;
+      const email = userInfo?.email;
+      const name = userInfo?.name;
+
+      console.log('✅ Web3Auth connected:', { walletAddress, email, name });
+
+      // Step 2: Automatically register/login user on backend
+      try {
+        const authResponse = await apiService.loginWithWeb3Auth(walletAddress, email, name);
+        console.log('✅ Backend authentication successful:', authResponse);
+        
+        // Step 3: Refresh user profile to get latest data
+        await refreshUserProfile();
+        
+        if (window.showToast) {
+          window.showToast('Wallet connected and authenticated successfully!', 'success', 3000);
+        }
+      } catch (authError) {
+        console.error('❌ Backend authentication error:', authError);
+        // Even if backend auth fails, wallet is still connected
+        if (window.showToast) {
+          window.showToast('Wallet connected, but authentication failed. Please try again.', 'error', 5000);
+        }
+        throw authError;
       }
     } catch (err) {
       console.error('Wallet connection error:', err);
@@ -45,7 +99,16 @@ const WalletConnect = () => {
 
   const handleDisconnect = async () => {
     try {
+      // Logout from backend first
+      try {
+        await apiService.logout();
+      } catch (error) {
+        console.error('Backend logout error:', error);
+      }
+      
+      // Then logout from Web3Auth
       await safeAuthLogout();
+      
       if (window.showToast) {
         window.showToast('Wallet disconnected', 'info', 2000);
       }

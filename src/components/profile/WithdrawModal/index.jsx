@@ -11,6 +11,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         loggedIn: safeAuthLoggedIn, 
         account: safeAuthAccount, 
         getUSDTBalance: safeAuthGetUSDTBalance,
+        getERC20USDTBalance: safeAuthGetERC20USDTBalance,
         getPrivateKey: safeAuthGetPrivateKey 
     } = useSafeAuth();
     
@@ -29,8 +30,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const [sekaBalance, setSekaBalance] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // Network is always BEP20 now
-    const selectedNetwork = 'BEP20';
+    const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
 
     // Reset withdrawal address to empty when modal opens
     useEffect(() => {
@@ -42,14 +42,20 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     }, [isOpen]);
 
-    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20)
+    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20 or ERC20)
     useEffect(() => {
         const fetchWalletBalance = async () => {
-            if (isOpen && safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
+            if (isOpen && safeAuthLoggedIn && safeAuthAccount) {
                 try {
-                    const balance = await safeAuthGetUSDTBalance();
-                    setWalletUSDTBalance(balance);
-                    console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
+                    if (selectedNetwork === 'ERC20' && safeAuthGetERC20USDTBalance) {
+                        const balance = await safeAuthGetERC20USDTBalance();
+                        setWalletUSDTBalance(balance);
+                        console.log('💰 WithdrawModal - ERC20 USDT Balance:', balance);
+                    } else if (selectedNetwork === 'BEP20' && safeAuthGetUSDTBalance) {
+                        const balance = await safeAuthGetUSDTBalance();
+                        setWalletUSDTBalance(balance);
+                        console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
+                    }
                 } catch (error) {
                     console.error('Error fetching wallet balance in WithdrawModal:', error);
                     setWalletUSDTBalance('0');
@@ -70,7 +76,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 if (interval) clearInterval(interval);
             };
         }
-    }, [isOpen, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
+    }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetERC20USDTBalance]);
 
     // Fetch wagering stats and balance
     useEffect(() => {
@@ -124,10 +130,11 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         
         const trimmedAddress = address.trim();
         
-        // BEP20 (BSC) address validation - Ethereum format (0x followed by 40 hex characters)
-        if (selectedNetwork === 'BEP20') {
+        // BEP20 and ERC20 use the same address format (Ethereum-compatible)
+        // Both use 0x followed by 40 hex characters
+        if (selectedNetwork === 'BEP20' || selectedNetwork === 'ERC20') {
             if (!/^0x[a-fA-F0-9]{40}$/.test(trimmedAddress)) {
-                return 'Invalid BSC address format. Must be 0x followed by 40 hexadecimal characters.';
+                return `Invalid ${selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} address format. Must be 0x followed by 40 hexadecimal characters.`;
             }
         }
         
@@ -217,25 +224,25 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessage('Processing withdrawal...');
             setMessageType('info');
             
-            // Use Web3Auth BSC address as fromAddress
+            // Use Web3Auth account address as fromAddress (works for both BEP20 and ERC20)
             const fromAddress = safeAuthAccount;
             
             // Call backend to process withdrawal
-            // fromAddress: User's Web3Auth account address (BEP20, where funds were deposited)
+            // fromAddress: User's Web3Auth account address (BEP20 or ERC20, where funds were deposited)
             // toAddress: User's chosen withdrawal address (where funds will be sent)
             // privateKey: User's private key from Web3Auth (for signing transaction)
             const response = await apiService.post('/wallet/withdraw', {
-                network: 'BEP20',
+                network: selectedNetwork,
                 amount: withdrawAmount, // Amount in USDT
-                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20)
+                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20 or ERC20)
                 toAddress: withdrawalAddress.trim(), // User-entered withdrawal address (where funds will be sent)
                 privateKey: userPrivateKey // ✅ User's private key from Web3Auth
             });
 
             console.log('✅ Withdrawal request sent:', {
-                network: 'BEP20',
+                network: selectedNetwork,
                 amount: withdrawAmount,
-                fromAddress: fromAddress, // Web3Auth account address (BEP20)
+                fromAddress: fromAddress, // Web3Auth account address (BEP20 or ERC20)
                 toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
@@ -292,6 +299,35 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 </div>
 
                 <div className="modal-content">
+                    {/* Network Selection */}
+                    <div className="form-group" style={{ marginBottom: '20px' }}>
+                        <label className="form-label" style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Network</label>
+                        <div className="dropdown-container" style={{ position: 'relative' }}>
+                            <select
+                                value={selectedNetwork}
+                                onChange={(e) => setSelectedNetwork(e.target.value)}
+                                className="network-dropdown"
+                                disabled={isProcessing}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 40px 12px 12px',
+                                    background: '#1a1a1a',
+                                    border: '2px solid #333',
+                                    borderRadius: '8px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    cursor: isProcessing ? 'not-allowed' : 'pointer'
+                                }}
+                            >
+                                <option value="BEP20">BEP20 (BSC)</option>
+                                <option value="ERC20">ERC20 (Ethereum)</option>
+                            </select>
+                            <svg className="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                                <polyline points="6,9 12,15 18,9"/>
+                            </svg>
+                        </div>
+                    </div>
+
                     {/* Source Address Display - Web3Auth Account (where funds are withdrawn from) */}
                     {safeAuthLoggedIn && safeAuthAccount && (
                     <div className="info-box" style={{
@@ -302,7 +338,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         marginBottom: '20px'
                     }}>
                             <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px', color: '#22c55e' }}>
-                                💰 Source Address (Your Web3Auth BSC Account):
+                                💰 Source Address (Your Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} Account):
                         </div>
                         <div style={{
                             background: '#1a1a1a',
@@ -316,7 +352,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 {safeAuthAccount}
                             </div>
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#4ade80' }}>
-                                ✅ Funds will be withdrawn from this Web3Auth BSC account address
+                                ✅ Funds will be withdrawn from this Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} account address
                             </div>
                         </div>
                     )}
@@ -337,7 +373,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 type="text"
                                 value={withdrawalAddress}
                                 onChange={handleAddressChange}
-                                placeholder="0x..."
+                                placeholder={selectedNetwork === 'BEP20' || selectedNetwork === 'ERC20' ? '0x...' : '0x...'}
                                 style={{
                                     flex: 1,
                                     background: '#1a1a1a',
@@ -377,7 +413,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         )}
                         {!addressError && withdrawalAddress && (
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#22c55e' }}>
-                                ✅ Valid BSC address
+                                ✅ Valid {selectedNetwork === 'BEP20' ? 'BSC' : 'Ethereum'} address
                             </div>
                         )}
                         {!safeAuthLoggedIn && (

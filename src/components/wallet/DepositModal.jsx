@@ -26,6 +26,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   } = useSafeAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
+  const [erc20Address, setErc20Address] = useState(null);
   const [amount, setAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState('');
@@ -33,7 +34,9 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [currentStep, setCurrentStep] = useState('input'); // 'input', 'sending', 'confirming', 'success'
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  // Get deposit address - always use Web3Auth account address (BEP20)
+  // Get deposit address based on selected network
+  // ERC20 and BEP20 use the same address format (Ethereum-compatible)
+  // They can share the same address since Web3Auth account works on both networks
   const depositAddress = safeAuthAccount || '';
 
   // Reset state when modal opens
@@ -126,7 +129,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
       // Step 2: Submit to backend for verification
       const depositData = {
-        network: 'BEP20',
+        network: selectedNetwork,
         amount: depositAmount,
         fromAddress: account,
         txHash: txHash,
@@ -247,10 +250,55 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
           )}
 
+          {/* Network Selection */}
+          <div className="network-selection" style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Select Network:</label>
+            <div className="network-options" style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className={`network-btn ${selectedNetwork === 'BEP20' ? 'active' : ''}`}
+                onClick={() => setSelectedNetwork('BEP20')}
+                disabled={isProcessing}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: selectedNetwork === 'BEP20' ? '2px solid #f0b90b' : '2px solid #333',
+                  background: selectedNetwork === 'BEP20' ? '#f0b90b20' : '#1a1a1a',
+                  color: '#fff',
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                <span style={{ marginRight: '8px' }}>🟡</span>
+                <span>BSC (BEP20)</span>
+                <span style={{ fontSize: '11px', opacity: 0.8, display: 'block', marginTop: '4px' }}>Low fees</span>
+              </button>
+              <button
+                className={`network-btn ${selectedNetwork === 'ERC20' ? 'active' : ''}`}
+                onClick={() => setSelectedNetwork('ERC20')}
+                disabled={isProcessing}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: selectedNetwork === 'ERC20' ? '2px solid #627EEA' : '2px solid #333',
+                  background: selectedNetwork === 'ERC20' ? '#627EEA20' : '#1a1a1a',
+                  color: '#fff',
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                <span style={{ marginRight: '8px' }}>🔵</span>
+                <span>Ethereum (ERC20)</span>
+                <span style={{ fontSize: '11px', opacity: 0.8, display: 'block', marginTop: '4px' }}>Higher fees</span>
+              </button>
+            </div>
+          </div>
+
           {/* User Deposit Address Display */}
           <div className="address-section">
             <label>
-              Your Deposit Address — BEP-20 (BSC) (Web3Auth Account)
+              Your Deposit Address — {selectedNetwork === 'BEP20' ? 'BEP-20 (BSC)' : 'ERC-20 (Ethereum)'} (Web3Auth Account)
             </label>
             <div className="address-container">
               <div className="address-text">
@@ -269,6 +317,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             </div>
             <p className="address-hint">
               Send USDT to this address (your Web3Auth account). Funds will be stored in your Web3Auth wallet and then transferred to the platform account.
+              {selectedNetwork === 'ERC20' && ' Note: Ethereum network has higher gas fees than BSC.'}
             </p>
           </div>
 

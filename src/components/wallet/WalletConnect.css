@@ -7,11 +7,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: #262626;
   color: white;
-  border: 1px solid rgb(249, 148, 38);
+  border: 1px solid rgb(60 60 60);
   padding: 1rem 2rem;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
