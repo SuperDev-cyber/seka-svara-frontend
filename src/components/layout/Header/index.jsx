@@ -380,11 +380,9 @@ const Header = () => {
                                     {user?.avatar ? (
                                         <img src={user.avatar} alt={user.username} />
                                     ) : (
-                                        <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <circle cx="12" cy="9" r="3" />
-                                            <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
-                                        </svg>
+                                        <span className='user-avatar-initial'>
+                                            {user?.username ? user.username.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                                        </span>
                                     )}
                                 </div>
                                 {/* <span className='user-name'>{user?.username}</span> */}
@@ -398,7 +396,7 @@ const Header = () => {
                                     <div className='user-info'>
                                         <div className='user-email'>{user?.email}</div>
                                         <div className='user-balance'>
-                                            Balance: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                                            USDT: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
                                         </div>
                                     </div>
                                     <div className='user-menu-divider'></div>
@@ -546,18 +544,16 @@ const Header = () => {
                                         {user?.avatar ? (
                                             <img src={user.avatar} alt={user.username} />
                                         ) : (
-                                            <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <circle cx="12" cy="12" r="10" />
-                                                <circle cx="12" cy="9" r="3" />
-                                                <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
-                                            </svg>
+                                            <span className='user-avatar-initial'>
+                                                {user?.username ? user.username.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                                            </span>
                                         )}
                                     </div>
                                     <div className='mobile-user-details'>
                                         <div className='mobile-user-name'>{user?.username}</div>
                                         <div className='mobile-user-email'>{user?.email}</div>
                                         <div className='mobile-user-balance'>
-                                            Balance: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                                            USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
                                         </div>
                                     </div>
                                 </div>

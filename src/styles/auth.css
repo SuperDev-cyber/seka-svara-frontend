@@ -265,20 +265,34 @@
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e5e7eb;
+  background-color: #1a1a1a;
+  border: 1px solid #3d3d3d;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.2rem;
 }
 
 .user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.user-avatar-initial {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-name {
@@ -382,14 +396,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e5e7eb;
+  background-color: #1a1a1a;
   flex-shrink: 0;
+  border: 1px solid #3d3d3d;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .mobile-user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.mobile-user-avatar .user-avatar-initial {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-user-details {
