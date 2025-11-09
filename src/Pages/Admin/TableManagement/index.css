@@ -280,9 +280,10 @@
     background: #131622;
     border-radius: 16px;
     max-width: 1200px;
-    width: 100%;
+    width: 88%;
     max-height: max-content;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 

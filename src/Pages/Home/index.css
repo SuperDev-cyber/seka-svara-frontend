@@ -353,21 +353,23 @@
     border-color: rgba(255, 107, 53, 0.6);
 }
 
-/* Connected Wallet Info */
+/* Connected Wallet Info - New Card Design */
 .connected-wallet-info {
     margin-top: 1.5rem;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(249, 148, 38, 0.3);
+    padding: 0;
+    background: #1A1D2B;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    backdrop-filter: blur(10px);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .wallet-status {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #1A1D2B;
 }
 
 .network-indicator {
@@ -379,34 +381,48 @@
     font-weight: 600;
 }
 
-.wallet-address {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.85rem;
-    font-family: monospace;
+.network-dot {
+    width: 8px;
+    height: 8px;
+    background: #FFD700;
+    border-radius: 50%;
+    display: inline-block;
 }
 
-.wallet-balance {
+.wallet-address-pill {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.85rem;
+    font-family: monospace;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.wallet-balance-gradient {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
+    gap: 2rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #F7931E 0%, #FFD700 100%);
+    border-radius: 0 0 12px 12px;
 }
 
 .balance-item {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.4rem;
 }
 
 .balance-label {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
     font-weight: 500;
 }
 
 .balance-value {
     color: white;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
 }
 
 .disconnect-btn {

@@ -182,18 +182,18 @@ const HeroLeft = () => {
             {/* Connected Wallet Info - Show SafeAuth wallet if connected, otherwise show MetaMask/TronLink */}
             {(safeAuthLoggedIn && safeAuthAccount) ? (
                 <>
-                    {/* BSC (BEP20) Network */}
+                    {/* BSC (BEP20) Network - New Card Design */}
                     <div className='connected-wallet-info'>
                         <div className='wallet-status'>
                             <div className='network-indicator'>
-                                🟡
+                                <span className='network-dot'></span>
                                 <span>BSC</span>
                             </div>
-                            <div className='wallet-address'>
+                            <div className='wallet-address-pill'>
                                 {safeAuthAccount ? `${safeAuthAccount.substring(0, 6)}...${safeAuthAccount.substring(safeAuthAccount.length - 4)}` : ''}
                             </div>
                         </div>
-                        <div className='wallet-balance'> 
+                        <div className='wallet-balance-gradient'> 
                             <div className='balance-item'>
                                 <span className='balance-label'>USDT</span>
                                 <span className='balance-value'>{safeAuthLoggedIn && safeAuthAccount ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}</span>
@@ -210,14 +210,14 @@ const HeroLeft = () => {
                 <div className='connected-wallet-info'>
                     <div className='wallet-status'>
                         <div className='network-indicator'>
-                            {currentNetwork === 'BEP20' ? '🟡' : '🔴'}
+                            <span className='network-dot'></span>
                             <span>BSC</span>
                         </div>
-                        <div className='wallet-address'>
+                        <div className='wallet-address-pill'>
                             {formatAddress(account)}
                         </div>
                     </div>
-                    <div className='wallet-balance'> 
+                    <div className='wallet-balance-gradient'> 
                         <div className='balance-item'>
                             <span className='balance-label'>USDT</span>
                             <span className='balance-value'>{formatAmount(USDTBalance)}</span>
