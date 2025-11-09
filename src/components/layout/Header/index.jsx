@@ -336,14 +336,7 @@ const Header = () => {
                             )}
                         </div>
                     ) : (
-                        <Link to="/login" className='signin-register-link'>
-                            <span className='signin-text'>{t('signIn')}</span>
-                            <svg className='user-icon' width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <circle cx="12" cy="9" r="3" />
-                                <path d="M6.168 18.849A4 4 0 0 1 10.163 16H13.837A4 4 0 0 1 17.832 18.849" />
-                            </svg>
-                        </Link>
+                       <></>
                     )}
                     <div className='language-selector'>
                         <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -395,9 +388,7 @@ const Header = () => {
                                     </button>
                                 </>
                             ) : (
-                                <button className='connect-wallet-btn' onClick={() => navigate('/login')}>
-                                    {t('wallet')}:
-                                </button>
+                                <></>
                             )}
                         </>
                     )}
