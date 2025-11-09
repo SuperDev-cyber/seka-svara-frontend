@@ -27,10 +27,12 @@ const HeroLeft = () => {
       loggedIn: safeAuthLoggedIn, 
       account: safeAuthAccount, 
       getUSDTBalance: safeAuthGetUSDTBalance, 
+      getERC20USDTBalance: safeAuthGetERC20USDTBalance,
       getBNBBalance: safeAuthGetBNBBalance,
       loginWithWallet: safeAuthLoginWallet 
     } = useSafeAuth();
-    const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
+    const [safeAuthBEP20USDTBalance, setSafeAuthBEP20USDTBalance] = useState('0');
+    const [safeAuthERC20USDTBalance, setSafeAuthERC20USDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
     // Removed showWalletDropdown and dropdownRef - no longer needed with Web3Auth
@@ -89,25 +91,31 @@ const HeroLeft = () => {
         disconnect();
     };
 
-    // ✅ Fetch SafeAuth wallet balances when connected (BEP20)
+    // ✅ Fetch SafeAuth wallet balances when connected (BEP20 and ERC20)
     useEffect(() => {
         const fetchSafeAuthBalances = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance) {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetERC20USDTBalance && safeAuthGetBNBBalance) {
                 try {
-                    // Fetch USDT balance (BEP20)
-                    const usdtBalance = await safeAuthGetUSDTBalance();
-                    setSafeAuthUSDTBalance(usdtBalance);
+                    // Fetch BEP20 USDT balance
+                    const bep20USDTBalance = await safeAuthGetUSDTBalance();
+                    setSafeAuthBEP20USDTBalance(bep20USDTBalance);
+
+                    // Fetch ERC20 USDT balance (Ethereum Mainnet)
+                    const erc20USDTBalance = await safeAuthGetERC20USDTBalance();
+                    setSafeAuthERC20USDTBalance(erc20USDTBalance);
 
                     // Fetch BNB balance (native gas token)
                     const bnbBalance = await safeAuthGetBNBBalance();
                     setSafeAuthBNBBalance(bnbBalance);
                 } catch (error) {
                     console.error('Error fetching SafeAuth balances:', error);
-                    setSafeAuthUSDTBalance('0');
+                    setSafeAuthBEP20USDTBalance('0');
+                    setSafeAuthERC20USDTBalance('0');
                     setSafeAuthBNBBalance('0');
                 }
             } else {
-                setSafeAuthUSDTBalance('0');
+                setSafeAuthBEP20USDTBalance('0');
+                setSafeAuthERC20USDTBalance('0');
                 setSafeAuthBNBBalance('0');
             }
         };
@@ -123,7 +131,7 @@ const HeroLeft = () => {
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetERC20USDTBalance, safeAuthGetBNBBalance]);
 
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth
@@ -195,12 +203,31 @@ const HeroLeft = () => {
                         </div>
                         <div className='wallet-balance-gradient'> 
                             <div className='balance-item'>
-                                <span className='balance-label'>USDT</span>
-                                <span className='balance-value'>{safeAuthLoggedIn && safeAuthAccount ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}</span>
+                                <span className='balance-label'>BEP20 USDT</span>
+                                <span className='balance-value'>{parseFloat(safeAuthBEP20USDTBalance || '0').toFixed(2)}</span>
                             </div>
                             <div className='balance-item'>
                                 <span className='balance-label'>BNB</span>
                                 <span className='balance-value'>{parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ERC20 (Ethereum) Network - New Card Design */}
+                    <div className='connected-wallet-info' style={{ marginTop: '1rem' }}>
+                        <div className='wallet-status'>
+                            <div className='network-indicator'>
+                                <span className='network-dot' style={{ background: '#627EEA' }}></span>
+                                <span>ETH</span>
+                            </div>
+                            <div className='wallet-address-pill'>
+                                {safeAuthAccount ? `${safeAuthAccount.substring(0, 6)}...${safeAuthAccount.substring(safeAuthAccount.length - 4)}` : ''}
+                            </div>
+                        </div>
+                        <div className='wallet-balance-gradient'> 
+                            <div className='balance-item'>
+                                <span className='balance-label'>ERC20 USDT</span>
+                                <span className='balance-value'>{parseFloat(safeAuthERC20USDTBalance || '0').toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
