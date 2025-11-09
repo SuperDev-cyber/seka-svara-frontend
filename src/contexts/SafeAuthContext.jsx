@@ -4,7 +4,19 @@ import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ethers } from 'ethers';
-import TronWeb from 'tronweb';
+// Dynamic import for TronWeb to avoid constructor issues in ESM
+let TronWeb;
+if (typeof window !== 'undefined') {
+  // Use dynamic import for browser environment
+  import('tronweb').then((module) => {
+    TronWeb = module.default || module;
+  }).catch(() => {
+    // Fallback: try require if available
+    if (typeof require !== 'undefined') {
+      TronWeb = require('tronweb');
+    }
+  });
+}
 
 const SafeAuthContext = createContext();
 
@@ -463,9 +475,21 @@ export const SafeAuthProvider = ({ children }) => {
         throw new Error('Failed to retrieve private key');
       }
 
+      // Dynamically import TronWeb to avoid constructor issues
+      let TronWebModule = TronWeb;
+      if (!TronWebModule || typeof TronWebModule !== 'function') {
+        // Try dynamic import if not already loaded
+        const tronWebModule = await import('tronweb');
+        TronWebModule = tronWebModule.default || tronWebModule;
+      }
+
+      if (!TronWebModule || typeof TronWebModule !== 'function') {
+        throw new Error('TronWeb is not available or not a constructor');
+      }
+
       // Convert private key to Tron address using TronWeb
       // TronWeb can derive Tron address from private key
-      const tronWeb = new TronWeb({
+      const tronWeb = new TronWebModule({
         fullHost: 'https://api.trongrid.io',
       });
 
@@ -496,8 +520,19 @@ export const SafeAuthProvider = ({ children }) => {
         return '0';
       }
 
+      // Dynamically import TronWeb to avoid constructor issues
+      let TronWebModule = TronWeb;
+      if (!TronWebModule || typeof TronWebModule !== 'function') {
+        const tronWebModule = await import('tronweb');
+        TronWebModule = tronWebModule.default || tronWebModule;
+      }
+
+      if (!TronWebModule || typeof TronWebModule !== 'function') {
+        throw new Error('TronWeb is not available');
+      }
+
       // Initialize TronWeb
-      const tronWeb = new TronWeb({
+      const tronWeb = new TronWebModule({
         fullHost: 'https://api.trongrid.io',
       });
 
@@ -555,8 +590,19 @@ export const SafeAuthProvider = ({ children }) => {
         return '0';
       }
 
+      // Dynamically import TronWeb to avoid constructor issues
+      let TronWebModule = TronWeb;
+      if (!TronWebModule || typeof TronWebModule !== 'function') {
+        const tronWebModule = await import('tronweb');
+        TronWebModule = tronWebModule.default || tronWebModule;
+      }
+
+      if (!TronWebModule || typeof TronWebModule !== 'function') {
+        throw new Error('TronWeb is not available');
+      }
+
       // Initialize TronWeb
-      const tronWeb = new TronWeb({
+      const tronWeb = new TronWebModule({
         fullHost: 'https://api.trongrid.io',
       });
 
