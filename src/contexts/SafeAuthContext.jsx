@@ -464,8 +464,28 @@ export const SafeAuthProvider = ({ children }) => {
       }
 
       // Dynamically import TronWeb to avoid constructor issues in ESM
-      const tronWebModule = await import('tronweb');
-      const TronWebModule = tronWebModule.default || tronWebModule;
+      // TronWeb v6 exports as default, but we need to handle it properly
+      let TronWebModule;
+      try {
+        const tronWebModule = await import('tronweb');
+        // Try different export patterns
+        TronWebModule = tronWebModule.default || tronWebModule.TronWeb || tronWebModule;
+        
+        // If it's still not a constructor, it might be wrapped
+        if (typeof TronWebModule !== 'function') {
+          // Try accessing the constructor from the module
+          if (tronWebModule.default && typeof tronWebModule.default === 'function') {
+            TronWebModule = tronWebModule.default;
+          } else if (tronWebModule.TronWeb && typeof tronWebModule.TronWeb === 'function') {
+            TronWebModule = tronWebModule.TronWeb;
+          } else {
+            throw new Error('TronWeb constructor not found in module');
+          }
+        }
+      } catch (importError) {
+        console.error('Failed to import TronWeb:', importError);
+        throw new Error(`Failed to import TronWeb: ${importError.message}`);
+      }
 
       if (!TronWebModule || typeof TronWebModule !== 'function') {
         throw new Error('TronWeb is not available or not a constructor');
@@ -505,8 +525,24 @@ export const SafeAuthProvider = ({ children }) => {
       }
 
       // Dynamically import TronWeb to avoid constructor issues in ESM
-      const tronWebModule = await import('tronweb');
-      const TronWebModule = tronWebModule.default || tronWebModule;
+      let TronWebModule;
+      try {
+        const tronWebModule = await import('tronweb');
+        TronWebModule = tronWebModule.default || tronWebModule.TronWeb || tronWebModule;
+        
+        if (typeof TronWebModule !== 'function') {
+          if (tronWebModule.default && typeof tronWebModule.default === 'function') {
+            TronWebModule = tronWebModule.default;
+          } else if (tronWebModule.TronWeb && typeof tronWebModule.TronWeb === 'function') {
+            TronWebModule = tronWebModule.TronWeb;
+          } else {
+            throw new Error('TronWeb constructor not found');
+          }
+        }
+      } catch (importError) {
+        console.error('Failed to import TronWeb:', importError);
+        throw new Error(`Failed to import TronWeb: ${importError.message}`);
+      }
 
       if (!TronWebModule || typeof TronWebModule !== 'function') {
         throw new Error('TronWeb is not available');
@@ -572,8 +608,24 @@ export const SafeAuthProvider = ({ children }) => {
       }
 
       // Dynamically import TronWeb to avoid constructor issues in ESM
-      const tronWebModule = await import('tronweb');
-      const TronWebModule = tronWebModule.default || tronWebModule;
+      let TronWebModule;
+      try {
+        const tronWebModule = await import('tronweb');
+        TronWebModule = tronWebModule.default || tronWebModule.TronWeb || tronWebModule;
+        
+        if (typeof TronWebModule !== 'function') {
+          if (tronWebModule.default && typeof tronWebModule.default === 'function') {
+            TronWebModule = tronWebModule.default;
+          } else if (tronWebModule.TronWeb && typeof tronWebModule.TronWeb === 'function') {
+            TronWebModule = tronWebModule.TronWeb;
+          } else {
+            throw new Error('TronWeb constructor not found');
+          }
+        }
+      } catch (importError) {
+        console.error('Failed to import TronWeb:', importError);
+        throw new Error(`Failed to import TronWeb: ${importError.message}`);
+      }
 
       if (!TronWebModule || typeof TronWebModule !== 'function') {
         throw new Error('TronWeb is not available');

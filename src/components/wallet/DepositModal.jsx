@@ -47,22 +47,50 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       ? (trc20Address || '')
       : '';
 
-  // ✅ Fetch TRC20 address from Web3Auth when TRC20 is selected
+  // ✅ Fetch TRC20 address from Web3Auth when TRC20 is selected (with backend fallback)
   useEffect(() => {
     const fetchTRC20Address = async () => {
       if (isOpen && selectedNetwork === 'TRC20' && safeAuthLoggedIn && safeAuthGetTRC20Address) {
         try {
           setLoadingAddresses(true);
           console.log('🔄 Fetching TRC20 address from Web3Auth...');
-          const address = await safeAuthGetTRC20Address();
+          
+          // Try to get address from Web3Auth first
+          let address = await safeAuthGetTRC20Address();
+          
+          // If Web3Auth fails, fallback to backend-generated address
+          if (!address && user) {
+            console.log('⚠️ Web3Auth TRC20 address failed, trying backend fallback...');
+            try {
+              const response = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
+              address = response.address || response.TRC20 || response;
+              console.log('✅ TRC20 address from backend fallback:', address);
+            } catch (backendError) {
+              console.error('❌ Backend fallback also failed:', backendError);
+            }
+          }
+          
           if (address) {
             setTrc20Address(address);
-            console.log('✅ TRC20 address from Web3Auth:', address);
+            console.log('✅ TRC20 address set:', address);
           } else {
-            console.warn('⚠️ Failed to get TRC20 address from Web3Auth');
+            console.warn('⚠️ Failed to get TRC20 address from both Web3Auth and backend');
           }
         } catch (error) {
-          console.error('❌ Error fetching TRC20 address from Web3Auth:', error);
+          console.error('❌ Error fetching TRC20 address:', error);
+          // Try backend fallback on error
+          if (user) {
+            try {
+              const response = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
+              const address = response.address || response.TRC20 || response;
+              if (address) {
+                setTrc20Address(address);
+                console.log('✅ TRC20 address from backend fallback (after error):', address);
+              }
+            } catch (backendError) {
+              console.error('❌ Backend fallback failed:', backendError);
+            }
+          }
         } finally {
           setLoadingAddresses(false);
         }
@@ -72,7 +100,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     };
 
     fetchTRC20Address();
-  }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthGetTRC20Address]);
+  }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthGetTRC20Address, user]);
 
   // Reset state when modal opens
   useEffect(() => {
