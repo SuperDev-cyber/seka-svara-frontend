@@ -38,7 +38,12 @@ const BalanceCard = () => {
     }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     const formatBalance = () => {
-        // ✅ Always display Platform Score (increases with deposits, decreases with withdrawals)
+        // ✅ Display Web3Auth wallet USDT balance (real-time from blockchain)
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            const balance = parseFloat(walletUSDTBalance || '0');
+            return `${balance.toFixed(2)} USDT`;
+        }
+        // Fallback to Platform Score if wallet not connected
         const platformScore = Number(user?.platformScore || 0);
         return `${platformScore.toFixed(2)} USDT`;
     };
