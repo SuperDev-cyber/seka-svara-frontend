@@ -12,7 +12,6 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
 
     const networks = [
         { value: 'BEP20', label: 'BEP20 (BSC)' },
-        { value: 'TRC20', label: 'TRC20 (TRON)' },
         { value: 'ERC20', label: 'ERC20 (ETH)' }
     ];
 
@@ -168,7 +167,7 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
                                 className="form-dropdown"
                             >
                                 {networks.map((network) => (
-                                    <option key={network.value} value={network.value}>
+                                    <option key={network.value} value={network.value} style={{backgroundColor: '#131622', color: 'white'}}>
                                         {network.label}
                                     </option>
                                 ))}
