@@ -463,13 +463,9 @@ export const SafeAuthProvider = ({ children }) => {
         throw new Error('Failed to retrieve private key');
       }
 
-      // Dynamically import TronWeb to avoid constructor issues
-      let TronWebModule = TronWeb;
-      if (!TronWebModule || typeof TronWebModule !== 'function') {
-        // Try dynamic import if not already loaded
-        const tronWebModule = await import('tronweb');
-        TronWebModule = tronWebModule.default || tronWebModule;
-      }
+      // Dynamically import TronWeb to avoid constructor issues in ESM
+      const tronWebModule = await import('tronweb');
+      const TronWebModule = tronWebModule.default || tronWebModule;
 
       if (!TronWebModule || typeof TronWebModule !== 'function') {
         throw new Error('TronWeb is not available or not a constructor');
