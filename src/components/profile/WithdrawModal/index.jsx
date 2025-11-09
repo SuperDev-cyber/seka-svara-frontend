@@ -11,12 +11,9 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         loggedIn: safeAuthLoggedIn, 
         account: safeAuthAccount, 
         getUSDTBalance: safeAuthGetUSDTBalance,
-        getTRC20USDTBalance: safeAuthGetTRC20USDTBalance,
-        getTRC20Address: safeAuthGetTRC20Address,
         getPrivateKey: safeAuthGetPrivateKey 
     } = useSafeAuth();
     
-    const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
     const [withdrawalAddress, setWithdrawalAddress] = useState('');
     const [addressError, setAddressError] = useState('');
     const [amount, setAmount] = useState('');
@@ -25,7 +22,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const [messageType, setMessageType] = useState(''); // 'success', 'error', 'info'
     const [copied, setCopied] = useState(false);
     const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
-    const [trc20Address, setTrc20Address] = useState(null);
     
     // Wagering stats
     const [totalWagered, setTotalWagered] = useState(0);
@@ -33,10 +29,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const [sekaBalance, setSekaBalance] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    const networks = [
-        { value: 'BEP20', label: 'BEP20 (BSC)', fee: 0 },
-        { value: 'TRC20', label: 'TRC20 (TRON)', fee: 0 }
-    ];
+    // Network is always BEP20 now
+    const selectedNetwork = 'BEP20';
 
     // Reset withdrawal address to empty when modal opens
     useEffect(() => {
@@ -48,28 +42,14 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
     }, [isOpen]);
 
-    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20 or TRC20 based on selected network)
+    // ✅ Fetch Web3Auth wallet USDT balance when modal opens (BEP20)
     useEffect(() => {
         const fetchWalletBalance = async () => {
-            if (isOpen && safeAuthLoggedIn && safeAuthAccount) {
+            if (isOpen && safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance) {
                 try {
-                    if (selectedNetwork === 'TRC20' && safeAuthGetTRC20USDTBalance) {
-                        // Fetch TRC20 USDT balance
-                        const balance = await safeAuthGetTRC20USDTBalance();
-                        setWalletUSDTBalance(balance);
-                        console.log('💰 WithdrawModal - TRC20 USDT Balance:', balance);
-                        
-                        // Also fetch TRC20 address
-                        if (safeAuthGetTRC20Address) {
-                            const address = await safeAuthGetTRC20Address();
-                            setTrc20Address(address);
-                        }
-                    } else if (selectedNetwork === 'BEP20' && safeAuthGetUSDTBalance) {
-                        // Fetch BEP20 USDT balance
-                        const balance = await safeAuthGetUSDTBalance();
-                        setWalletUSDTBalance(balance);
-                        console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
-                    }
+                    const balance = await safeAuthGetUSDTBalance();
+                    setWalletUSDTBalance(balance);
+                    console.log('💰 WithdrawModal - BEP20 USDT Balance:', balance);
                 } catch (error) {
                     console.error('Error fetching wallet balance in WithdrawModal:', error);
                     setWalletUSDTBalance('0');
@@ -90,7 +70,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 if (interval) clearInterval(interval);
             };
         }
-    }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetTRC20USDTBalance, safeAuthGetTRC20Address]);
+    }, [isOpen, safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     // Fetch wagering stats and balance
     useEffect(() => {
@@ -135,7 +115,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
     const maxWithdrawable = safeAuthLoggedIn && safeAuthAccount && walletUSDTBalance
         ? parseFloat(walletUSDTBalance || '0')
         : Number(user?.platformScore || 0);
-    const currentNetwork = networks.find(network => network.value === selectedNetwork);
 
     // Validate withdrawal address
     const validateAddress = (address) => {
@@ -149,13 +128,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         if (selectedNetwork === 'BEP20') {
             if (!/^0x[a-fA-F0-9]{40}$/.test(trimmedAddress)) {
                 return 'Invalid BSC address format. Must be 0x followed by 40 hexadecimal characters.';
-            }
-        }
-        
-        // TRC20 (TRON) address validation - Base58 format, 34 characters starting with T
-        if (selectedNetwork === 'TRC20') {
-            if (!/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(trimmedAddress)) {
-                return 'Invalid TRON address format. Must start with T and be 34 characters.';
             }
         }
         
@@ -245,41 +217,25 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             setMessage('Processing withdrawal...');
             setMessageType('info');
             
-            // Determine fromAddress based on network
-            // For BEP20: Use Web3Auth BSC address
-            // For TRC20: Use Web3Auth TRC20 address (derived from private key)
-            let fromAddress = safeAuthAccount;
-            if (selectedNetwork === 'TRC20') {
-                if (!trc20Address) {
-                    // Fetch TRC20 address if not already fetched
-                    const address = await safeAuthGetTRC20Address();
-                    if (address) {
-                        fromAddress = address;
-                        setTrc20Address(address);
-                    } else {
-                        throw new Error('Failed to get TRC20 address from Web3Auth');
-                    }
-                } else {
-                    fromAddress = trc20Address;
-                }
-            }
+            // Use Web3Auth BSC address as fromAddress
+            const fromAddress = safeAuthAccount;
             
             // Call backend to process withdrawal
-            // fromAddress: User's Web3Auth account address (BEP20 or TRC20, where funds were deposited)
+            // fromAddress: User's Web3Auth account address (BEP20, where funds were deposited)
             // toAddress: User's chosen withdrawal address (where funds will be sent)
             // privateKey: User's private key from Web3Auth (for signing transaction)
             const response = await apiService.post('/wallet/withdraw', {
-                network: selectedNetwork,
+                network: 'BEP20',
                 amount: withdrawAmount, // Amount in USDT
-                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20 or TRC20)
+                fromAddress: fromAddress, // ✅ User's Web3Auth account address (BEP20)
                 toAddress: withdrawalAddress.trim(), // User-entered withdrawal address (where funds will be sent)
                 privateKey: userPrivateKey // ✅ User's private key from Web3Auth
             });
 
             console.log('✅ Withdrawal request sent:', {
-                network: selectedNetwork,
+                network: 'BEP20',
                 amount: withdrawAmount,
-                fromAddress: fromAddress, // Web3Auth account address (BEP20 or TRC20)
+                fromAddress: fromAddress, // Web3Auth account address (BEP20)
                 toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
@@ -337,7 +293,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
                 <div className="modal-content">
                     {/* Source Address Display - Web3Auth Account (where funds are withdrawn from) */}
-                    {safeAuthLoggedIn && (selectedNetwork === 'BEP20' ? safeAuthAccount : trc20Address) && (
+                    {safeAuthLoggedIn && safeAuthAccount && (
                     <div className="info-box" style={{
                             background: 'linear-gradient(135deg, #22c55e15 0%, #16a34a15 100%)',
                             border: '2px solid #22c55e',
@@ -346,7 +302,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         marginBottom: '20px'
                     }}>
                             <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px', color: '#22c55e' }}>
-                                💰 Source Address (Your Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'TRON'} Account):
+                                💰 Source Address (Your Web3Auth BSC Account):
                         </div>
                         <div style={{
                             background: '#1a1a1a',
@@ -357,37 +313,15 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             fontFamily: 'monospace',
                                 color: '#22c55e'
                         }}>
-                                {selectedNetwork === 'BEP20' ? safeAuthAccount : trc20Address}
+                                {safeAuthAccount}
                             </div>
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#4ade80' }}>
-                                ✅ Funds will be withdrawn from this Web3Auth {selectedNetwork === 'BEP20' ? 'BSC' : 'TRON'} account address
+                                ✅ Funds will be withdrawn from this Web3Auth BSC account address
                             </div>
                         </div>
                     )}
 
-                    {/* Network Selection - FIRST */}
-                    <div className="form-group">
-                        <label className="form-label">Network</label>
-                        <div className="dropdown-container">
-                            <select
-                                value={selectedNetwork}
-                                onChange={(e) => setSelectedNetwork(e.target.value)}
-                                className="network-dropdown"
-                                disabled={isProcessing}
-                            >
-                                {networks.map((network) => (
-                                    <option key={network.value} value={network.value}>
-                                        {network.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <svg className="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="6,9 12,15 18,9"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    {/* Wallet Address Input - User can enter arbitrary address - AFTER Network Selection */}
+                    {/* Wallet Address Input - User can enter arbitrary address */}
                     <div className="info-box" style={{
                         background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
                         border: '2px solid #667eea',
@@ -403,7 +337,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 type="text"
                                 value={withdrawalAddress}
                                 onChange={handleAddressChange}
-                                placeholder={selectedNetwork === 'BEP20' ? '0x...' : 'T...'}
+                                placeholder="0x..."
                                 style={{
                                     flex: 1,
                                     background: '#1a1a1a',
@@ -443,7 +377,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         )}
                         {!addressError && withdrawalAddress && (
                             <div style={{ marginTop: '8px', fontSize: '11px', opacity: 0.8, color: '#22c55e' }}>
-                                ✅ Valid {selectedNetwork === 'BEP20' ? 'BSC' : 'TRON'} address
+                                ✅ Valid BSC address
                             </div>
                         )}
                         {!safeAuthLoggedIn && (

@@ -22,8 +22,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const { user } = useAuth();
   const { 
     account: safeAuthAccount, 
-    loggedIn: safeAuthLoggedIn,
-    getTRC20Address: safeAuthGetTRC20Address 
+    loggedIn: safeAuthLoggedIn
   } = useSafeAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
@@ -34,73 +33,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const [currentStep, setCurrentStep] = useState('input'); // 'input', 'sending', 'confirming', 'success'
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const [walletAddresses, setWalletAddresses] = useState({ BEP20: null, TRC20: null });
-  const [loadingAddresses, setLoadingAddresses] = useState(false);
-  const [trc20Address, setTrc20Address] = useState(null);
-
-  // Get deposit address based on selected network
-  // For BEP20: Use Web3Auth account address (Ethereum-compatible, works on BSC)
-  // For TRC20: Use Web3Auth-derived TRC20 address (from private key)
-  const depositAddress = selectedNetwork === 'BEP20' && safeAuthAccount 
-    ? safeAuthAccount 
-    : selectedNetwork === 'TRC20' 
-      ? (trc20Address || '')
-      : '';
-
-  // ✅ Fetch TRC20 address from Web3Auth when TRC20 is selected (with backend fallback)
-  useEffect(() => {
-    const fetchTRC20Address = async () => {
-      if (isOpen && selectedNetwork === 'TRC20' && safeAuthLoggedIn && safeAuthGetTRC20Address) {
-        try {
-          setLoadingAddresses(true);
-          console.log('🔄 Fetching TRC20 address from Web3Auth...');
-          
-          // Try to get address from Web3Auth first
-          let address = await safeAuthGetTRC20Address();
-          
-          // If Web3Auth fails, fallback to backend-generated address
-          if (!address && user) {
-            console.log('⚠️ Web3Auth TRC20 address failed, trying backend fallback...');
-            try {
-              const response = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
-              address = response.address || response.TRC20 || response;
-              console.log('✅ TRC20 address from backend fallback:', address);
-            } catch (backendError) {
-              console.error('❌ Backend fallback also failed:', backendError);
-            }
-          }
-          
-          if (address) {
-            setTrc20Address(address);
-            console.log('✅ TRC20 address set:', address);
-          } else {
-            console.warn('⚠️ Failed to get TRC20 address from both Web3Auth and backend');
-          }
-        } catch (error) {
-          console.error('❌ Error fetching TRC20 address:', error);
-          // Try backend fallback on error
-          if (user) {
-            try {
-              const response = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
-              const address = response.address || response.TRC20 || response;
-              if (address) {
-                setTrc20Address(address);
-                console.log('✅ TRC20 address from backend fallback (after error):', address);
-              }
-            } catch (backendError) {
-              console.error('❌ Backend fallback failed:', backendError);
-            }
-          }
-        } finally {
-          setLoadingAddresses(false);
-        }
-      } else if (selectedNetwork !== 'TRC20') {
-        setTrc20Address(null);
-      }
-    };
-
-    fetchTRC20Address();
-  }, [isOpen, selectedNetwork, safeAuthLoggedIn, safeAuthGetTRC20Address, user]);
+  // Get deposit address - always use Web3Auth account address (BEP20)
+  const depositAddress = safeAuthAccount || '';
 
   // Reset state when modal opens
   useEffect(() => {
@@ -126,21 +60,6 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     setSelectedNetwork(network);
     setMessage('');
     setAmount('');
-    
-    // If switching to TRC20 and address doesn't exist, generate it
-    if (network === 'TRC20' && !walletAddresses.TRC20 && user) {
-      try {
-        setLoadingAddresses(true);
-        const generated = await apiService.post('/wallet/generate-address', { network: 'TRC20' });
-        setWalletAddresses(prev => ({ ...prev, TRC20: generated.address || generated.TRC20 }));
-      } catch (error) {
-        console.error('Failed to generate TRC20 address:', error);
-        setMessage('Failed to generate TRC20 address. Please try again.');
-        setMessageType('error');
-      } finally {
-        setLoadingAddresses(false);
-      }
-    }
   };
 
   // Removed handleConnectWallet and handleAutomatedDeposit
@@ -192,13 +111,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       const tx = await sendUSDT(depositAddress, depositAmount, selectedNetwork);
       console.log('✅ Transaction completed:', tx);
 
-      // Extract transaction hash based on network
-      let txHash = '';
-      if (selectedNetwork === 'BEP20') {
-        txHash = tx.transactionHash || tx.hash;
-      } else if (selectedNetwork === 'TRC20') {
-        txHash = tx.txid || tx.transaction?.txID || tx;
-      }
+      // Extract transaction hash
+      const txHash = tx.transactionHash || tx.hash;
 
       if (!txHash) {
         throw new Error('Transaction hash not found in response');
@@ -212,7 +126,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
       // Step 2: Submit to backend for verification
       const depositData = {
-        network: selectedNetwork,
+        network: 'BEP20',
         amount: depositAmount,
         fromAddress: account,
         txHash: txHash,
@@ -275,8 +189,6 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
   if (!isOpen) return null;
 
-  const networkCaption = selectedNetwork === 'BEP20' ? 'BEP-20 (BSC)' : 'TRC-20 (TRON)';
-
   // Separate copy handlers to avoid duplicate toasts
   const handleCopyAddress = async () => {
     try {
@@ -319,30 +231,6 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
         </div>
 
         <div className="modal-content">
-          {/* Network Selection */}
-          <div className="network-selection">
-            <label>Select Network:</label>
-            <div className="network-options">
-              <button
-                className={`network-btn ${selectedNetwork === 'BEP20' ? 'active' : ''}`}
-                onClick={() => handleNetworkChange('BEP20')}
-                disabled={isProcessing}
-              >
-                <span className="network-icon">🟡</span>
-                <span>BSC (BEP20)</span>
-                <span className="network-fee">Low fees</span>
-              </button>
-              <button
-                className={`network-btn ${selectedNetwork === 'TRC20' ? 'active' : ''}`}
-                onClick={() => handleNetworkChange('TRC20')}
-                disabled={isProcessing}
-              >
-                <span className="network-icon">🔴</span>
-                <span>TRON (TRC20)</span>
-                <span className="network-fee">Very low fees</span>
-              </button>
-            </div>
-          </div>
 
           {/* Wallet Status */}
           {safeAuthLoggedIn && safeAuthAccount && (
@@ -362,32 +250,25 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           {/* User Deposit Address Display */}
           <div className="address-section">
             <label>
-              Your Deposit Address — {networkCaption} 
-              {selectedNetwork === 'BEP20' ? ' (Web3Auth Account)' : ' (TRON Address)'}
+              Your Deposit Address — BEP-20 (BSC) (Web3Auth Account)
             </label>
             <div className="address-container">
               <div className="address-text">
                 <code style={{ wordBreak: 'break-all', whiteSpace: 'normal' }}>
-                  {loadingAddresses && selectedNetwork === 'TRC20' 
-                    ? 'Loading TRC20 address...' 
-                    : depositAddress 
-                      ? depositAddress
-                      : selectedNetwork === 'BEP20'
-                        ? (safeAuthLoggedIn && !safeAuthAccount ? 'Loading...' : 'Please connect Web3Auth wallet')
-                        : 'Generating TRC20 address...'}
+                  {depositAddress 
+                    ? depositAddress
+                    : (safeAuthLoggedIn && !safeAuthAccount ? 'Loading...' : 'Please connect Web3Auth wallet')}
                 </code>
               </div>
-              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopyAddress} disabled={!depositAddress || loadingAddresses}>
+              <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopyAddress} disabled={!depositAddress}>
                 {copied ? 'Copied!' : 'Copy'}
               </button>
-              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress || loadingAddresses}>
+              <button className='copy-btn' onClick={() => setShowQR(true)} disabled={!depositAddress}>
                 Show QR
               </button>
             </div>
             <p className="address-hint">
-              {selectedNetwork === 'BEP20' 
-                ? 'Send USDT to this address (your Web3Auth account). Funds will be stored in your Web3Auth wallet and then transferred to the platform account.'
-                : 'Send USDT to this TRC20 address. Funds will be automatically detected and credited to your Platform Score.'}
+              Send USDT to this address (your Web3Auth account). Funds will be stored in your Web3Auth wallet and then transferred to the platform account.
             </p>
           </div>
 
@@ -466,7 +347,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
               <li>SEKA Points will be credited automatically! 🎉</li>
             </ol>
             <div className="warning-box">
-              <strong>⚠️ Important:</strong> Make sure you have enough native tokens ({selectedNetwork === 'BEP20' ? 'ETH' : 'TRX'}) for gas fees!
+              <strong>⚠️ Important:</strong> Make sure you have enough BNB for gas fees!
             </div>
           </div>
 

@@ -28,16 +28,10 @@ const HeroLeft = () => {
       account: safeAuthAccount, 
       getUSDTBalance: safeAuthGetUSDTBalance, 
       getBNBBalance: safeAuthGetBNBBalance,
-      getTRC20Address: safeAuthGetTRC20Address,
-      getTRC20USDTBalance: safeAuthGetTRC20USDTBalance,
-      getTRXBalance: safeAuthGetTRXBalance,
       loginWithWallet: safeAuthLoginWallet 
     } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
-    const [trc20USDTBalance, setTrc20USDTBalance] = useState('0');
-    const [trc20TRXBalance, setTrc20TRXBalance] = useState('0');
-    const [trc20Address, setTrc20Address] = useState(null);
 
     // Removed showWalletDropdown and dropdownRef - no longer needed with Web3Auth
 
@@ -131,52 +125,6 @@ const HeroLeft = () => {
         };
     }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
 
-    // ✅ Fetch TRC20 balance from Web3Auth (user's TRC20 address derived from Web3Auth private key)
-    useEffect(() => {
-        const fetchTRC20Balance = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetTRC20Address && safeAuthGetTRC20USDTBalance && safeAuthGetTRXBalance) {
-                try {
-                    // Get TRC20 address from Web3Auth
-                    const address = await safeAuthGetTRC20Address();
-                    if (address) {
-                        setTrc20Address(address);
-                        
-                        // Get TRC20 USDT balance
-                        const usdtBalance = await safeAuthGetTRC20USDTBalance();
-                        setTrc20USDTBalance(usdtBalance);
-                        
-                        // Get TRX balance
-                        const trxBalance = await safeAuthGetTRXBalance();
-                        setTrc20TRXBalance(trxBalance);
-                    } else {
-                        setTrc20Address(null);
-                        setTrc20USDTBalance('0');
-                        setTrc20TRXBalance('0');
-                    }
-                } catch (error) {
-                    console.error('Error fetching TRC20 balance from Web3Auth:', error);
-                    setTrc20USDTBalance('0');
-                    setTrc20TRXBalance('0');
-                }
-            } else {
-                setTrc20USDTBalance('0');
-                setTrc20TRXBalance('0');
-                setTrc20Address(null);
-            }
-        };
-
-        fetchTRC20Balance();
-        
-        // Refresh every 5 seconds when Web3Auth is connected
-        let interval;
-        if (safeAuthLoggedIn && safeAuthAccount) {
-            interval = setInterval(fetchTRC20Balance, 5000);
-        }
-
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetTRC20Address, safeAuthGetTRC20USDTBalance, safeAuthGetTRXBalance]);
 
     // Removed dropdown click-outside handler and TronLink debug - no longer needed with Web3Auth
 
@@ -202,7 +150,7 @@ const HeroLeft = () => {
 
             {/* Description */}
             <p className='description'>
-                Compete with players worldwide in the classic 3-card game. Bet smart, play better, and win big on BEP20 or TRC20 networks.
+                Compete with players worldwide in the classic 3-card game. Bet smart, play better, and win big on BEP20 network.
             </p>
 
             {/* Action Buttons */}
@@ -257,37 +205,13 @@ const HeroLeft = () => {
                         </div>
                     </div>
                     
-                    {/* TRON (TRC20) Network */}
-                    {safeAuthLoggedIn && trc20Address && (
-                        <div className='connected-wallet-info' style={{ marginTop: '15px' }}>
-                            <div className='wallet-status'>
-                                <div className='network-indicator'>
-                                    🔴
-                                    <span>TRON</span>
-                                </div>
-                                <div className='wallet-address'>
-                                    {trc20Address ? `${trc20Address.substring(0, 6)}...${trc20Address.substring(trc20Address.length - 4)}` : ''}
-                                </div>
-                            </div>
-                            <div className='wallet-balance'> 
-                                <div className='balance-item'>
-                                    <span className='balance-label'>USDT</span>
-                                    <span className='balance-value'>{parseFloat(trc20USDTBalance || '0').toFixed(2)}</span>
-                                </div>
-                                <div className='balance-item'>
-                                    <span className='balance-label'>TRX</span>
-                                    <span className='balance-value'>{parseFloat(trc20TRXBalance || '0').toFixed(4)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </>
             ) : isConnected ? (
                 <div className='connected-wallet-info'>
                     <div className='wallet-status'>
                         <div className='network-indicator'>
                             {currentNetwork === 'BEP20' ? '🟡' : '🔴'}
-                            <span>{currentNetwork === 'BEP20' ? 'BSC' : 'TRON'}</span>
+                            <span>BSC</span>
                         </div>
                         <div className='wallet-address'>
                             {formatAddress(account)}
@@ -299,7 +223,7 @@ const HeroLeft = () => {
                             <span className='balance-value'>{formatAmount(USDTBalance)}</span>
                         </div>
                         <div className='balance-item'>
-                            <span className='balance-label'>{currentNetwork === 'BEP20' ? 'BNB' : 'TRX'}</span>
+                            <span className='balance-label'>BNB</span>
                             <span className='balance-value'>{formatAmount(balance)}</span>
                         </div>
                     </div>
