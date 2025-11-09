@@ -13,9 +13,9 @@ import NotificationManager from './components/notifications/NotificationManager'
 import Header from './components/layout/Header/index.jsx';
 import Footer from './components/layout/Footer/index.jsx';
 
-import Register from './Pages/auth/Register/index.jsx';
-import Login from './Pages/auth/Login/index.jsx';
 import Home from './Pages/Home/index.jsx';
+import TermsOfService from './Pages/Legal/TermsOfService';
+import PrivacyPolicy from './Pages/Legal/PrivacyPolicy';
 import Profile from './Pages/Profile/index.jsx';
 import Marketplace from './Pages/Marketplace/index.jsx';
 import GameLobby from './Pages/GameLobby/index.jsx';
@@ -43,6 +43,8 @@ function App() {
           {/* Public routes */}
           {/* Registration and Login routes removed - Web3Auth is the only authentication method */}
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/terms-of-service" element={<><Header /><TermsOfService /><Footer /></>} />
+          <Route path="/privacy-policy" element={<><Header /><PrivacyPolicy /><Footer /></>} />
           
           {/* Protected routes */}
           <Route path="/profile" element={
