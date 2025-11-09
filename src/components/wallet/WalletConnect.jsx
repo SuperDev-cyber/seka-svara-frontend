@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSafeAuth } from '../../contexts/SafeAuthContext';
 import { useAuth } from '../../contexts/AuthContext';
 import apiService from '../../services/api';
-import LegalLinks from '../legal/LegalLinks';
 import './WalletConnect.css';
 
 const WalletConnect = () => {
@@ -254,8 +253,6 @@ const WalletConnect = () => {
           <span>⚠️ {error}</span>
         </div>
       )}
-
-      <LegalLinks variant="modal" />
     </div>
   );
 };
