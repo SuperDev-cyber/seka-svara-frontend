@@ -186,7 +186,7 @@ const HeroLeft = () => {
             {(safeAuthLoggedIn && safeAuthAccount && isAuthenticated) ? (
                 <>
                     {/* BSC (BEP20) Network - New Card Design */}
-                    <div className='connected-wallet-info'>
+                    {/* <div className='connected-wallet-info'>
                         <div className='wallet-status'>
                             <div className='network-indicator'>
                                 <span className='network-dot'></span>
@@ -206,7 +206,7 @@ const HeroLeft = () => {
                                 <span className='balance-value'>{parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</span>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </>
             ) : isConnected ? (
                 <div className='connected-wallet-info'>

@@ -21,37 +21,44 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, logout: safeAuthLogout } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, logout: safeAuthLogout } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
+    const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
-    // Fetch SafeAuth wallet USDT balance when connected
+    // Fetch SafeAuth wallet USDT and BNB balances when connected
     useEffect(() => {
-        const fetchSafeAuthBalance = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && isAuthenticated) {
+        const fetchSafeAuthBalances = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance && isAuthenticated) {
                 try {
-                    const balance = await safeAuthGetUSDTBalance();
-                    setSafeAuthUSDTBalance(balance);
+                    const [usdtBalance, bnbBalance] = await Promise.all([
+                        safeAuthGetUSDTBalance(),
+                        safeAuthGetBNBBalance()
+                    ]);
+                    setSafeAuthUSDTBalance(usdtBalance);
+                    setSafeAuthBNBBalance(bnbBalance);
                 } catch (error) {
-                    console.error('Error fetching SafeAuth balance in Header:', error);
+                    console.error('Error fetching SafeAuth balances in Header:', error);
                     setSafeAuthUSDTBalance('0');
+                    setSafeAuthBNBBalance('0');
                 }
             } else {
                 setSafeAuthUSDTBalance('0');
+                setSafeAuthBNBBalance('0');
             }
         };
 
-        fetchSafeAuthBalance();
+        fetchSafeAuthBalances();
         
         // Refresh every 5 seconds when SafeAuth is connected
         let interval;
         if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated) {
-            interval = setInterval(fetchSafeAuthBalance, 5000);
+            interval = setInterval(fetchSafeAuthBalances, 5000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance]);
+    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
 
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
@@ -332,18 +339,26 @@ const Header = () => {
                     <div className='header-balance-display' style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        gap: '12px',
                         fontSize: '12px',
                         color: '#fff',
-                        padding: '4px 12px',
+                        padding: '11.5px 12px',
                         background: 'rgba(255, 255, 255, 0.05)',
                         borderRadius: '8px',
                         border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}>
-                        <span style={{ opacity: 0.7 }}>USDT:</span>
-                        <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
-                            {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ opacity: 0.7 }}>USDT:</span>
+                            <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
+                                {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ opacity: 0.7 }}>BNB:</span>
+                            <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
+                                {parseFloat(safeAuthBNBBalance || '0').toFixed(4)}
+                            </span>
+                        </div>
                     </div>
                 )}
 
