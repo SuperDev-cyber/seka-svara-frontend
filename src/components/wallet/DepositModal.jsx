@@ -349,7 +349,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           <div className="info-box" style={{ background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)', border: '2px solid #667eea' }}>
             <h4>🎮 About SEKA Points:</h4>
             <p style={{ marginBottom: '10px' }}>
-              <strong>Your USDT → SEKA USDT → Play Games</strong>
+              <strong>Your {isTestnet ? 'Testnet USDT' : 'USDT'} → SEKA {isTestnet ? 'Testnet USDT' : 'USDT'} → Play Games</strong>
             </p>
             <ul style={{ listStyle: 'none', padding: 0, fontSize:'12px' }}>
               <li>✅ All game activities use <strong>SEKA Points</strong> (virtual balance)</li>

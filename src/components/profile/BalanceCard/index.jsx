@@ -151,7 +151,7 @@ const BalanceCard = () => {
                     border: '2px solid #fbbf24'
                 }}>
                     <div className='card-header'>
-                        <h3>🏆 Platform USDT</h3>
+                        <h3>🏆 Platform {isTestnet ? 'Testnet USDT' : 'USDT'}</h3>
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
@@ -185,7 +185,7 @@ const BalanceCard = () => {
                             Contract Balance
                         </div>
                         <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.8 }}>
-                            Mirrors your USDT balance
+                            Mirrors your {isTestnet ? 'Testnet USDT' : 'USDT'} balance
                         </div>
                     </div>
                 </div> */}
