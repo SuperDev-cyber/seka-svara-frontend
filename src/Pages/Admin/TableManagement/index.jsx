@@ -412,7 +412,7 @@ const TableManagement = () => {
                                                     return (
                                                         <div key={index} className="tracking-item">
                                                             <span className="tracking-icon">👁️</span>
-                                                            <span className="tracking-name">{player?.username || userId}</span>
+                                                            <span className="tracking-name">{cleanUsername(player?.username) || userId}</span>
                                                             <span className="tracking-badge">Viewed Cards</span>
                                                         </div>
                                                     );
