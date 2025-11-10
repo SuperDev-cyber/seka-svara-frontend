@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import './index.css';
 import {
     GameLobbyHeader,
@@ -375,85 +375,94 @@ const GameLobby = () => {
     };
 
     // Handle joining a table
-    const handleJoinTable = (table) => {
-        console.log('🎯 Joining table:', table.id);
-        console.log('   User:', userId, userEmail);
-        
-        if (!socket) {
-            alert('❌ Not connected to server');
-            return;
-        }
-
-        // ✅ FRONTEND BALANCE VALIDATION
-        const entryFee = table.entryFee || 10;
-        const entryFeeNum = typeof entryFee === 'string' ? parseFloat(entryFee.replace(/[^\d.]/g, '')) : entryFee;
-        
-        if (!safeAuthLoggedIn || !safeAuthAccount) {
-            alert('❌ Please connect your wallet first!\n\nYou need to connect your Web3Auth wallet to play.');
-            return;
-        }
-        
-        // Check USDT balance instead of platformScore
-        if (usdtBalance < entryFeeNum) {
-            setInsufficientBalanceModal({
-                isOpen: true,
-                requiredAmount: entryFeeNum,
-                currentBalance: usdtBalance
-            });
-            return;
-        }
-        
-        console.log('✅ Balance check passed:', usdtBalance, '>=', entryFeeNum);
-        
-        // First, join via WebSocket
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🔄 JOINING TABLE:', table.id);
-        console.log('   User ID:', userId);
-        console.log('   Email:', userEmail);
-        
-        // ✅ Get private key for entry fee transfer
-        let privateKey = null;
-        if (safeAuthGetPrivateKey) {
-            try {
-                privateKey = await safeAuthGetPrivateKey();
-                console.log('✅ Private key retrieved for joining table');
-            } catch (error) {
-                console.error('❌ Failed to get private key:', error);
-                // Continue without private key - backend will handle gracefully
+    const handleJoinTable = useCallback((table, options = {}) => {
+        const joinTableAsync = async () => {
+            if (!table) {
+                alert('⚠️ Table data missing. Please try again.');
+                return;
             }
-        }
 
-        socket.emit('join_table', {
-            tableId: table.id,
-            userId: userId,
-            userEmail: userEmail,
-            username: userName,
-            avatar: userAvatar,
-            tableName: table.tableName || table.name || 'Game Table',
-            entryFee: table.entryFee || 10,
-            privateKey: privateKey // ✅ Send private key for entry fee transfer
-        }, (response) => {
-            console.log('📥 JOIN_TABLE RESPONSE:', JSON.stringify(response, null, 2));
+            console.log('🎯 Joining table:', table.id);
+            console.log('   User:', userId, userEmail);
             
-            if (response.success) {
-                console.log('✅ Successfully joined table!');
-                
-                // STORE table membership in sessionStorage for auto-rejoin
-                sessionStorage.setItem('seka_currentTableId', table.id);
-                sessionStorage.setItem('seka_currentTableName', table.tableName || table.id);
-                console.log('💾 Stored table membership in sessionStorage');
-                
-                // Navigate to game table WITH userId and email
-                const gameUrl = `/game/${table.id}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(table.tableName || table.id)}`;
-                console.log('🚀 Navigating to:', gameUrl);
-                
-                window.location.href = gameUrl;
-            } else {
-                console.error('❌ Failed to join table:', response.message);
-                alert(`❌ Failed to join table: ${response.message}`);
+            if (!socket) {
+                alert('❌ Not connected to server');
+                return;
             }
-        });
-    };
+
+            // ✅ FRONTEND BALANCE VALIDATION
+            const entryFee = table.entryFee || 10;
+            const entryFeeNum = typeof entryFee === 'string' ? parseFloat(entryFee.replace(/[^\d.]/g, '')) : entryFee;
+            
+            if (!safeAuthLoggedIn || !safeAuthAccount) {
+                alert('❌ Please connect your wallet first!\n\nYou need to connect your Web3Auth wallet to play.');
+                return;
+            }
+            
+            // Check USDT balance instead of platformScore
+            if (usdtBalance < entryFeeNum) {
+                setInsufficientBalanceModal({
+                    isOpen: true,
+                    requiredAmount: entryFeeNum,
+                    currentBalance: usdtBalance
+                });
+                return;
+            }
+            
+            console.log('✅ Balance check passed:', usdtBalance, '>=', entryFeeNum);
+            
+            // First, join via WebSocket
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🔄 JOINING TABLE:', table.id);
+            console.log('   User ID:', userId);
+            console.log('   Email:', userEmail);
+            
+            // ✅ Get private key for entry fee transfer
+            let privateKey = null;
+            if (safeAuthGetPrivateKey) {
+                try {
+                    privateKey = await safeAuthGetPrivateKey();
+                    console.log('✅ Private key retrieved for joining table');
+                } catch (error) {
+                    console.error('❌ Failed to get private key:', error);
+                    // Continue without private key - backend will handle gracefully
+                }
+            }
+
+            socket.emit('join_table', {
+                tableId: table.id,
+                userId: userId,
+                userEmail: userEmail,
+                username: userName,
+                avatar: userAvatar,
+                tableName: table.tableName || table.name || 'Game Table',
+                entryFee: table.entryFee || 10,
+                privateKey: privateKey // ✅ Send private key for entry fee transfer
+            }, (response) => {
+                console.log('📥 JOIN_TABLE RESPONSE:', JSON.stringify(response, null, 2));
+                
+                if (response.success) {
+                    console.log('✅ Successfully joined table!');
+                    
+                    // STORE table membership in sessionStorage for auto-rejoin
+                    sessionStorage.setItem('seka_currentTableId', table.id);
+                    sessionStorage.setItem('seka_currentTableName', table.tableName || table.id);
+                    console.log('💾 Stored table membership in sessionStorage');
+                    
+                    // Navigate to game table WITH userId and email
+                    const gameUrl = `/game/${table.id}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(table.tableName || table.id)}`;
+                    console.log('🚀 Navigating to:', gameUrl);
+                    
+                    window.location.href = gameUrl;
+                } else {
+                    console.error('❌ Failed to join table:', response.message);
+                    alert(`❌ Failed to join table: ${response.message}`);
+                }
+            });
+        };
+
+        joinTableAsync();
+    }, [userId, userEmail, userName, userAvatar, socket, safeAuthLoggedIn, safeAuthAccount, usdtBalance, safeAuthGetPrivateKey]);
 
     const handleCreateTableSubmit = async (tableData) => {
         try {
