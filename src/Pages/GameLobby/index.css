@@ -329,11 +329,7 @@
 }
 
 /* ===== GAME TABLE GRID ===== */
-.game-table-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-}
+/* Note: Grid styling moved to GameTableGrid component CSS for horizontal scrolling */
 
 /* ===== GAME TABLE CARD ===== */
 .game-table-card {
