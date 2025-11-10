@@ -426,70 +426,71 @@ const Header = () => {
                             )}
                         </div>
                     ) : (
-                        <div className='action-buttons desktop-actions'>
-                        {/* Hide Connect Wallet buttons when SafeAuth is connected (Web3Auth handles wallet) */}
-                        {!safeAuthLoggedIn && (
-                            <>
-                                {/* Show WalletConnect only when wallet is NOT connected */}
-                                {!isConnected && <WalletConnect />}
+                    //     <div className='action-buttons desktop-actions'>
+                    //     {/* Hide Connect Wallet buttons when SafeAuth is connected (Web3Auth handles wallet) */}
+                    //     {!safeAuthLoggedIn && (
+                    //         <>
+                    //             {/* Show WalletConnect only when wallet is NOT connected */}
+                    //             {!isConnected && <WalletConnect />}
     
-                                {/* Show MY WALLET with balance when wallet IS connected */}
-                                {isConnected ? (
-                                    <>
-                                        <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                            <button
-                                                className='seka-balance-btn'
-                                                title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
-                                                style={{
-                                                    background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
-                                                    border: '2px solid rgb(249 148 38)',
-                                                    fontWeight: 'bold',
-                                                    cursor: 'default'
-                                                }}
-                                            >
-                                                USDT: {Number(user?.platformScore || 0).toFixed(0)}
-                                            </button>
-                                        </div>
-                                        <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
-                                            {t('deposit')}
-                                        </button>
-                                    </>
-                                ) : isAuthenticated ? (
-                                    <>
-                                        {/* Show deposit button even without wallet connection */}
-                                        <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
-                                            {t('deposit')}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <></>
-                                )}
-                            </>
-                        )}
+                    //             {/* Show MY WALLET with balance when wallet IS connected */}
+                    //             {isConnected ? (
+                    //                 <>
+                    //                     <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    //                         <button
+                    //                             className='seka-balance-btn'
+                    //                             title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
+                    //                             style={{
+                    //                                 background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
+                    //                                 border: '2px solid rgb(249 148 38)',
+                    //                                 fontWeight: 'bold',
+                    //                                 cursor: 'default'
+                    //                             }}
+                    //                         >
+                    //                             USDT: {Number(user?.platformScore || 0).toFixed(0)}
+                    //                         </button>
+                    //                     </div>
+                    //                     <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
+                    //                         {t('deposit')}
+                    //                     </button>
+                    //                 </>
+                    //             ) : isAuthenticated ? (
+                    //                 <>
+                    //                     {/* Show deposit button even without wallet connection */}
+                    //                     <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
+                    //                         {t('deposit')}
+                    //                     </button>
+                    //                 </>
+                    //             ) : (
+                    //                 <></>
+                    //             )}
+                    //         </>
+                    //     )}
                         
-                        {/* Show balance and deposit when SafeAuth is connected */}
-                        {safeAuthLoggedIn && isAuthenticated && (
-                            <>
-                                <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <button
-                                        className='seka-balance-btn'
-                                        title={`USDT Balance - Your Web3Auth wallet USDT balance`}
-                                        style={{
-                                            background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
-                                            border: '2px solid rgb(249 148 38)',
-                                            fontWeight: 'bold',
-                                            cursor: 'default'
-                                        }}
-                                    >
-                                        USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
-                                    </button>
-                                </div>
-                                <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
-                                    {t('deposit')}
-                                </button>
-                            </>
-                        )}
-                    </div>
+                    //     {/* Show balance and deposit when SafeAuth is connected */}
+                    //     {safeAuthLoggedIn && isAuthenticated && (
+                    //         <>
+                    //             <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    //                 <button
+                    //                     className='seka-balance-btn'
+                    //                     title={`USDT Balance - Your Web3Auth wallet USDT balance`}
+                    //                     style={{
+                    //                         background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
+                    //                         border: '2px solid rgb(249 148 38)',
+                    //                         fontWeight: 'bold',
+                    //                         cursor: 'default'
+                    //                     }}
+                    //                 >
+                    //                     USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                    //                 </button>
+                    //             </div>
+                    //             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
+                    //                 {t('deposit')}
+                    //             </button>
+                    //         </>
+                    //     )}
+                    // </div>
+                    <></>
                     )}
                    
                 </div>
