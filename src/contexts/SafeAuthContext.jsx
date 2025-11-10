@@ -48,15 +48,16 @@ export const SafeAuthProvider = ({ children }) => {
       try {
         setLoading(true);
 
-        // Configure chain for BSC Testnet (Binance Smart Chain Testnet)
-        // Using Web3Auth's bundled RPC service for better reliability and higher limits
+        // Configure chain for BSC Mainnet (Binance Smart Chain)
+        // NOTE: Web3Auth network is set to MAINNET to match dashboard configuration
+        // To use testnet, configure Web3Auth dashboard for Devnet environment first
         const chainConfig = {
           chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: '0x61', // BSC Testnet (97 in decimal)
-          rpcTarget: `https://api.web3auth.io/infura-service/v1/0x61/BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q`, // Web3Auth bundled RPC for Testnet
-          displayName: 'Binance Smart Chain Testnet',
-          blockExplorerUrl: 'https://testnet.bscscan.com',
-          ticker: 'tBNB',
+          chainId: '0x38', // BSC Mainnet (56 in decimal)
+          rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q`, // Web3Auth bundled RPC for Mainnet
+          displayName: 'Binance Smart Chain',
+          blockExplorerUrl: 'https://bscscan.com',
+          ticker: 'BNB',
           tickerName: 'BNB',
           logo: 'https://images.web3auth.io/chains/56.svg',
         };
