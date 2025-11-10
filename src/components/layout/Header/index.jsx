@@ -22,7 +22,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, logout: safeAuthLogout } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, logout: safeAuthLogout, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
@@ -302,6 +302,39 @@ const Header = () => {
         }
     };
 
+    // Handle Connect Wallet button click - opens Web3Auth modal
+    const handleConnectWalletClick = async () => {
+        if (!isAuthenticated) {
+            // Show notification for unregistered users
+            if (window.showToast) {
+                window.showToast('Please sign in to connect your wallet', 'warning', 4000);
+            }
+            navigate('/login');
+            return;
+        }
+        
+        // If SafeAuth is already connected, do nothing
+        if (safeAuthLoggedIn && safeAuthAccount) {
+            if (window.showToast) {
+                window.showToast('Wallet already connected!', 'info', 2000);
+            }
+            return;
+        }
+        
+        // Open Web3Auth modal
+        try {
+            await safeAuthLoginWallet();
+            if (window.showToast) {
+                window.showToast('Wallet connected successfully!', 'success', 3000);
+            }
+        } catch (error) {
+            console.error('Wallet connection error:', error);
+            if (window.showToast) {
+                window.showToast(error.message || 'Failed to connect wallet', 'error', 5000);
+            }
+        }
+    };
+
     return (
         <header className='main-header'>
             <div className='header-container'>
@@ -375,7 +408,36 @@ const Header = () => {
                 {/* Desktop Utility Links */}
                 <div className='utility-links desktop-utility'>
                     {isAuthenticated ? (
-                        <div className='user-menu-container'>
+                        <>
+                            {/* Show Connect Wallet button if authenticated but wallet not connected */}
+                            {!safeAuthLoggedIn && (
+                                <button 
+                                    className='connect-wallet-btn'
+                                    onClick={handleConnectWalletClick}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        color: '#fff',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        marginRight: '12px'
+                                    }}
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                        <line x1="10" y1="9" x2="14" y2="9" />
+                                    </svg>
+                                    Connect Wallet
+                                </button>
+                            )}
+                            <div className='user-menu-container'>
                             <button className='user-menu-trigger' onClick={toggleUserMenu}>
                                 <div className='user-avatar'>
                                     {user?.avatar ? (
@@ -425,74 +487,33 @@ const Header = () => {
                                 </div>
                             )}
                         </div>
+                        </>
                     ) : (
-                    //     <div className='action-buttons desktop-actions'>
-                    //     {/* Hide Connect Wallet buttons when SafeAuth is connected (Web3Auth handles wallet) */}
-                    //     {!safeAuthLoggedIn && (
-                    //         <>
-                    //             {/* Show WalletConnect only when wallet is NOT connected */}
-                    //             {!isConnected && <WalletConnect />}
-    
-                    //             {/* Show MY WALLET with balance when wallet IS connected */}
-                    //             {isConnected ? (
-                    //                 <>
-                    //                     <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    //                         <button
-                    //                             className='seka-balance-btn'
-                    //                             title={`USDT Points - Used for ALL game activities\nDeposit USDT to get USDT points`}
-                    //                             style={{
-                    //                                 background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
-                    //                                 border: '2px solid rgb(249 148 38)',
-                    //                                 fontWeight: 'bold',
-                    //                                 cursor: 'default'
-                    //                             }}
-                    //                         >
-                    //                             USDT: {Number(user?.platformScore || 0).toFixed(0)}
-                    //                         </button>
-                    //                     </div>
-                    //                     <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
-                    //                         {t('deposit')}
-                    //                     </button>
-                    //                 </>
-                    //             ) : isAuthenticated ? (
-                    //                 <>
-                    //                     {/* Show deposit button even without wallet connection */}
-                    //                     <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Connect wallet to deposit'>
-                    //                         {t('deposit')}
-                    //                     </button>
-                    //                 </>
-                    //             ) : (
-                    //                 <></>
-                    //             )}
-                    //         </>
-                    //     )}
-                        
-                    //     {/* Show balance and deposit when SafeAuth is connected */}
-                    //     {safeAuthLoggedIn && isAuthenticated && (
-                    //         <>
-                    //             <div className='balance-container' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    //                 <button
-                    //                     className='seka-balance-btn'
-                    //                     title={`USDT Balance - Your Web3Auth wallet USDT balance`}
-                    //                     style={{
-                    //                         background: 'linear-gradient(135deg, rgb(243 90 0) 33%, rgb(206, 125, 39) 117%)',
-                    //                         border: '2px solid rgb(249 148 38)',
-                    //                         fontWeight: 'bold',
-                    //                         cursor: 'default'
-                    //                     }}
-                    //                 >
-                    //                     USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
-                    //                 </button>
-                    //             </div>
-                    //             <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>
-                    //                 {t('deposit')}
-                    //             </button>
-                    //         </>
-                    //     )}
-                    // </div>
-                    <></>
+                        <button 
+                            className='connect-wallet-btn'
+                            onClick={() => navigate('/login')}
+                            style={{
+                                padding: '10px 20px',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                border: 'none',
+                                borderRadius: '8px',
+                                color: '#fff',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                <line x1="10" y1="9" x2="14" y2="9" />
+                            </svg>
+                            Sign In / Connect Wallet
+                        </button>
                     )}
-                   
                 </div>
 
                 {/* Desktop Action Buttons */}
