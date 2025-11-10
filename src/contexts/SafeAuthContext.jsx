@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Web3Auth } from '@web3auth/modal';
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
+import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, WALLET_ADAPTERS } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ethers } from 'ethers';
@@ -127,7 +127,7 @@ export const SafeAuthProvider = ({ children }) => {
         
         // In v9, use initModal() instead of init()
         await web3authInstance.initModal();
-        console.log('✅ Web3Auth initialized successfully');
+        console.log('✅ Web3Auth SDK ready (initialised modal)');
         setWeb3auth(web3authInstance);
         setInitError(null); // Clear any previous errors
 
@@ -148,6 +148,8 @@ export const SafeAuthProvider = ({ children }) => {
             const network = await ethersProvider.getNetwork();
             setChainId(network.chainId.toString());
           }
+        } else {
+          console.log('ℹ️ Web3Auth has no active session (user not logged in yet)');
         }
       } catch (error) {
         console.error('❌ Error initializing Web3Auth:', error);
@@ -198,7 +200,7 @@ export const SafeAuthProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const web3authProvider = await web3auth.connectTo('openlogin', {
+      const web3authProvider = await web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: 'google',
         redirectUrl: getRedirectUrl(),
       });
