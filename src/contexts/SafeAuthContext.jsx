@@ -412,7 +412,8 @@ export const SafeAuthProvider = ({ children }) => {
         account: account
       });
       
-      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
+      // Use ethers v6 formatUnits (no utils namespace)
+      const formattedBalance = ethers.formatUnits(balance, decimals);
       const finalBalance = parseFloat(formattedBalance).toFixed(2);
       
       console.log('✅ USDT Balance formatted:', finalBalance);
