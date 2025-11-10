@@ -217,14 +217,19 @@
 }
 
 .connect-wallet-btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid #F7931E;
-    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: white;
-    border-radius: 8px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+    font-size: 0.95rem;
 }
 
 .connect-wallet {
@@ -243,8 +248,11 @@
 }
 
 .connect-wallet-btn:hover {
-    background: rgba(247, 147, 30, 0.1);
-    border-color: #FF6B35;
+    color: #FF6B35;
+    background: rgba(255, 107, 53, 0.1);
+    border-color: rgba(255, 107, 53, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
 }
 
 .connect-wallet:hover {

@@ -414,22 +414,8 @@ const Header = () => {
                                 <button 
                                     className='connect-wallet-btn'
                                     onClick={handleConnectWalletClick}
-                                    style={{
-                                        padding: '10px 20px',
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        color: '#fff',
-                                        fontWeight: '600',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        marginRight: '12px'
-                                    }}
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
                                         <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
                                         <line x1="10" y1="9" x2="14" y2="9" />
@@ -492,21 +478,8 @@ const Header = () => {
                         <button 
                             className='connect-wallet-btn'
                             onClick={() => navigate('/login')}
-                            style={{
-                                padding: '10px 20px',
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: '#fff',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
                                 <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
                                 <line x1="10" y1="9" x2="14" y2="9" />
