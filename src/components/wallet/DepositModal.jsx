@@ -22,7 +22,8 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const { user } = useAuth();
   const { 
     account: safeAuthAccount, 
-    loggedIn: safeAuthLoggedIn
+    loggedIn: safeAuthLoggedIn,
+    isTestnet
   } = useSafeAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
@@ -92,7 +93,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
     setIsProcessing(true);
     setCurrentStep('sending');
-    setMessage(`🔄 Initiating ${depositAmount} USDT transfer to ${selectedNetwork} wallet...`);
+      setMessage(`🔄 Initiating ${depositAmount} ${isTestnet ? 'Testnet USDT' : 'USDT'} transfer to ${selectedNetwork} wallet...`);
     setMessageType('info');
 
     try {
@@ -137,7 +138,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       console.log('✅ Backend response:', response);
 
       setCurrentStep('success');
-      setMessage(`🎉 Deposit successful! ${depositAmount} USDT has been credited to your account.\n\n✨ Your SEKA balance is being updated...`);
+      setMessage(`🎉 Deposit successful! ${depositAmount} ${isTestnet ? 'Testnet USDT' : 'USDT'} has been credited to your account.\n\n✨ Your SEKA balance is being updated...`);
       setMessageType('success');
 
       // Call success callback to refresh balances

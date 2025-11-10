@@ -156,8 +156,8 @@ const BalanceCard = () => {
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
                             {safeAuthLoggedIn && safeAuthAccount 
-                                ? `${displayBalance.toFixed(2)} USDT`
-                                : `${displayBalance.toFixed(0)} USDT`}
+                                ? `${displayBalance.toFixed(2)} ${isTestnet ? 'Testnet USDT' : 'USDT'}`
+                                : `${displayBalance.toFixed(0)} ${isTestnet ? 'Testnet USDT' : 'USDT'}`}
                         </div>
                         <div className='network-name' style={{ opacity: 0.9 }}>
                             {safeAuthLoggedIn && safeAuthAccount ? 'Web3Auth Wallet Balance' : 'Platform Score'}
@@ -179,7 +179,7 @@ const BalanceCard = () => {
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>
-                            {Number(user?.platformScore || 0).toFixed(0)} USDT
+                            {Number(user?.platformScore || 0).toFixed(0)} {isTestnet ? 'Testnet USDT' : 'USDT'}
                         </div>
                         <div className='network-name' style={{ opacity: 0.9 }}>
                             Contract Balance
