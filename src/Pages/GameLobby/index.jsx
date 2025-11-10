@@ -9,9 +9,12 @@ import {
 import CreateTableModal from '../../components/gamelobby/CreateTableModal';
 import MyGamesSection from '../../components/gamelobby/MyGamesSection';
 import InviteFriendsModal from '../../components/gamelobby/InviteFriendsModal';
+import InsufficientBalanceModal from '../../components/common/InsufficientBalanceModal';
+import DepositModal from '../../components/wallet/DepositModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { useWallet } from '../../contexts/WalletContext';
+import { useSafeAuth } from '../../contexts/SafeAuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -19,15 +22,18 @@ const GameLobby = () => {
     const { user, isAuthenticated } = useAuth();
     const { socket, isConnected } = useSocket(); // Use shared socket
     const { isConnected: walletConnected, currentNetwork, getBalance } = useWallet(); // Wallet context for SEKA balance
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
     const [activeTab, setActiveTab] = useState('Active Tables');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedNetwork, setSelectedNetwork] = useState('All Network');
     const [balance] = useState('$1,247.50 USDT');
     const [sekaBalance, setSekaBalance] = useState(0); // SEKA balance from wallet (for reference)
-    const [platformScore, setPlatformScore] = useState(0); // ✅ Platform score from backend (for game entry validation)
+    const [usdtBalance, setUsdtBalance] = useState(0); // USDT balance from SafeAuth wallet
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [selectedTableForInvite, setSelectedTableForInvite] = useState(null);
+    const [insufficientBalanceModal, setInsufficientBalanceModal] = useState({ isOpen: false, requiredAmount: 0, currentBalance: 0 });
+    const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     
     // Dynamic game tables from backend
     const [availableTables, setAvailableTables] = useState([]);
@@ -84,13 +90,6 @@ const GameLobby = () => {
         }
     }, [isAuthenticated, user]);
 
-    // ✅ Update platform score from user context (for game entry validation)
-    useEffect(() => {
-        if (isAuthenticated && user) {
-            setPlatformScore(user.platformScore || 0);
-            console.log('💰 Platform Score updated from user context:', user.platformScore);
-        }
-    }, [isAuthenticated, user]);
 
     // Fetch SEKA balance from connected wallet (for reference)
     useEffect(() => {
@@ -337,20 +336,22 @@ const GameLobby = () => {
         const entryFee = table.entryFee || 10;
         const entryFeeNum = typeof entryFee === 'string' ? parseFloat(entryFee.replace(/[^\d.]/g, '')) : entryFee;
         
-        if (!walletConnected) {
-            alert('❌ Please connect your wallet first!\n\nYou need to connect your MetaMask or TronLink wallet to play.');
+        if (!safeAuthLoggedIn || !safeAuthAccount) {
+            alert('❌ Please connect your wallet first!\n\nYou need to connect your Web3Auth wallet to play.');
             return;
         }
         
-        if (platformScore < entryFeeNum) {
-            alert(`❌ Insufficient SEKA Balance!\n\n` +
-                `Required: ${entryFeeNum} SEKA\n` +
-                `Your Balance: ${platformScore.toFixed(0)} SEKA\n\n` +
-                `Please deposit more SEKA to play.`);
+        // Check USDT balance instead of platformScore
+        if (usdtBalance < entryFeeNum) {
+            setInsufficientBalanceModal({
+                isOpen: true,
+                requiredAmount: entryFeeNum,
+                currentBalance: usdtBalance
+            });
             return;
         }
         
-        console.log('✅ Balance check passed:', platformScore, '>=', entryFeeNum);
+        console.log('✅ Balance check passed:', usdtBalance, '>=', entryFeeNum);
         
         // First, join via WebSocket
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -399,20 +400,22 @@ const GameLobby = () => {
             // ✅ FRONTEND BALANCE VALIDATION
             const entryFeeNum = tableData.entryFee || 10;
             
-            if (!walletConnected) {
-                alert('❌ Please connect your wallet first!\n\nYou need to connect your MetaMask or TronLink wallet to create and join a game.');
+            if (!safeAuthLoggedIn || !safeAuthAccount) {
+                alert('❌ Please connect your wallet first!\n\nYou need to connect your Web3Auth wallet to create and join a game.');
                 return;
             }
             
-            if (platformScore < entryFeeNum) {
-                alert(`❌ Insufficient SEKA Balance!\n\n` +
-                    `Required: ${entryFeeNum} SEKA\n` +
-                    `Your Balance: ${platformScore.toFixed(0)} SEKA\n\n` +
-                    `Please deposit more SEKA to create a table.`);
+            // Check USDT balance instead of platformScore
+            if (usdtBalance < entryFeeNum) {
+                setInsufficientBalanceModal({
+                    isOpen: true,
+                    requiredAmount: entryFeeNum,
+                    currentBalance: usdtBalance
+                });
                 return;
             }
             
-            console.log('✅ Balance check passed for table creation:', platformScore, '>=', entryFeeNum);
+            console.log('✅ Balance check passed for table creation:', usdtBalance, '>=', entryFeeNum);
 
             console.log('Creating table (IN-MEMORY) with data:', tableData);
             

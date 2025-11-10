@@ -48,15 +48,15 @@ export const SafeAuthProvider = ({ children }) => {
       try {
         setLoading(true);
 
-        // Configure chain for BSC (Binance Smart Chain)
+        // Configure chain for BSC Testnet (Binance Smart Chain Testnet)
         // Using Web3Auth's bundled RPC service for better reliability and higher limits
         const chainConfig = {
           chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: '0x38', // BSC Mainnet (56 in decimal)
-          rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q`, // Web3Auth bundled RPC
-          displayName: 'Binance Smart Chain',
-          blockExplorerUrl: 'https://bscscan.com',
-          ticker: 'BNB',
+          chainId: '0x61', // BSC Testnet (97 in decimal)
+          rpcTarget: `https://api.web3auth.io/infura-service/v1/0x61/BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q`, // Web3Auth bundled RPC for Testnet
+          displayName: 'Binance Smart Chain Testnet',
+          blockExplorerUrl: 'https://testnet.bscscan.com',
+          ticker: 'tBNB',
           tickerName: 'BNB',
           logo: 'https://images.web3auth.io/chains/56.svg',
         };
@@ -104,7 +104,7 @@ export const SafeAuthProvider = ({ children }) => {
           // Uncomment if Smart Accounts are properly configured in dashboard
           // accountAbstractionConfig: {
           //   chainConfig: [{
-          //     chainId: '0x38', // BSC Mainnet (56 in decimal)
+          //     chainId: '0x61', // BSC Testnet (97 in decimal)
           //     rpcTarget: `https://api.web3auth.io/infura-service/v1/0x38/${clientId}`, // Web3Auth bundled RPC
           //   }],
           // },
@@ -371,8 +371,8 @@ export const SafeAuthProvider = ({ children }) => {
         return '0';
       }
 
-      // ✅ Official USDT contract address on BSC Mainnet
-      const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
+      // ✅ USDT contract address on BSC Testnet
+      const USDT_ADDRESS = '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd'; // USDT on BSC Testnet
       
       console.log('🔍 Fetching USDT balance:', {
         account: account,
