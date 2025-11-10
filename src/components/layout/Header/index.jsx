@@ -396,7 +396,7 @@ const Header = () => {
                                     <div className='user-info'>
                                         <div className='user-email'>{user?.email}</div>
                                         <div className='user-balance'>
-                                            USDT: ${safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                                            USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
                                         </div>
                                     </div>
                                     <div className='user-menu-divider'></div>

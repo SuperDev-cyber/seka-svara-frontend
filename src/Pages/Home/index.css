@@ -820,6 +820,10 @@
         grid-template-columns: 1fr;
         gap: 1rem;
     }
+    .nav-links .desktop-nav {
+        display: none;
+    }
+   
 }
 
 @media (max-width: 768px) {
@@ -897,6 +901,11 @@
     
     .table-card {
         padding: 1.2rem;
+    }
+}
+@media (max-width:553px) {
+    .language-selector {
+        display: none;
     }
 }
 
