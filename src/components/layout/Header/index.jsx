@@ -29,12 +29,13 @@ const Header = () => {
     // Fetch SafeAuth wallet USDT and BNB balances when connected
     useEffect(() => {
         const fetchSafeAuthBalances = async () => {
-            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance && isAuthenticated) {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && safeAuthGetBNBBalance) {
                 try {
                     const [usdtBalance, bnbBalance] = await Promise.all([
                         safeAuthGetUSDTBalance(),
                         safeAuthGetBNBBalance()
                     ]);
+                    console.log('✅ Header: Fetched balances:', { usdtBalance, bnbBalance });
                     setSafeAuthUSDTBalance(usdtBalance);
                     setSafeAuthBNBBalance(bnbBalance);
                 } catch (error) {
@@ -52,14 +53,14 @@ const Header = () => {
         
         // Refresh every 5 seconds when SafeAuth is connected
         let interval;
-        if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated) {
+        if (safeAuthLoggedIn && safeAuthAccount) {
             interval = setInterval(fetchSafeAuthBalances, 5000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
+    }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance, safeAuthGetBNBBalance]);
 
     // Fetch Seka contract balance when wallet is connected
     const fetchSekaBalance = async () => {
@@ -359,34 +360,6 @@ const Header = () => {
                     </Link>
                 </nav>
 
-                {/* Balance Display - Small, at top of header */}
-                {safeAuthLoggedIn && safeAuthAccount && isAuthenticated && (
-                    <div className='header-balance-display' style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        fontSize: '12px',
-                        color: '#fff',
-                        padding: '11.5px 12px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ opacity: 0.7 }}>USDT:</span>
-                            <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
-                                {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
-                            </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ opacity: 0.7 }}>BNB:</span>
-                            <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
-                                {parseFloat(safeAuthBNBBalance || '0').toFixed(4)}
-                            </span>
-                        </div>
-                    </div>
-                )}
-
                 {/* Mobile Menu Button */}
                 <button className='mobile-menu-btn' onClick={toggleMobileMenu}>
                     <span className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`}>
@@ -398,22 +371,21 @@ const Header = () => {
 
                 {/* Desktop Utility Links */}
                 <div className='utility-links desktop-utility'>
-                    {isAuthenticated ? (
+                    {/* Balance Display - Styled like language selector */}
+                    {safeAuthLoggedIn && safeAuthAccount && (
+                        <div className='header-balance-display'>
+                            <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <span>USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}</span>
+                        </div>
+                    )}
+
+                    {safeAuthLoggedIn && safeAuthAccount && isAuthenticated ? (
                         <>
-                            {/* Show Connect Wallet button if authenticated but wallet not connected */}
-                            {!safeAuthLoggedIn && (
-                                <button 
-                                    className='connect-wallet-btn'
-                                    onClick={handleConnectWalletClick}
-                                >
-                                    <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-                                        <line x1="10" y1="9" x2="14" y2="9" />
-                                    </svg>
-                                    Connect Wallet
-                                </button>
-                            )}
+                            {/* Show user avatar when wallet is connected and user is authenticated */}
                             <div className='user-menu-container'>
                             <button className='user-menu-trigger' onClick={toggleUserMenu}>
                                 <div className='user-avatar'>
@@ -466,17 +438,22 @@ const Header = () => {
                         </div>
                         </>
                     ) : (
-                        <button 
-                            className='connect-wallet-btn'
-                            onClick={handleConnectWalletClick}
-                        >
-                            <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-                                <line x1="10" y1="9" x2="14" y2="9" />
-                            </svg>
-                            Connect Wallet
-                        </button>
+                        <>
+                            {/* Show Connect Wallet button when wallet is not connected */}
+                            {!safeAuthLoggedIn && (
+                                <button 
+                                    className='connect-wallet-btn'
+                                    onClick={handleConnectWalletClick}
+                                >
+                                    <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                        <line x1="10" y1="9" x2="14" y2="9" />
+                                    </svg>
+                                    Connect Wallet
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
 
