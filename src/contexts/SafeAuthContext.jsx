@@ -74,7 +74,7 @@ export const SafeAuthProvider = ({ children }) => {
         const openloginAdapter = new OpenloginAdapter({
           adapterSettings: {
             clientId,
-            network: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, // Changed to DEVNET for testing
+            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using MAINNET (dashboard is configured for mainnet)
             uxMode: 'popup', // Use popup mode for better UX
             chainConfig, // Pass chainConfig to adapter
             privateKeyProvider, // CRITICAL: Pass privateKeyProvider to adapter
@@ -83,11 +83,12 @@ export const SafeAuthProvider = ({ children }) => {
         });
 
         // Initialize Web3Auth
-        // Use SAPPHIRE_DEVNET for testing (change back to SAPPHIRE_MAINNET for production)
+        // Using SAPPHIRE_MAINNET because dashboard is configured for mainnet
+        // To use testnet, configure dashboard for Devnet environment first
         // IMPORTANT: Using @web3auth/modal requires MODAL mode in dashboard, not EMBED mode
         const web3authInstance = new Web3Auth({
           clientId,
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, // Changed to DEVNET for testing
+          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using MAINNET (dashboard configured for mainnet)
           chainConfig,
           privateKeyProvider,
           uiConfig: {
@@ -123,7 +124,7 @@ export const SafeAuthProvider = ({ children }) => {
         console.log('🔄 Initializing Web3Auth with:', {
           clientId: clientId.substring(0, 20) + '...',
           fullClientId: clientId,
-          network: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, // Changed to DEVNET for testing
+          network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using MAINNET (dashboard configured for mainnet)
           chainId: chainConfig.chainId,
         });
         
@@ -158,13 +159,23 @@ export const SafeAuthProvider = ({ children }) => {
           code: error.code,
           stack: error.stack,
           clientId: clientId.substring(0, 20) + '...',
+          network: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
         });
         
         let errorMessage = 'Failed to initialize Web3Auth. ';
-        if (error.message?.includes('404') || error.message?.includes('not found')) {
+        
+        // Check for specific error types
+        if (error.message?.includes('400') || error.message?.includes('Bad Request') || error.message?.includes('failed to fetch project configurations')) {
+          errorMessage += 'Dashboard configuration error. Your Web3Auth project needs to be configured for the Devnet environment. ';
+          errorMessage += 'Please go to your Web3Auth dashboard and: ';
+          errorMessage += '1) Switch project environment to "Devnet", ';
+          errorMessage += '2) Verify whitelisted origins include "https://sekasvara.io" and "https://www.sekasvara.io", ';
+          errorMessage += '3) Ensure the Client ID matches the Devnet environment. ';
+          errorMessage += 'Alternatively, switch back to SAPPHIRE_MAINNET in the code for production use.';
+        } else if (error.message?.includes('404') || error.message?.includes('not found')) {
           errorMessage += 'Project not found. Please verify your Client ID and network configuration in the Web3Auth dashboard.';
-        } else if (error.message?.includes('network')) {
-          errorMessage += 'Network configuration error. Please check your network settings.';
+        } else if (error.message?.includes('network') || error.message?.includes('CORS')) {
+          errorMessage += 'Network/CORS configuration error. Please check your Web3Auth dashboard settings for Devnet environment.';
         } else {
           errorMessage += error.message || 'Please check your configuration.';
         }
