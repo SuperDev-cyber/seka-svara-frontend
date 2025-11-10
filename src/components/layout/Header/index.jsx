@@ -407,12 +407,12 @@ const Header = () => {
                                         </svg>
                                         {t('profile')}
                                     </Link>
-                                    <Link to="/marketplace" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
+                                    {/* <Link to="/marketplace" className='user-menu-item' onClick={() => setShowUserMenu(false)}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-6" />
                                         </svg>
                                         {t('marketplace')}
-                                    </Link>
+                                    </Link> */}
                                     <button className='user-menu-item logout-item' onClick={handleLogout}>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -585,10 +585,10 @@ const Header = () => {
                             {/* Show balances when connected */}
                             {isConnected && (
                                 <div style={{ width: '100%', marginBottom: '10px' }}>
-                                    <button className='mobile-my-wallet-btn' title='Wallet Balance (not used for games)' style={{ opacity: 0.7, marginBottom: '5px' }}>
+                                    {/* <button className='mobile-my-wallet-btn' title='Wallet Balance (not used for games)' style={{ opacity: 0.7, marginBottom: '5px' }}>
                                         💼 Wallet: {getDisplayBalance()}
-                                    </button>
-                                    <button
+                                    </button> */}
+                                    {/* <button
                                         className='mobile-my-wallet-btn'
                                         title='SEKA Points - Used for ALL games'
                                         style={{
@@ -598,7 +598,7 @@ const Header = () => {
                                         }}
                                     >
                                         🎮 SEKA: {Number(platformScore || 0).toFixed(0)}
-                                    </button>
+                                    </button> */}
                                 </div>
                             )}
 
@@ -607,9 +607,9 @@ const Header = () => {
                                     <Link to="/profile" className='mobile-connect-wallet-btn' onClick={closeMobileMenu}>
                                         {t('profile')}
                                     </Link>
-                                    <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>
+                                    {/* <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>
                                         {t('deposit')}
-                                    </button>
+                                    </button> */}
                                     <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
                                         {t('playNow')}
                                     </button>

@@ -663,7 +663,7 @@
     }
 
     .nav-links {
-        gap: 0.5rem;
+        display: none;
     }
 
     .nav-link {

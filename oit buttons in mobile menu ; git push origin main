@@ -1,0 +1,39 @@
+[1mdiff --git a/src/components/layout/Header/index.jsx b/src/components/layout/Header/index.jsx[m
+[1mindex f692b94..4a166eb 100644[m
+[1m--- a/src/components/layout/Header/index.jsx[m
+[1m+++ b/src/components/layout/Header/index.jsx[m
+[36m@@ -585,10 +585,10 @@[m [mconst Header = () => {[m
+                             {/* Show balances when connected */}[m
+                             {isConnected && ([m
+                                 <div style={{ width: '100%', marginBottom: '10px' }}>[m
+[31m-                                    <button className='mobile-my-wallet-btn' title='Wallet Balance (not used for games)' style={{ opacity: 0.7, marginBottom: '5px' }}>[m
+[32m+[m[32m                                    {/* <button className='mobile-my-wallet-btn' title='Wallet Balance (not used for games)' style={{ opacity: 0.7, marginBottom: '5px' }}>[m
+                                         💼 Wallet: {getDisplayBalance()}[m
+[31m-                                    </button>[m
+[31m-                                    <button[m
+[32m+[m[32m                                    </button> */}[m
+[32m+[m[32m                                    {/* <button[m
+                                         className='mobile-my-wallet-btn'[m
+                                         title='SEKA Points - Used for ALL games'[m
+                                         style={{[m
+[36m@@ -598,7 +598,7 @@[m [mconst Header = () => {[m
+                                         }}[m
+                                     >[m
+                                         🎮 SEKA: {Number(platformScore || 0).toFixed(0)}[m
+[31m-                                    </button>[m
+[32m+[m[32m                                    </button> */}[m
+                                 </div>[m
+                             )}[m
+ [m
+[36m@@ -607,9 +607,9 @@[m [mconst Header = () => {[m
+                                     <Link to="/profile" className='mobile-connect-wallet-btn' onClick={closeMobileMenu}>[m
+                                         {t('profile')}[m
+                                     </Link>[m
+[31m-                                    <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>[m
+[32m+[m[32m                                    {/* <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>[m
+                                         {t('deposit')}[m
+[31m-                                    </button>[m
+[32m+[m[32m                                    </button> */}[m
+                                     <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>[m
+                                         {t('playNow')}[m
+                                     </button>[m
