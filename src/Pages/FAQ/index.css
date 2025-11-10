@@ -1,0 +1,248 @@
+.faq-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #0F0F0F;
+}
+
+.faq-page-content {
+    flex: 1;
+    padding: 2rem 1rem;
+    margin-top: 80px;
+}
+
+.faq-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.faq-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.faq-main-title {
+    color: #FF6B35;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.faq-subtitle {
+    color: #CCCCCC;
+    font-size: 1.2rem;
+}
+
+.faq-search-container {
+    margin-bottom: 2rem;
+}
+
+.faq-search {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #1A1A1A;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.faq-search svg {
+    color: #FF6B35;
+    flex-shrink: 0;
+}
+
+.faq-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #FFFFFF;
+    font-size: 1rem;
+    outline: none;
+}
+
+.faq-input::placeholder {
+    color: #666;
+}
+
+.faq-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.faq-group {
+    background: #1A1A1A;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.faq-group-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    user-select: none;
+}
+
+.faq-group-title:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.group-icon {
+    font-size: 1.5rem;
+}
+
+.group-name {
+    flex: 1;
+    color: #FFFFFF;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.group-count {
+    color: #FF6B35;
+    background: rgba(255, 107, 53, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.group-arrow {
+    color: #FF6B35;
+    transition: transform 0.3s ease;
+}
+
+.group-arrow.open {
+    transform: rotate(180deg);
+}
+
+.faq-items {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-items.open {
+    max-height: 5000px;
+}
+
+.faq-item {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0 1.5rem;
+}
+
+.faq-item summary {
+    padding: 1.25rem 0;
+    color: #FFFFFF;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary::marker {
+    content: '';
+}
+
+.faq-item summary:hover {
+    color: #FF6B35;
+}
+
+.faq-item summary::after {
+    content: '+';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #FF6B35;
+    font-size: 1.5rem;
+    font-weight: 300;
+    transition: transform 0.3s ease;
+}
+
+.faq-item[open] summary::after {
+    content: '−';
+    transform: translateY(-50%) rotate(0deg);
+}
+
+.faq-item p {
+    padding: 0 0 1.5rem 0;
+    color: #CCCCCC;
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.faq-no-results {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.faq-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-footer p {
+    color: #CCCCCC;
+    margin-bottom: 1rem;
+}
+
+.faq-support-link {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(90deg, #FF6B35 0%, #F7931E 100%);
+    color: #FFFFFF;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.faq-support-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+@media (max-width: 768px) {
+    .faq-main-title {
+        font-size: 2rem;
+    }
+
+    .faq-subtitle {
+        font-size: 1rem;
+    }
+
+    .faq-search {
+        padding: 0.75rem 1rem;
+    }
+
+    .faq-group-title {
+        padding: 1rem;
+    }
+
+    .group-name {
+        font-size: 1.1rem;
+    }
+
+    .faq-item summary {
+        font-size: 1rem;
+        padding: 1rem 0;
+    }
+}
+

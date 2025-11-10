@@ -17,6 +17,9 @@ import Home from './Pages/Home/index.jsx';
 import TermsOfService from './Pages/Legal/TermsOfService';
 import PrivacyPolicy from './Pages/Legal/PrivacyPolicy';
 import GameRules from './Pages/Legal/GameRules';
+import FAQ from './Pages/FAQ';
+import Leaderboard from './Pages/Leaderboard';
+import Tournament from './Pages/Tournament';
 import Profile from './Pages/Profile/index.jsx';
 import Marketplace from './Pages/Marketplace/index.jsx';
 import GameLobby from './Pages/GameLobby/index.jsx';
@@ -47,6 +50,9 @@ function App() {
           <Route path="/terms-of-service" element={<><TermsOfService /><Footer /></>} />
           <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /></>} />
           <Route path="/game-rules" element={<GameRules />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/tournament" element={<Tournament />} />
           
           {/* Protected routes */}
           <Route path="/profile" element={

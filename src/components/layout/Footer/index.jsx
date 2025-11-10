@@ -46,8 +46,8 @@ const Footer = () => {
                         <ul className='footer-links' style={{flexDirection: 'column'}}>
                             <li><Link to='/gamelobby'>Play Now</Link></li>
                             <li><Link to='/game-rules'>Game Rules</Link></li>
-                            <li><a href='#'>Leaderboard</a></li>
-                            <li><a href='#'>Tournament</a></li>
+                            <li><Link to='/leaderboard'>Leaderboard</Link></li>
+                            <li><Link to='/tournament'>Tournament</Link></li>
                         </ul>
                     </div>
                     <div className='footer-column'>
@@ -96,7 +96,7 @@ const Footer = () => {
                         <span className='separator'>|</span>
                         <Link to='/privacy-policy'>Privacy Policy</Link>
                         <span className='separator'>|</span>
-                        <a href='#'>FAQ's</a>
+                        <Link to='/faq'>FAQ's</Link>
                     </div>
                 </div>
         </div>
