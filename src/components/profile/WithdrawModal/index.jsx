@@ -11,7 +11,6 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         loggedIn: safeAuthLoggedIn, 
         account: safeAuthAccount, 
         getUSDTBalance: safeAuthGetUSDTBalance,
-        isTestnet,
         getPrivateKey: safeAuthGetPrivateKey 
     } = useSafeAuth();
     
@@ -186,7 +185,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         }
 
         if (withdrawAmount > maxWithdrawable) {
-            setMessage(`Insufficient balance. You can withdraw up to ${maxWithdrawable.toFixed(2)} ${isTestnet ? 'Testnet USDT' : 'USDT'}`);
+            setMessage(`Insufficient balance. You can withdraw up to ${maxWithdrawable.toFixed(2)} USDT`);
             setMessageType('error');
             return;
         }
@@ -240,7 +239,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                 toAddress: withdrawalAddress.trim() // User's chosen withdrawal address
             });
 
-            setMessage(`✅ Withdrawal successful! ${withdrawAmount.toFixed(2)} ${isTestnet ? 'Testnet USDT' : 'USDT'} will be sent to ${withdrawalAddress.trim().substring(0, 6)}...${withdrawalAddress.trim().substring(withdrawalAddress.trim().length - 4)}`);
+            setMessage(`✅ Withdrawal successful! ${withdrawAmount.toFixed(2)} USDT will be sent to ${withdrawalAddress.trim().substring(0, 6)}...${withdrawalAddress.trim().substring(withdrawalAddress.trim().length - 4)}`);
             setMessageType('success');
             
             // Call success callback
@@ -283,7 +282,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
             <div className="withdraw-modal">
                 <div className="modal-header">
                     <h2 className="modal-title">💸 Withdraw SEKA</h2>
-                    <p className="modal-subtitle">Convert SEKA Points back to {isTestnet ? 'Testnet USDT' : 'USDT'}</p>
+                    <p className="modal-subtitle">Convert SEKA Points back to USDT</p>
                     <button className="close-button" onClick={onClose} disabled={isProcessing}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -448,13 +447,13 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span style={{fontSize:'12px'}}>Current Web3Auth Wallet Balance:</span>
                                     <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize:'12px' }}>
-                                        {maxWithdrawable.toFixed(2)} {isTestnet ? 'Testnet USDT' : 'USDT'}
+                                        {maxWithdrawable.toFixed(2)} USDT
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                     <span style={{fontSize:'12px'}}>Max Withdrawable:</span>
                                     <span style={{ fontWeight: 'bold', color: '#ffd700', fontSize:'12px' }}>
-                                        {maxWithdrawable.toFixed(2)} {isTestnet ? 'Testnet USDT' : 'USDT'}
+                                        {maxWithdrawable.toFixed(2)} USDT
                                     </span>
                                 </div>
                                 {totalWagered > 0 && (
@@ -471,7 +470,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
 
                     <div className="form-group">
                         <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <label className="form-label">Amount ({isTestnet ? 'Testnet USDT' : 'USDT'})</label>
+                            <label className="form-label">Amount (USDT)</label>
                             <button 
                                 type="button"
                                 className="max-button" 
@@ -496,7 +495,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         </div>
                         <input
                             type="number"
-                            placeholder={`Enter amount (max: ${maxWithdrawable.toFixed(2)} ${isTestnet ? 'Testnet USDT' : 'USDT'})`}
+                            placeholder={`Enter amount (max: ${maxWithdrawable.toFixed(2)} USDT)`}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="amount-input"
@@ -505,7 +504,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             disabled={isProcessing || loading || maxWithdrawable <= 0}
                         />
                         <div style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-                            Available Balance: {maxWithdrawable.toFixed(2)} {isTestnet ? 'Testnet USDT' : 'USDT'}
+                            Available Balance: {maxWithdrawable.toFixed(2)} USDT
                         </div>
                     </div>
 
@@ -536,8 +535,8 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                     }}>
                         <h3 style={{ marginBottom: '10px', fontSize: '14px', color: '#22c55e' }}>✅ Withdrawal Information</h3>
                         <ul style={{ fontSize: '12px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li><strong>Full Balance Available:</strong> You can withdraw your entire Web3Auth wallet {isTestnet ? 'Testnet USDT' : 'USDT'} balance with no restrictions</li>
-                            <li>Withdrawal amount equals your Web3Auth wallet {isTestnet ? 'Testnet USDT' : 'USDT'} balance</li>
+                            <li><strong>Full Balance Available:</strong> You can withdraw your entire Web3Auth wallet USDT balance with no restrictions</li>
+                            <li>Withdrawal amount equals your Web3Auth wallet USDT balance</li>
                             <li><strong>From:</strong> Your Web3Auth account address (where you deposited funds)</li>
                             <li><strong>To:</strong> The withdrawal address you specify above (any address of your choice)</li>
                             <li>Processing time: ~5-10 minutes</li>

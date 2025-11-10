@@ -49,8 +49,6 @@ export const SafeAuthProvider = ({ children }) => {
         setLoading(true);
 
         // Configure chain for BSC Mainnet (Binance Smart Chain)
-        // NOTE: Web3Auth network is set to MAINNET to match dashboard configuration
-        // To use testnet, configure Web3Auth dashboard for Devnet environment first
         const chainConfig = {
           chainNamespace: CHAIN_NAMESPACES.EIP155,
           chainId: '0x38', // BSC Mainnet (56 in decimal)
@@ -75,7 +73,7 @@ export const SafeAuthProvider = ({ children }) => {
         const openloginAdapter = new OpenloginAdapter({
           adapterSettings: {
             clientId,
-            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using MAINNET (dashboard is configured for mainnet)
+            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
             uxMode: 'popup', // Use popup mode for better UX
             chainConfig, // Pass chainConfig to adapter
             privateKeyProvider, // CRITICAL: Pass privateKeyProvider to adapter
@@ -84,8 +82,6 @@ export const SafeAuthProvider = ({ children }) => {
         });
 
         // Initialize Web3Auth
-        // Using SAPPHIRE_MAINNET because dashboard is configured for mainnet
-        // To use testnet, configure dashboard for Devnet environment first
         // IMPORTANT: Using @web3auth/modal requires MODAL mode in dashboard, not EMBED mode
         const web3authInstance = new Web3Auth({
           clientId,
@@ -125,7 +121,7 @@ export const SafeAuthProvider = ({ children }) => {
         console.log('🔄 Initializing Web3Auth with:', {
           clientId: clientId.substring(0, 20) + '...',
           fullClientId: clientId,
-          network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET, // Using MAINNET (dashboard configured for mainnet)
+          network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
           chainId: chainConfig.chainId,
         });
         
@@ -473,7 +469,6 @@ export const SafeAuthProvider = ({ children }) => {
     user,
     account,
     chainId,
-    isTestnet: chainId === '0x61' || chainId === '97', // Check if on BSC Testnet
     initError,
     loginWithGoogle,
     loginWithWallet,

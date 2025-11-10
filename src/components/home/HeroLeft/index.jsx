@@ -28,7 +28,6 @@ const HeroLeft = () => {
       account: safeAuthAccount, 
       getUSDTBalance: safeAuthGetUSDTBalance, 
       getBNBBalance: safeAuthGetBNBBalance,
-      isTestnet,
       loginWithWallet: safeAuthLoginWallet 
     } = useSafeAuth();
     const [safeAuthBEP20USDTBalance, setSafeAuthBEP20USDTBalance] = useState('0');
@@ -148,7 +147,7 @@ const HeroLeft = () => {
                     <span className='title-text'>WIN</span>
                 </div>
                 <div className='title-line-2'>
-                    <span className='title-USDT'>{isTestnet ? 'TESTNET USDT' : 'REAL USDT'}</span>
+                    <span className='title-USDT'>REAL USDT</span>
                 </div>
             </h1>
 
@@ -199,7 +198,7 @@ const HeroLeft = () => {
                         </div>
                         <div className='wallet-balance-gradient'> 
                             <div className='balance-item'>
-                                <span className='balance-label'>{isTestnet ? 'Testnet USDT' : 'BEP20 USDT'}</span>
+                                <span className='balance-label'>BEP20 USDT</span>
                                 <span className='balance-value'>{parseFloat(safeAuthBEP20USDTBalance || '0').toFixed(2)}</span>
                             </div>
                             <div className='balance-item'>

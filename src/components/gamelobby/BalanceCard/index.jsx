@@ -5,8 +5,7 @@ const BalanceCard = () => {
     const { 
         loggedIn: safeAuthLoggedIn, 
         account: safeAuthAccount, 
-        getUSDTBalance: safeAuthGetUSDTBalance,
-        isTestnet
+        getUSDTBalance: safeAuthGetUSDTBalance
     } = useSafeAuth();
     const [bep20USDTBalance, setBep20USDTBalance] = useState('0');
 
@@ -54,7 +53,7 @@ const BalanceCard = () => {
         <div className='balance-section balance-section-again'>
             <p className='balance-label'>BALANCE</p>
             <p className='balance-amount'>
-                {formatBalance()} {isTestnet ? 'Testnet USDT' : 'USDT'}
+                {formatBalance()} USDT
             </p>
         </div>
     );

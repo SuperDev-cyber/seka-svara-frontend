@@ -22,7 +22,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout, refreshUserProfile } = useAuth();
     const { isConnected, USDTBalance, balance, currentNetwork, formatAmount, getBalance, getUSDTBalance } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, logout: safeAuthLogout, isTestnet } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, logout: safeAuthLogout } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
 
@@ -349,7 +349,7 @@ const Header = () => {
                         border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ opacity: 0.7 }}>{isTestnet ? 'Testnet USDT:' : 'USDT:'}</span>
+                            <span style={{ opacity: 0.7 }}>USDT:</span>
                             <span style={{ fontWeight: 'bold', color: '#f0b90b' }}>
                                 {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}
                             </span>
@@ -481,7 +481,7 @@ const Header = () => {
                                             cursor: 'default'
                                         }}
                                     >
-                                        {isTestnet ? 'Testnet USDT' : 'USDT'}: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                                        USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
                                     </button>
                                 </div>
                                 <button className='deposit-btn' onClick={() => setShowDepositModal(true)} title='Deposit USDT to get SEKA points for games'>

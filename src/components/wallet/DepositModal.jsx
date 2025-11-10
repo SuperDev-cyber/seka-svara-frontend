@@ -22,8 +22,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   const { user } = useAuth();
   const { 
     account: safeAuthAccount, 
-    loggedIn: safeAuthLoggedIn,
-    isTestnet
+    loggedIn: safeAuthLoggedIn
   } = useSafeAuth();
 
   const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
@@ -93,7 +92,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
     setIsProcessing(true);
     setCurrentStep('sending');
-      setMessage(`🔄 Initiating ${depositAmount} ${isTestnet ? 'Testnet USDT' : 'USDT'} transfer to ${selectedNetwork} wallet...`);
+      setMessage(`🔄 Initiating ${depositAmount} USDT transfer to ${selectedNetwork} wallet...`);
     setMessageType('info');
 
     try {
@@ -138,7 +137,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       console.log('✅ Backend response:', response);
 
       setCurrentStep('success');
-      setMessage(`🎉 Deposit successful! ${depositAmount} ${isTestnet ? 'Testnet USDT' : 'USDT'} has been credited to your account.\n\n✨ Your SEKA balance is being updated...`);
+      setMessage(`🎉 Deposit successful! ${depositAmount} USDT has been credited to your account.\n\n✨ Your SEKA balance is being updated...`);
       setMessageType('success');
 
       // Call success callback to refresh balances
@@ -148,7 +147,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
 
       // Show success toast notification
       if (window.showToast) {
-        window.showToast(`🎉 Successfully deposited ${depositAmount} ${isTestnet ? 'Testnet USDT' : 'USDT'}!`, 'success', 4000);
+        window.showToast(`🎉 Successfully deposited ${depositAmount} USDT!`, 'success', 4000);
       }
 
       // Close modal after 2 seconds
@@ -216,7 +215,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       }
       await navigator.clipboard.writeText(depositAddress);
       // Footer button shows different message
-      if (window.showToast) window.showToast(`Address copied! Send ${isTestnet ? 'Testnet USDT' : 'USDT'} to this address from any external wallet.`, 'info', 5000);
+      if (window.showToast) window.showToast('Address copied! Send USDT to this address from any external wallet.', 'info', 5000);
     } catch (error) {
       console.error('Failed to copy address:', error);
       if (window.showToast) window.showToast('Failed to copy address', 'error', 2000);
@@ -227,7 +226,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     <div className="modal-overlay" onClick={handleClose}>
       <div className="deposit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>💰 Deposit {isTestnet ? 'Testnet USDT' : 'USDT'}</h2>
+          <h2>💰 Deposit USDT</h2>
           <button className="close-btn" onClick={handleClose} disabled={isProcessing}>×</button>
         </div>
 
@@ -238,7 +237,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             <div className="wallet-status success">
               ✅ Web3Auth Wallet Connected: {safeAuthAccount.substring(0, 6)}...{safeAuthAccount.substring(safeAuthAccount.length - 4)}
               <br />
-              💰 Your Platform {isTestnet ? 'Testnet USDT' : 'USDT'}: {Number(user?.platformScore || 0).toFixed(0)} {isTestnet ? 'Testnet USDT' : 'USDT'}
+              💰 Your Platform USDT: {Number(user?.platformScore || 0).toFixed(0)} USDT
             </div>
           )}
 
@@ -292,7 +291,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
               </button>
             </div>
             <p className="address-hint">
-              Send {isTestnet ? 'Testnet USDT' : 'USDT'} to this address (your Web3Auth account). Funds will be stored in your Web3Auth wallet and then transferred to the platform account.
+              Send USDT to this address (your Web3Auth account). Funds will be stored in your Web3Auth wallet and then transferred to the platform account.
               {selectedNetwork === 'ERC20' && ' Note: Ethereum network has higher gas fees than BSC.'}
             </p>
           </div>
@@ -349,7 +348,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
           <div className="info-box" style={{ background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)', border: '2px solid #667eea' }}>
             <h4>🎮 About SEKA Points:</h4>
             <p style={{ marginBottom: '10px' }}>
-              <strong>Your {isTestnet ? 'Testnet USDT' : 'USDT'} → SEKA {isTestnet ? 'Testnet USDT' : 'USDT'} → Play Games</strong>
+              <strong>Your USDT → SEKA USDT → Play Games</strong>
             </p>
             <ul style={{ listStyle: 'none', padding: 0, fontSize:'12px' }}>
               <li>✅ All game activities use <strong>SEKA Points</strong> (virtual balance)</li>
@@ -366,7 +365,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
               <li>Connect your Web3Auth wallet using the "Connect Wallet" button in the header</li>
               <li>Select your network (BEP20 or TRC20)</li>
               <li>Copy your Web3Auth account address or scan the QR code</li>
-              <li>Send {isTestnet ? 'Testnet USDT' : 'USDT'} from any external wallet to your Web3Auth account address</li>
+              <li>Send USDT from any external wallet to your Web3Auth account address</li>
               <li>Funds will be stored in your Web3Auth wallet</li>
               <li>Funds will then be automatically transferred to the platform account</li>
               <li>SEKA Points will be credited automatically! 🎉</li>
