@@ -40,3 +40,4 @@ BSC_PRIVATE_KEY=0x97a44679d20c75523339c885ded3cd7499a0255cd0a78f6aee3dad7f52b217
 
 See `backend/Seka-Svara-CP-For-Server/BSC_ENV_SETUP.md` for backend configuration details.
 
+
