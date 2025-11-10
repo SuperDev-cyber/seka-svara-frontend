@@ -16,6 +16,7 @@ import Footer from './components/layout/Footer/index.jsx';
 import Home from './Pages/Home/index.jsx';
 import TermsOfService from './Pages/Legal/TermsOfService';
 import PrivacyPolicy from './Pages/Legal/PrivacyPolicy';
+import GameRules from './Pages/Legal/GameRules';
 import Profile from './Pages/Profile/index.jsx';
 import Marketplace from './Pages/Marketplace/index.jsx';
 import GameLobby from './Pages/GameLobby/index.jsx';
@@ -45,6 +46,7 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/terms-of-service" element={<><TermsOfService /><Footer /></>} />
           <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /></>} />
+          <Route path="/game-rules" element={<GameRules />} />
           
           {/* Protected routes */}
           <Route path="/profile" element={

@@ -44,8 +44,8 @@ const Footer = () => {
                     <div className='footer-column'>
                         <h4 className='footer-column-title'>Game</h4>
                         <ul className='footer-links' style={{flexDirection: 'column'}}>
-                            <li><a href='#'>Play Now</a></li>
-                            <li><a href='#'>Game Rules</a></li>
+                            <li><Link to='/gamelobby'>Play Now</Link></li>
+                            <li><Link to='/game-rules'>Game Rules</Link></li>
                             <li><a href='#'>Leaderboard</a></li>
                             <li><a href='#'>Tournament</a></li>
                         </ul>
@@ -55,8 +55,8 @@ const Footer = () => {
                         <ul className='footer-links' style={{flexDirection: 'column'}}>
                             <li><Link to='/support'>Help Center</Link></li>
                             <li><a href='#'>Contact Us</a></li>
-                            <li><a href='#'>Terms of Service</a></li>
-                            <li><a href='#'>Privacy Policy</a></li>
+                            <li><Link to='/terms-of-service'>Terms of Service</Link></li>
+                            <li><Link to='/privacy-policy'>Privacy Policy</Link></li>
                         </ul>
                     </div>
                     <div className='footer-column'>
@@ -92,9 +92,9 @@ const Footer = () => {
                 <div className='footer-bottom-content'>
                     <p className='copyright'>Copyright © 2025 seka svarga All Rights Reserved</p>
                     <div className='legal-links'>
-                        <a href='#'>Terms & Policies</a>
+                        <Link to='/terms-of-service'>Terms & Policies</Link>
                         <span className='separator'>|</span>
-                        <a href='#'>Privacy Policy</a>
+                        <Link to='/privacy-policy'>Privacy Policy</Link>
                         <span className='separator'>|</span>
                         <a href='#'>FAQ's</a>
                     </div>
