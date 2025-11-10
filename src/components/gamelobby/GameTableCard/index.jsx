@@ -46,7 +46,8 @@ const GameTableCard = ({ table, onJoinTable, onInviteFriends }) => {
         }
     };
 
-    const tableName = generateTableName(table.id);
+    // Use tableName if available, otherwise generate from ID
+    const tableName = table.tableName || generateTableName(table.id);
     const { current, max } = parsePlayerCount(table.playerCount);
     const entryFee = parseEntryFee(table.entryFee);
     const status = table.status || 'WAITING';
