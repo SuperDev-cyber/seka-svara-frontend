@@ -304,15 +304,6 @@ const Header = () => {
 
     // Handle Connect Wallet button click - opens Web3Auth modal
     const handleConnectWalletClick = async () => {
-        if (!isAuthenticated) {
-            // Show notification for unregistered users
-            if (window.showToast) {
-                window.showToast('Please sign in to connect your wallet', 'warning', 4000);
-            }
-            navigate('/login');
-            return;
-        }
-        
         // If SafeAuth is already connected, do nothing
         if (safeAuthLoggedIn && safeAuthAccount) {
             if (window.showToast) {
@@ -321,7 +312,7 @@ const Header = () => {
             return;
         }
         
-        // Open Web3Auth modal
+        // Open Web3Auth modal directly (for both authenticated and unauthenticated users)
         try {
             await safeAuthLoginWallet();
             if (window.showToast) {
@@ -477,14 +468,14 @@ const Header = () => {
                     ) : (
                         <button 
                             className='connect-wallet-btn'
-                            onClick={() => navigate('/login')}
+                            onClick={handleConnectWalletClick}
                         >
                             <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
                                 <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
                                 <line x1="10" y1="9" x2="14" y2="9" />
                             </svg>
-                            Sign In / Connect Wallet
+                            Connect Wallet
                         </button>
                     )}
                 </div>
