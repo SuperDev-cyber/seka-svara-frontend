@@ -383,8 +383,8 @@ export const SafeAuthProvider = ({ children }) => {
         return '0';
       }
 
-      // ✅ USDT contract address on BSC Testnet
-      const USDT_ADDRESS = '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd'; // USDT on BSC Testnet
+      // ✅ USDT contract address on BSC Mainnet
+      const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955'; // USDT on BSC Mainnet
       
       console.log('🔍 Fetching USDT balance:', {
         account: account,
