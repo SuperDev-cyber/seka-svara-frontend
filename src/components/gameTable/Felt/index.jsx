@@ -861,12 +861,13 @@ const Felt = ({
     };
   }
 
-  // ✅ Render seats in PHYSICAL order (0, 1, 2, 3, 4, 5)
+  // ✅ Render ALL seats up to maxPlayers (always show all 6 seats, even if empty)
   // Each player has a UNIQUE physical position based on join order
+  // Empty seats will display "SIT" labels
   const seatsToRender = Array.from(
-    { length: players.length },
+    { length: maxPlayers },
     (_, i) => i
-  ).filter((i) => i < maxPlayers);
+  );
 
   // Get active seat indices for dealing animation
   const activeSeatIndices = seatsToRender.filter(
