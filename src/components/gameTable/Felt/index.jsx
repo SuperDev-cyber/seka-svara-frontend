@@ -74,9 +74,9 @@ const Seat = ({
             </svg>
             <div
               className="player-name"
-              style={{ color: "#888", fontSize: "12px" }}
+              style={{ color: "#888", fontSize: "12px", fontWeight: "600" }}
             >
-              INVITE
+              {index + 1} SIT
             </div>
           </div>
           <div className="each-card">
