@@ -132,6 +132,32 @@
     min-width: 150px;
 }
 
+.fee-toggle-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #CCCCCC;
+    margin-right: 0.5rem;
+}
+
+.fee-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fee-toggle-btn.active {
+    background: rgba(255, 186, 8, 0.2);
+    border-color: #FFBA08;
+    color: #FFBA08;
+}
+
 .fee-slider-container {
     display: flex;
     flex-direction: column;

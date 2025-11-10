@@ -237,7 +237,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
             <div className="wallet-status success">
               ✅ Web3Auth Wallet Connected: {safeAuthAccount.substring(0, 6)}...{safeAuthAccount.substring(safeAuthAccount.length - 4)}
               <br />
-              💰 Your Platform Score: {Number(user?.platformScore || 0).toFixed(0)} Platform Score
+              💰 Your Platform USDT: {Number(user?.platformScore || 0).toFixed(0)} USDT
             </div>
           )}
 

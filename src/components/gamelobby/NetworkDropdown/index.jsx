@@ -1,6 +1,6 @@
 import React from 'react';
 
-const NetworkDropdown = ({ value, onChange, options = ["All Network", "BSC", "TRC20", "ERC20"] }) => {
+const NetworkDropdown = ({ value, onChange, options = ["All Network", "BSC"] }) => {
     return (
         <select 
             className='network-dropdown' 

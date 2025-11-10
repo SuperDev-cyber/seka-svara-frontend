@@ -26,6 +26,7 @@ const GameLobby = () => {
     const [activeTab, setActiveTab] = useState('Active Tables');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedNetwork, setSelectedNetwork] = useState('All Network');
+    const [feeFilter, setFeeFilter] = useState({ min: 5, max: 100, enabled: false });
     const [balance] = useState('$1,247.50 USDT');
     const [sekaBalance, setSekaBalance] = useState(0); // SEKA balance from wallet (for reference)
     const [usdtBalance, setUsdtBalance] = useState(0); // USDT balance from SafeAuth wallet
@@ -305,9 +306,31 @@ const GameLobby = () => {
             tables = [];
         }
 
-        // Filter by network
+        // Filter by network (only BSC)
         if (selectedNetwork !== 'All Network') {
-            tables = tables.filter(table => table.network === selectedNetwork);
+            tables = tables.filter(table => table.network === 'BEP20' || table.network === 'BSC');
+        } else {
+            // If "All Network" is selected, still only show BSC tables
+            tables = tables.filter(table => table.network === 'BEP20' || table.network === 'BSC');
+        }
+
+        // Filter out private tables unless user is the creator
+        tables = tables.filter(table => {
+            if (table.isPrivate || table.privacy === 'private') {
+                // Only show private tables to their creator
+                return table.creatorId === userId;
+            }
+            return true; // Show all public tables
+        });
+
+        // Filter by fee range if enabled
+        if (feeFilter.enabled) {
+            tables = tables.filter(table => {
+                const entryFee = typeof table.entryFee === 'string' 
+                    ? parseFloat(table.entryFee.replace(/[^\d.]/g, '')) 
+                    : table.entryFee;
+                return entryFee >= feeFilter.min && entryFee <= feeFilter.max;
+            });
         }
 
         // Filter by search term
@@ -334,7 +357,7 @@ const GameLobby = () => {
         }
 
         return tables;
-    }, [availableTables, activeTab, selectedNetwork, searchTerm]);
+    }, [availableTables, activeTab, selectedNetwork, searchTerm, feeFilter, userId]);
 
     // Event handlers
     const handleCreateTable = () => {
@@ -528,7 +551,12 @@ const GameLobby = () => {
 
     const handleFeeChange = (feeValue) => {
         console.log('Fee changed:', feeValue);
-        // Implement fee filtering logic if needed
+        // Enable fee filter and set max fee
+        setFeeFilter(prev => ({
+            ...prev,
+            max: parseInt(feeValue),
+            enabled: true
+        }));
     };
 
     const handleRefresh = () => {
@@ -548,6 +576,8 @@ const GameLobby = () => {
                     onNetworkChange={handleNetworkChange}
                     onFeeChange={handleFeeChange}
                     onRefresh={handleRefresh}
+                    feeFilter={feeFilter}
+                    onFeeToggle={(enabled) => setFeeFilter(prev => ({ ...prev, enabled }))}
                 />
                 <NavigationTabs 
                     activeTab={activeTab} 

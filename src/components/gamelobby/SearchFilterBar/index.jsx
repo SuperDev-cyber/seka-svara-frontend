@@ -3,7 +3,7 @@ import SearchInput from '../SearchInput';
 import NetworkDropdown from '../NetworkDropdown';
 import FeeSlider from '../FeeSlider';
 
-const SearchFilterBar = ({ onSearch, onNetworkChange, onFeeChange, onRefresh }) => {
+const SearchFilterBar = ({ onSearch, onNetworkChange, onFeeChange, onRefresh, feeFilter, onFeeToggle }) => {
     const [searchValue, setSearchValue] = useState('');
     const [networkValue, setNetworkValue] = useState('All Network');
     const [feeValue, setFeeValue] = useState(25);
@@ -41,6 +41,8 @@ const SearchFilterBar = ({ onSearch, onNetworkChange, onFeeChange, onRefresh }) 
                 value={feeValue}
                 onChange={handleFeeChange}
                 onRefresh={handleRefresh}
+                enabled={feeFilter?.enabled || false}
+                onToggle={onFeeToggle}
             />
         </div>
     );

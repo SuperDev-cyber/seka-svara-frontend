@@ -257,3 +257,4 @@ const PrivacyPolicy = ({ onClose }) => {
 
 export default PrivacyPolicy;
 
+
