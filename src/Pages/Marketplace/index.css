@@ -62,7 +62,6 @@
 }
 
 .search-input {
-    width: 100%;
     padding: 1rem 1rem 1rem 3rem;
     background: transparent;
     border: 1px solid #333;
@@ -365,6 +364,10 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
     }
+
+    .search-filter-bar{
+        flex-direction: column;
+    }
 }
 
 @media (max-width: 768px) {
@@ -435,5 +438,9 @@
     .secondary-filters {
         flex-direction: column;
         align-items: center;
+    }
+
+    .search-input{
+        font-size: 12px;
     }
 }

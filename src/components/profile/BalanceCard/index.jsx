@@ -151,7 +151,7 @@ const BalanceCard = () => {
                     border: '2px solid #fbbf24'
                 }}>
                     <div className='card-header'>
-                        <h3>🏆 Platform Score</h3>
+                        <h3>🏆 Platform USDT</h3>
                     </div>
                     <div className='card-content'>
                         <div className='main-amount' style={{ color: '#fbbf24' }}>

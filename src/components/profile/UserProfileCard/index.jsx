@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import apiService from '../../../services/api';
+import { cleanUsername } from '../../../utils/username';
 import crown from '../../../assets/icon/crown.png';
 
 const UserProfileCard = () => {
@@ -185,7 +186,7 @@ const UserProfileCard = () => {
                 </div>
             </div>
 
-            <h2 className='profile-name'>{user?.username || 'Guest User'}</h2>
+            <h2 className='profile-name'>{cleanUsername(user?.username) || 'Guest User'}</h2>
             <p className='member-since'>{formatDate(user?.createdAt)}</p>
             
             <div className='profile-stats'>

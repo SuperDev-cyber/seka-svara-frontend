@@ -501,7 +501,6 @@
 
 /* ===== HOW IT WORKS SECTION ===== */
 .how-it-works-section {
-    width: 100%;
     padding: 4rem 2rem;
     background: #0A0A0A;
 }
@@ -605,7 +604,6 @@
 
 /* ===== LIVE GAME TABLES SECTION ===== */
 .live-game-tables-section {
-    width: 100%;
     padding: 4rem 2rem;
     background: #0A0A0A;
 }
@@ -881,7 +879,6 @@
     }
     
     .step-card {
-        min-width: 100%;
         max-width: 400px;
     }
     
@@ -1002,7 +999,6 @@
 
 /* ===== TOP WINNERS SECTION ===== */
 .top-winners-section {
-    width: 100%;
     padding: 4rem 2rem;
     background: #0A0A0A;
 }
@@ -1217,7 +1213,6 @@
 
 /* ===== CALL TO ACTION SECTION ===== */
 .cta-section {
-    width: 100%;
     padding: 3rem 2rem;
     background: linear-gradient(135deg, #FFD700 0%, #FF6B35 100%);
     position: relative;

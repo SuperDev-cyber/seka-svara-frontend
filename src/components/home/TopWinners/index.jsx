@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import apiService from '../../../services/api';
+import { cleanUsername } from '../../../utils/username';
 
 const TopWinners = () => {
     const [winners, setWinners] = useState([]);
@@ -10,7 +11,7 @@ const TopWinners = () => {
                 const data = await apiService.getTopPlayers(); // ordered by totalGamesWon
                 const top5 = (data || []).slice(0, 5).map((u, i) => ({
                     rank: i + 1,
-                    name: u.username || `Player ${u.id.substring(0,4)}`,
+                    name: cleanUsername(u.username) || `Player ${u.id.substring(0,4)}`,
                     games: `${u.totalGamesPlayed || 0} games`,
                     winnings: `${Number(u.totalWinnings || 0).toLocaleString()} USDT`,
                     winRate: `${u.winRate || 0}%`,

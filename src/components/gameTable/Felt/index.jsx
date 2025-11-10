@@ -94,7 +94,9 @@ const Seat = ({
     player.username ||
     player.name ||
     (player.email ? player.email.split("@")[0] : `Player ${index + 1}`);
-  const displayName = playerName.charAt(0).toUpperCase() + playerName.slice(1);
+  // Clean username by removing suffixes like "_google"
+  const cleanedName = playerName.replace(/_google$/i, '').replace(/_web3$/i, '');
+  const displayName = cleanedName.charAt(0).toUpperCase() + cleanedName.slice(1);
 
   // Format userId for display (e.g., "user_hdkh5pt" → "0xhdkh...5pt")
   const userId = player.userId || "";

@@ -6,6 +6,7 @@ import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import WalletConnect from '../../wallet/WalletConnect';
 import DepositModal from '../../wallet/DepositModal';
 import apiService from '../../../services/api';
+import { cleanUsername } from '../../../utils/username';
 import logo from '../../../assets/images/logo.jpg';
 import marketplaceIcon from '../../../assets/icon/marketplace-icon.png';
 import './index.css';
@@ -550,7 +551,7 @@ const Header = () => {
                                         )}
                                     </div>
                                     <div className='mobile-user-details'>
-                                        <div className='mobile-user-name'>{user?.username}</div>
+                                        <div className='mobile-user-name'>{cleanUsername(user?.username)}</div>
                                         <div className='mobile-user-email'>{user?.email}</div>
                                         <div className='mobile-user-balance'>
                                             USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
@@ -610,18 +611,18 @@ const Header = () => {
                                     {/* <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>
                                         {t('deposit')}
                                     </button> */}
-                                    <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
+                                    {/* <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
                                         {t('playNow')}
-                                    </button>
+                                    </button> */}
                                     <button className='mobile-logout-btn' onClick={() => { handleLogout(); closeMobileMenu(); }}>
                                         {t('logout')}
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
+                                    {/* <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
                                         {t('playNow')}
-                                    </button>
+                                    </button> */}
                                 </>
                             )}
                         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import apiService from '../../../services/api';
+import { cleanUsername } from '../../../utils/username';
 import './index.css';
 
 const TableManagement = () => {
@@ -272,7 +273,7 @@ const TableManagement = () => {
                                         </td>
                                         <td>
                                             <div className="creator-cell">
-                                                <div className="creator-name">{table.creator?.username || 'Unknown'}</div>
+                                                <div className="creator-name">{cleanUsername(table.creator?.username) || 'Unknown'}</div>
                                                 <div className="creator-email">{table.creator?.email || ''}</div>
                                             </div>
                                         </td>
@@ -364,7 +365,7 @@ const TableManagement = () => {
                                     </div>
                                     <div className="detail-item">
                                         <span className="detail-label">Creator:</span>
-                                        <span className="detail-value">{selectedTable.creator?.username} ({selectedTable.creator?.email})</span>
+                                        <span className="detail-value">{cleanUsername(selectedTable.creator?.username) || ''} ({selectedTable.creator?.email})</span>
                                     </div>
                                     <div className="detail-item">
                                         <span className="detail-label">Duration:</span>
@@ -431,7 +432,7 @@ const TableManagement = () => {
                                                         <div key={index} className="tracking-item">
                                                             <span className="tracking-icon">🎲</span>
                                                             <div className="tracking-details">
-                                                                <span className="tracking-name">{player?.username || userId}</span>
+                                                                <span className="tracking-name">{cleanUsername(player?.username) || userId}</span>
                                                                 <span className="tracking-meta">
                                                                     {data.count} blind bet{data.count > 1 ? 's' : ''} • {data.totalAmount} SEKA
                                                                 </span>
@@ -465,7 +466,7 @@ const TableManagement = () => {
                                                             <tr key={index}>
                                                                 <td>
                                                                     <div className="player-info">
-                                                                        <div className="player-name">{player.username}</div>
+                                                                        <div className="player-name">{cleanUsername(player.username)}</div>
                                                                         <div className="player-email">{player.email}</div>
                                                                     </div>
                                                                 </td>
@@ -498,7 +499,7 @@ const TableManagement = () => {
                                             <div className="winners-list">
                                                 {selectedTable.game.winners.map((winner, index) => (
                                                     <div key={index} className="winner-item">
-                                                        <span className="winner-name">{winner.username}</span>
+                                                        <span className="winner-name">{cleanUsername(winner.username)}</span>
                                                         <span className="winner-amount">+{winner.amountWon} SEKA</span>
                                                     </div>
                                                 ))}

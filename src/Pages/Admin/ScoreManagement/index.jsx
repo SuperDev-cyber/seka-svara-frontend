@@ -293,7 +293,7 @@ const ScoreManagement = () => {
                                         </td>
                                         <td>
                                             <div className="user-info">
-                                                <div className="user-name">{transaction.username}</div>
+                                                <div className="user-name">{(transaction.username || '').replace(/_google$/i, '').replace(/_web3$/i, '')}</div>
                                                 <div className="user-email">{transaction.email}</div>
                                             </div>
                                         </td>
@@ -433,7 +433,7 @@ const ScoreManagement = () => {
                             </p>
                             {deletingTransaction && (
                                 <div className="delete-info">
-                                    <div><strong>User:</strong> {deletingTransaction.username}</div>
+                                    <div><strong>User:</strong> {(deletingTransaction.username || '').replace(/_google$/i, '').replace(/_web3$/i, '')}</div>
                                     <div><strong>Amount:</strong> {deletingTransaction.amount}</div>
                                     <div><strong>Type:</strong> {deletingTransaction.type}</div>
                                     <div><strong>Description:</strong> {deletingTransaction.description}</div>
