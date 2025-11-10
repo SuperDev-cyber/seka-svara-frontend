@@ -74,7 +74,7 @@ export const SafeAuthProvider = ({ children }) => {
         const openloginAdapter = new OpenloginAdapter({
           adapterSettings: {
             clientId,
-            network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+            network: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, // Changed to DEVNET for testing
             uxMode: 'popup', // Use popup mode for better UX
             chainConfig, // Pass chainConfig to adapter
             privateKeyProvider, // CRITICAL: Pass privateKeyProvider to adapter
@@ -83,11 +83,11 @@ export const SafeAuthProvider = ({ children }) => {
         });
 
         // Initialize Web3Auth
-        // Use SAPPHIRE_MAINNET to match the project environment
+        // Use SAPPHIRE_DEVNET for testing (change back to SAPPHIRE_MAINNET for production)
         // IMPORTANT: Using @web3auth/modal requires MODAL mode in dashboard, not EMBED mode
         const web3authInstance = new Web3Auth({
           clientId,
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, // Changed to DEVNET for testing
           chainConfig,
           privateKeyProvider,
           uiConfig: {
@@ -123,7 +123,7 @@ export const SafeAuthProvider = ({ children }) => {
         console.log('🔄 Initializing Web3Auth with:', {
           clientId: clientId.substring(0, 20) + '...',
           fullClientId: clientId,
-          network: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+          network: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, // Changed to DEVNET for testing
           chainId: chainConfig.chainId,
         });
         
