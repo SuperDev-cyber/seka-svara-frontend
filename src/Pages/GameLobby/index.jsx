@@ -90,6 +90,35 @@ const GameLobby = () => {
         }
     }, [isAuthenticated, user]);
 
+    // ✅ Fetch USDT balance from SafeAuth wallet (for game entry validation)
+    useEffect(() => {
+        const fetchUSDTBalance = async () => {
+            if (safeAuthLoggedIn && safeAuthAccount && safeAuthGetUSDTBalance && isAuthenticated) {
+                try {
+                    const balance = await safeAuthGetUSDTBalance();
+                    setUsdtBalance(parseFloat(balance) || 0);
+                    console.log('💰 USDT Balance updated from SafeAuth:', balance);
+                } catch (error) {
+                    console.error('Error fetching USDT balance:', error);
+                    setUsdtBalance(0);
+                }
+            } else {
+                setUsdtBalance(0);
+            }
+        };
+
+        fetchUSDTBalance();
+        
+        // Refresh every 5 seconds when SafeAuth is connected
+        let interval;
+        if (safeAuthLoggedIn && safeAuthAccount && isAuthenticated) {
+            interval = setInterval(fetchUSDTBalance, 5000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthGetUSDTBalance]);
 
     // Fetch SEKA balance from connected wallet (for reference)
     useEffect(() => {
