@@ -280,4 +280,13 @@
         width: 20px;
         height: 20px;
     }
+
+    .withdraw-copy-button {
+       width: 100%;
+    }
+
+    .withdraw-address-input-container{
+        flex-direction: column;
+        align-items: center;
+    }
 }

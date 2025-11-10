@@ -360,7 +360,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         <div style={{ marginBottom: '10px', fontWeight: 'bold', fontSize: '14px' }}>
                             📍 Withdrawal Address (Destination):
                         </div>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }} className='withdraw-address-input-container'>
                             <input
                                 type="text"
                                 value={withdrawalAddress}
@@ -394,6 +394,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                                     whiteSpace: 'nowrap',
                                     opacity: (!withdrawalAddress || isProcessing) ? 0.6 : 1
                                 }}
+                                className='withdraw-copy-button'
                             >
                                 {copied ? 'Copied!' : 'Copy'}
                             </button>
