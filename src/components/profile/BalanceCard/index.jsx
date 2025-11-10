@@ -11,7 +11,7 @@ import WithdrawModal from '../WithdrawModal';
 const BalanceCard = () => {
     const { user, refreshUserProfile } = useAuth();
     const { isConnected, currentNetwork, USDTBalance } = useWallet();
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, isTestnet } = useSafeAuth();
     const [walletUSDTBalance, setWalletUSDTBalance] = useState('0');
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -107,7 +107,7 @@ const BalanceCard = () => {
                 <div className='balance-cards'>
                     <div className='balance-card total-balance-card'>
                         <div className='card-header'>
-                            <h3>USDT Balance</h3>
+                            <h3>{isTestnet ? 'Testnet USDT' : 'USDT'} Balance</h3>
                         </div>
                         <div className='card-content'>
                             <div className='main-amount gold-text'>Loading...</div>

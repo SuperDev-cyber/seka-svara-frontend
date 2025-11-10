@@ -460,6 +460,7 @@ export const SafeAuthProvider = ({ children }) => {
     user,
     account,
     chainId,
+    isTestnet: chainId === '0x61' || chainId === '97', // Check if on BSC Testnet
     initError,
     loginWithGoogle,
     loginWithWallet,

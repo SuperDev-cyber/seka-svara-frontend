@@ -28,6 +28,7 @@ const HeroLeft = () => {
       account: safeAuthAccount, 
       getUSDTBalance: safeAuthGetUSDTBalance, 
       getBNBBalance: safeAuthGetBNBBalance,
+      isTestnet,
       loginWithWallet: safeAuthLoginWallet 
     } = useSafeAuth();
     const [safeAuthBEP20USDTBalance, setSafeAuthBEP20USDTBalance] = useState('0');

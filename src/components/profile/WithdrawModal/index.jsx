@@ -11,6 +11,7 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
         loggedIn: safeAuthLoggedIn, 
         account: safeAuthAccount, 
         getUSDTBalance: safeAuthGetUSDTBalance,
+        isTestnet,
         getPrivateKey: safeAuthGetPrivateKey 
     } = useSafeAuth();
     
