@@ -108,10 +108,10 @@
     position: relative;
     width: 100%;
     max-width: 280px;
-    height: 180px;
+    height: 200px;
     background: linear-gradient(135deg, #1a5f1a 0%, #0d3d0d 100%);
     border: 3px solid #000;
-    border-radius: 50%;
+    border-radius: 50% / 60%; /* Oval shape to match reference */
     display: flex;
     flex-direction: column;
     align-items: center;
