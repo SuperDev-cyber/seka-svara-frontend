@@ -173,7 +173,7 @@ const NotificationManager = () => {
       socket.emit('invite_accept', {
         invitationId: notification.invitationId,
         userId: user?.id || user?.userId
-      }, (acceptResponse) => {
+      }, async (acceptResponse) => {
         console.log('📥 Invite accept response:', acceptResponse);
         
         if (!acceptResponse || !acceptResponse.success) {

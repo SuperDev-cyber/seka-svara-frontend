@@ -344,30 +344,32 @@ const GameTablePage = () => {
             return;
         }
         
-        console.log('🔗 Joining table to ensure it exists...');
         hasJoinedTable.current = true; // Set flag BEFORE emitting to prevent duplicates
-        
-        // ✅ Use actual entry fee from invitation settings or fallback
-        const actualEntryFee = invitationSettings?.entryFee || table?.entryFee || 10;
-        const actualTableName = invitationSettings?.tableName || table?.tableName || 'Invited Game';
-        
-        console.log('📊 Join Table Settings:');
-        console.log('   Entry Fee:', actualEntryFee);
-        console.log('   Table Name:', actualTableName);
-        console.log('   Invitation Settings:', invitationSettings);
-        
-        // ✅ Get private key for entry fee transfer
-        let privateKey = null;
-        if (safeAuthGetPrivateKey) {
-            try {
-                privateKey = await safeAuthGetPrivateKey();
-                console.log('✅ Private key retrieved for joining table');
-            } catch (error) {
-                console.error('❌ Failed to get private key:', error);
+
+        const joinTableAsync = async () => {
+            console.log('🔗 Joining table to ensure it exists...');
+            
+            // ✅ Use actual entry fee from invitation settings or fallback
+            const actualEntryFee = invitationSettings?.entryFee || table?.entryFee || 10;
+            const actualTableName = invitationSettings?.tableName || table?.tableName || 'Invited Game';
+            
+            console.log('📊 Join Table Settings:');
+            console.log('   Entry Fee:', actualEntryFee);
+            console.log('   Table Name:', actualTableName);
+            console.log('   Invitation Settings:', invitationSettings);
+            
+            // ✅ Get private key for entry fee transfer
+            let privateKey = null;
+            if (safeAuthGetPrivateKey) {
+                try {
+                    privateKey = await safeAuthGetPrivateKey();
+                    console.log('✅ Private key retrieved for joining table');
+                } catch (error) {
+                    console.error('❌ Failed to get private key:', error);
+                }
             }
-        }
-        
-        socket.emit('join_table', {
+            
+            socket.emit('join_table', {
             tableId: tableId,
             userId: userId,
             userEmail: userEmail,
@@ -398,7 +400,10 @@ const GameTablePage = () => {
                 console.warn('⚠️ Join table response:', joinResponse);
             }
         });
-    }, [socket, socketConnected, tableId, userId, userEmail, userName, userAvatar, invitationSettings, table]); // ✅ Added invitationSettings and table
+        };
+
+        joinTableAsync();
+    }, [socket, socketConnected, tableId, userId, userEmail, userName, userAvatar, invitationSettings, table, safeAuthGetPrivateKey]); // ✅ Added invitationSettings and table
 
     // Fetch SEKA balance from connected wallet (real-time)
     useEffect(() => {
