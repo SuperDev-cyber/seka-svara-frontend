@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useSocket } from '../../../contexts/SocketContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import apiService from '../../../services/api';
 import './index.css';
 
 const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
     const { user } = useAuth();
     const { socket } = useSocket(); // Use shared socket from SocketContext
+    const { getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth(); // ✅ Get private key for entry fee transfer
     const [activeTab, setActiveTab] = useState('friends');
     const [emailAddress, setEmailAddress] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -299,7 +301,18 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                 console.log('📋 Table ID:', tableId);
                 
                 // ✅ Step 1: JOIN the table via WebSocket
-                const joinPromise = new Promise((resolve, reject) => {
+                const joinPromise = new Promise(async (resolve, reject) => {
+                    // ✅ Get private key for entry fee transfer
+                    let privateKey = null;
+                    if (safeAuthGetPrivateKey) {
+                        try {
+                            privateKey = await safeAuthGetPrivateKey();
+                            console.log('✅ Private key retrieved for joining table via invite');
+                        } catch (error) {
+                            console.error('❌ Failed to get private key:', error);
+                        }
+                    }
+                    
                     socket.emit('join_table', {
                         tableId: tableId,
                         userId: user?.id || user?.userId,
@@ -307,7 +320,8 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                         username: user?.username || user?.name || user?.email?.split('@')[0],
                         avatar: user?.avatar,
                         tableName: tableData.tableName || 'Game Table',
-                        entryFee: tableData.entryFee || 10
+                        entryFee: tableData.entryFee || 10,
+                        privateKey: privateKey // ✅ Send private key for entry fee transfer
                     }, (response) => {
                         console.log('📥 Join table response:', response);
                         if (response && response.success) {

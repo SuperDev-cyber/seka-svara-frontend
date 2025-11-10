@@ -3,21 +3,34 @@ import { useCallback } from 'react';
 /**
  * Custom hook for handling all player game actions
  * Consolidates all action emitting logic in one place
+ * Now includes private key for USDT transfers
  */
-export const useGameActions = (socket, tableId, userId) => {
+export const useGameActions = (socket, tableId, userId, getPrivateKey) => {
   // Generic action emitter with Promise-based response handling
-  const emitAction = useCallback((action, amount = 0) => {
+  const emitAction = useCallback(async (action, amount = 0) => {
     if (!socket || !socket.connected) {
       console.error('❌ Socket not connected');
       return Promise.reject(new Error('Socket not connected'));
     }
     
-    console.log(`🎲 Emitting ${action} action:`, { tableId, userId, amount });
+    // ✅ Get private key for USDT transfers (except for fold/check which don't require transfers)
+    let privateKey = null;
+    if (action !== 'fold' && action !== 'check' && getPrivateKey) {
+      try {
+        privateKey = await getPrivateKey();
+        console.log('✅ Private key retrieved for action:', action);
+      } catch (error) {
+        console.error('❌ Failed to get private key:', error);
+        // Continue without private key - backend will handle gracefully
+      }
+    }
+    
+    console.log(`🎲 Emitting ${action} action:`, { tableId, userId, amount, hasPrivateKey: !!privateKey });
     
     return new Promise((resolve, reject) => {
       socket.emit(
         'player_action', 
-        { tableId, userId, action, amount },
+        { tableId, userId, action, amount, privateKey },
         (response) => {
           if (response?.success) {
             console.log(`✅ ${action} action successful:`, response);
@@ -30,7 +43,7 @@ export const useGameActions = (socket, tableId, userId) => {
         }
       );
     });
-  }, [socket, tableId, userId]);
+  }, [socket, tableId, userId, getPrivateKey]);
   
   // Specific action methods
   const fold = useCallback(() => {

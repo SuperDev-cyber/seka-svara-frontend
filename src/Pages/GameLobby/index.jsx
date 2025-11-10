@@ -22,7 +22,7 @@ const GameLobby = () => {
     const { user, isAuthenticated } = useAuth();
     const { socket, isConnected } = useSocket(); // Use shared socket
     const { isConnected: walletConnected, currentNetwork, getBalance } = useWallet(); // Wallet context for SEKA balance
-    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance } = useSafeAuth();
+    const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth();
     const [activeTab, setActiveTab] = useState('Active Tables');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedNetwork, setSelectedNetwork] = useState('All Network');
@@ -411,6 +411,18 @@ const GameLobby = () => {
         console.log('   User ID:', userId);
         console.log('   Email:', userEmail);
         
+        // ✅ Get private key for entry fee transfer
+        let privateKey = null;
+        if (safeAuthGetPrivateKey) {
+            try {
+                privateKey = await safeAuthGetPrivateKey();
+                console.log('✅ Private key retrieved for joining table');
+            } catch (error) {
+                console.error('❌ Failed to get private key:', error);
+                // Continue without private key - backend will handle gracefully
+            }
+        }
+
         socket.emit('join_table', {
             tableId: table.id,
             userId: userId,
@@ -418,7 +430,8 @@ const GameLobby = () => {
             username: userName,
             avatar: userAvatar,
             tableName: table.tableName || table.name || 'Game Table',
-            entryFee: table.entryFee || 10
+            entryFee: table.entryFee || 10,
+            privateKey: privateKey // ✅ Send private key for entry fee transfer
         }, (response) => {
             console.log('📥 JOIN_TABLE RESPONSE:', JSON.stringify(response, null, 2));
             
@@ -499,6 +512,17 @@ const GameLobby = () => {
                     console.log('   User ID:', userId);
                     console.log('   Email:', userEmail);
                     
+                    // ✅ Get private key for entry fee transfer
+                    let creatorPrivateKey = null;
+                    if (safeAuthGetPrivateKey) {
+                        try {
+                            creatorPrivateKey = await safeAuthGetPrivateKey();
+                            console.log('✅ Private key retrieved for creator joining table');
+                        } catch (error) {
+                            console.error('❌ Failed to get private key:', error);
+                        }
+                    }
+                    
                     socket.emit('join_table', {
                         tableId: tableId,
                         userId: userId,
@@ -506,7 +530,8 @@ const GameLobby = () => {
                         username: userName,
                         avatar: userAvatar,
                         tableName: tableData.tableName || 'Game Table',
-                        entryFee: tableData.entryFee || 10
+                        entryFee: tableData.entryFee || 10,
+                        privateKey: creatorPrivateKey // ✅ Send private key for entry fee transfer
                     }, (joinResponse) => {
                         console.log('📥 JOIN_TABLE RESPONSE:', JSON.stringify(joinResponse, null, 2));
                         

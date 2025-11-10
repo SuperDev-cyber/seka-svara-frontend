@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../../../contexts/SocketContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useSafeAuth } from '../../../contexts/SafeAuthContext';
 import NotificationToast from '../NotificationToast';
 import './index.css';
 
 const NotificationManager = () => {
   const { socket } = useSocket();
   const { user } = useAuth();
+  const { getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth(); // ✅ Get private key for entry fee transfer
   const [notifications, setNotifications] = useState([]);
   const [position, setPosition] = useState('top-right');
 
@@ -182,6 +184,17 @@ const NotificationManager = () => {
         
         console.log('✅ Invitation accepted in database, now joining table...');
         
+        // ✅ Get private key for entry fee transfer
+        let privateKey = null;
+        if (safeAuthGetPrivateKey) {
+          try {
+            privateKey = await safeAuthGetPrivateKey();
+            console.log('✅ Private key retrieved for joining table via notification');
+          } catch (error) {
+            console.error('❌ Failed to get private key:', error);
+          }
+        }
+        
         // ✅ Now join the inviter's table (same as JOIN TABLE button)
         socket.emit('join_table', {
           tableId: notification.tableId,
@@ -190,7 +203,8 @@ const NotificationManager = () => {
           username: user?.username || user?.name || user?.email?.split('@')[0],
           avatar: user?.avatar,
           tableName: notification.tableName,
-          entryFee: notification.entryFee
+          entryFee: notification.entryFee,
+          privateKey: privateKey // ✅ Send private key for entry fee transfer
         }, (joinResponse) => {
           console.log('🎮 Join table response:', joinResponse);
           

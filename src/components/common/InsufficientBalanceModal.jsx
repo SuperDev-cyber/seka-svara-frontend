@@ -70,3 +70,4 @@ const InsufficientBalanceModal = ({ isOpen, onClose, requiredAmount, currentBala
 export default InsufficientBalanceModal;
 
 
+

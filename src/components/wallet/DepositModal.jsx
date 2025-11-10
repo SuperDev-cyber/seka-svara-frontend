@@ -19,7 +19,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
     connectTronLink,
     networks,
   } = useWallet();
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const { 
     account: safeAuthAccount, 
     loggedIn: safeAuthLoggedIn
@@ -36,6 +36,10 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
   // Get deposit address - BEP20 only
   const depositAddress = safeAuthAccount || '';
 
+  // Track previous platform score to detect increases
+  const [previousPlatformScore, setPreviousPlatformScore] = useState(0);
+  const [depositDetectionInterval, setDepositDetectionInterval] = useState(null);
+
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -45,6 +49,9 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
       setCopied(false);
       setShowQR(false);
       
+      // Store current platform score for comparison
+      setPreviousPlatformScore(Number(user?.platformScore || 0));
+      
       // Check if Web3Auth is connected
       if (!safeAuthLoggedIn || !safeAuthAccount) {
         setMessage('Please connect your Web3Auth wallet first using the "Connect Wallet" button in the header.');
@@ -53,8 +60,69 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
         setMessage('');
         setMessageType('');
       }
+    } else {
+      // Clear interval when modal closes
+      if (depositDetectionInterval) {
+        clearInterval(depositDetectionInterval);
+        setDepositDetectionInterval(null);
+      }
     }
   }, [isOpen, safeAuthLoggedIn, safeAuthAccount]);
+
+  // Monitor platform score for manual deposits (when user copies address and sends funds externally)
+  useEffect(() => {
+    if (!isOpen || !safeAuthLoggedIn || !safeAuthAccount) {
+      return;
+    }
+
+    // Poll every 10 seconds to check for platform score increases
+    const interval = setInterval(async () => {
+      try {
+        // Refresh user profile to get latest platform score
+        if (refreshUserProfile) {
+          await refreshUserProfile();
+        }
+        
+        // Small delay to allow profile refresh, then check for increase
+        setTimeout(() => {
+          const currentScore = Number(user?.platformScore || 0);
+          if (currentScore > previousPlatformScore && previousPlatformScore >= 0) {
+            const increaseAmount = currentScore - previousPlatformScore;
+            
+            // Only show if increase is significant (more than 0.01 to avoid rounding issues)
+            if (increaseAmount > 0.01) {
+              // Show success message
+              if (window.showToast) {
+                window.showToast(
+                  `🎉 Deposit successful! ${increaseAmount.toFixed(2)} USDT has been credited to your account!`,
+                  'success',
+                  6000
+                );
+              }
+              
+              // Update previous score
+              setPreviousPlatformScore(currentScore);
+              
+              // Also call onDepositSuccess callback if provided
+              if (onDepositSuccess) {
+                onDepositSuccess();
+              }
+            }
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Error checking deposit status:', error);
+      }
+    }, 10000); // Check every 10 seconds
+
+    setDepositDetectionInterval(interval);
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isOpen, safeAuthLoggedIn, safeAuthAccount, user?.platformScore, previousPlatformScore, onDepositSuccess]);
 
   const handleNetworkChange = async (network) => {
     setSelectedNetwork(network);
@@ -420,7 +488,7 @@ const DepositModal = ({ isOpen, onClose, onDepositSuccess }) => {
               <button className="close-btn" onClick={() => setShowQR(false)}>×</button>
             </div>
             <div className="modal-content" style={{ textAlign:'center' }}>
-              <p style={{color:'#aaa', marginBottom:12}}>{networkCaption}</p>
+              <p style={{color:'#aaa', marginBottom:12}}>BSC (BEP20) Network</p>
               {/* ✅ QR code uses user's unique deposit address */}
               {depositAddress ? (
                 <>

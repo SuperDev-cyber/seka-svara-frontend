@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useWallet } from '../../contexts/WalletContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSafeAuth } from '../../contexts/SafeAuthContext';
 import { useGameActions } from '../../hooks/useGameActions';
 import apiService from '../../services/api';
 import cardBack from '../../assets/images/card.png';
@@ -25,6 +26,7 @@ const GameTablePage = () => {
     const { isConnected, getBalance, currentNetwork } = useWallet();
     const { user, isAuthenticated } = useAuth();
     const { socket, isConnected: socketConnected } = useSocket(); // Use shared socket
+    const { getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth(); // ✅ Get private key for USDT transfers
     
     // Dynamic table data from in-memory storage
     const [tableData, setTableData] = useState(null);
@@ -251,7 +253,7 @@ const GameTablePage = () => {
     }, [chatMessage, socket, tableData, user]);
 
     // ✅ CONSOLIDATED: Use custom hook for all game actions
-    const gameActions = useGameActions(socket, tableId, userId);
+    const gameActions = useGameActions(socket, tableId, userId, safeAuthGetPrivateKey);
     
     // Game action handlers - now using the consolidated hook
     const handleBet = useCallback(async (amount) => {
@@ -354,6 +356,17 @@ const GameTablePage = () => {
         console.log('   Table Name:', actualTableName);
         console.log('   Invitation Settings:', invitationSettings);
         
+        // ✅ Get private key for entry fee transfer
+        let privateKey = null;
+        if (safeAuthGetPrivateKey) {
+            try {
+                privateKey = await safeAuthGetPrivateKey();
+                console.log('✅ Private key retrieved for joining table');
+            } catch (error) {
+                console.error('❌ Failed to get private key:', error);
+            }
+        }
+        
         socket.emit('join_table', {
             tableId: tableId,
             userId: userId,
@@ -361,7 +374,8 @@ const GameTablePage = () => {
             username: userName,
             avatar: userAvatar,
             tableName: actualTableName,
-            entryFee: actualEntryFee
+            entryFee: actualEntryFee,
+            privateKey: privateKey // ✅ Send private key for entry fee transfer
         }, (joinResponse) => {
             if (joinResponse && joinResponse.success) {
                 console.log('✅ Successfully joined/created table');
