@@ -121,21 +121,19 @@ export const AuthProvider = ({ children }) => {
           } else {
             // Check if token is a Web3Auth temporary token
             const token = localStorage.getItem('authToken');
+            let isWeb3AuthToken = false;
             try {
               const tokenData = JSON.parse(atob(token));
               if (tokenData.isWeb3Auth && tokenData.walletAddress) {
-                // This is a Web3Auth token, user should be authenticated via wallet
-                console.log('✅ AuthContext: Web3Auth token found, user authenticated via wallet');
-                // Don't try to fetch from API, wallet connection is sufficient
-                dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
-                return;
+                isWeb3AuthToken = true;
+                console.log('✅ AuthContext: Web3Auth token found, fetching user profile from backend...');
               }
             } catch (e) {
               // Not a Web3Auth token, continue with normal flow
             }
             
             console.log('🔄 AuthContext: Getting user profile from API...');
-            // Try to get user profile
+            // Try to get user profile (even for Web3Auth users, we need to fetch from backend)
             try {
               const userProfile = await apiService.getUserProfile();
               console.log('📥 AuthContext: User profile from API:', userProfile);
@@ -144,8 +142,13 @@ export const AuthProvider = ({ children }) => {
                 payload: { user: userProfile },
               });
             } catch (apiError) {
-              // API call failed, but if we have a Web3Auth token, user is still authenticated
-              console.log('⚠️ AuthContext: API call failed, but user may be authenticated via wallet');
+              // API call failed
+              console.error('❌ AuthContext: Failed to fetch user profile:', apiError);
+              if (isWeb3AuthToken) {
+                // For Web3Auth users, if API fails, we should still try to authenticate
+                // The WalletConnect component will handle backend registration
+                console.log('⚠️ AuthContext: API call failed for Web3Auth user, will retry via WalletConnect');
+              }
               dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
             }
           }

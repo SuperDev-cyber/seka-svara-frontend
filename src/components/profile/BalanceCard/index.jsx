@@ -50,25 +50,36 @@ const BalanceCard = () => {
     }, [safeAuthLoggedIn, safeAuthAccount, safeAuthGetUSDTBalance]);
 
     useEffect(() => {
-        if (user) {
+        // ✅ Fetch wallet data if user exists OR if Web3Auth is connected
+        // This allows the profile to load even if backend user data isn't ready yet
+        if (user || (safeAuthLoggedIn && safeAuthAccount)) {
             fetchWalletData();
-            // ✅ Don't call getBalance() - just use platform score from user context
-            // The platform score is already updated by the backend after deposits/withdrawals
+        } else {
+            // If no user and no wallet connection, stop loading
+            setLoading(false);
         }
-    }, [user, isConnected, currentNetwork]);
+    }, [user, isConnected, currentNetwork, safeAuthLoggedIn, safeAuthAccount]);
 
     const fetchWalletData = async () => {
         try {
             setLoading(true);
-            const [walletResponse, addressesResponse] = await Promise.all([
-                apiService.get('/wallet/balance'),
-                apiService.get('/wallet/addresses')
-            ]);
+            // Only fetch from backend if user is authenticated
+            if (user) {
+                try {
+                    const [walletResponse, addressesResponse] = await Promise.all([
+                        apiService.get('/wallet/balance'),
+                        apiService.get('/wallet/addresses')
+                    ]);
 
-            setWalletData(walletResponse);
-            setAddresses(addressesResponse);
+                    setWalletData(walletResponse);
+                    setAddresses(addressesResponse);
+                } catch (error) {
+                    console.error('Error fetching wallet data from backend:', error);
+                    // Continue even if backend fetch fails
+                }
+            }
         } catch (error) {
-            console.error('Error fetching wallet data:', error);
+            console.error('Error in fetchWalletData:', error);
         } finally {
             setLoading(false);
         }

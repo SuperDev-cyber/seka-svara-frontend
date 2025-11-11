@@ -11,8 +11,13 @@ const TransactionCard = () => {
     const tabs = ['All', 'Bets', 'Winnings', 'Deposits', 'Withdrawals'];
 
     useEffect(() => {
+        // ✅ Fetch transactions if user exists, otherwise show empty state
         if (user) {
             fetchTransactions();
+        } else {
+            // If no user, stop loading and show empty state
+            setLoading(false);
+            setTransactions([]);
         }
     }, [user]);
 
