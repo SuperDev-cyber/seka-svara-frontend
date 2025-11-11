@@ -8,7 +8,7 @@ import './index.css';
 const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
     const { user } = useAuth();
     const { socket } = useSocket(); // Use shared socket from SocketContext
-    const { getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth(); // ✅ Get private key for entry fee transfer
+    const { getPrivateKey: safeAuthGetPrivateKey, account: safeAuthAccount, user: safeAuthUser } = useSafeAuth(); // ✅ Get private key for entry fee transfer
     const [activeTab, setActiveTab] = useState('friends');
     const [emailAddress, setEmailAddress] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -448,8 +448,15 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                                     {isLoadingUsers ? (
                                         <div className="loading-users">Loading online users...</div>
                                     ) : (() => {
-                                        const currentUserId = user?.id || user?.userId;
-                                        const filteredUsers = onlineUsers.filter(onlineUser => onlineUser.userId !== currentUserId);
+                                        // Exclude the current user from the list (support both backend and Web3Auth-only sessions)
+                                        const currentUserId = user?.id || user?.userId || safeAuthAccount;
+                                        const currentUserEmail = user?.email || safeAuthUser?.email || '';
+                                        const filteredUsers = onlineUsers.filter(onlineUser => {
+                                            if (!onlineUser) return false;
+                                            const sameId = currentUserId && onlineUser.userId === currentUserId;
+                                            const sameEmail = currentUserEmail && onlineUser.email && onlineUser.email.toLowerCase() === currentUserEmail.toLowerCase();
+                                            return !(sameId || sameEmail);
+                                        });
                                         console.log('Current user ID:', currentUserId);
                                         console.log('Online users:', onlineUsers);
                                         console.log('Filtered users:', filteredUsers);
