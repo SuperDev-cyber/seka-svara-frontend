@@ -497,12 +497,22 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                                     ) : (() => {
                                         // Exclude the current user from the list (support both backend and Web3Auth-only sessions)
                                         const currentUserId = user?.id || user?.userId || safeAuthAccount;
-                                        const currentUserEmail = user?.email || safeAuthUser?.email || '';
-                                        const filteredUsers = onlineUsers.filter(onlineUser => {
+                                        const currentUserEmail = (user?.email || safeAuthUser?.email || '').toLowerCase();
+                                        // 1) Exclude self
+                                        let filtered = onlineUsers.filter(onlineUser => {
                                             if (!onlineUser) return false;
                                             const sameId = currentUserId && onlineUser.userId === currentUserId;
-                                            const sameEmail = currentUserEmail && onlineUser.email && onlineUser.email.toLowerCase() === currentUserEmail.toLowerCase();
+                                            const sameEmail = currentUserEmail && onlineUser.email && onlineUser.email.toLowerCase() === currentUserEmail;
                                             return !(sameId || sameEmail);
+                                        });
+                                        // 2) Deduplicate strictly by email (keep first occurrence)
+                                        const seenEmails = new Set();
+                                        const filteredUsers = filtered.filter(u => {
+                                            const emailKey = (u.email || '').toLowerCase();
+                                            if (!emailKey) return false; // require valid email
+                                            if (seenEmails.has(emailKey)) return false;
+                                            seenEmails.add(emailKey);
+                                            return true;
                                         });
                                         console.log('Current user ID:', currentUserId);
                                         console.log('Online users:', onlineUsers);

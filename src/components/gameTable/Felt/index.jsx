@@ -79,11 +79,7 @@ const Seat = ({
               {index + 1} SIT
             </div>
           </div>
-          <div className="each-card">
-            <img className={`each see`} src={cardSeka} alt="" />
-            <img className={`each see`} src={cardSeka} alt="" />
-            <img className={`each see`} src={cardSeka} alt="" />
-          </div>
+          {/* Hide deck visuals for empty seats to avoid showing cards when seat is empty */}
         </div>
       </div>
     );
