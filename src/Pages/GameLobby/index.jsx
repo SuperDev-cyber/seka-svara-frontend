@@ -382,7 +382,8 @@ const GameLobby = () => {
                 creatorId: userId,
                 creatorEmail: userEmail,
                 creatorUsername: userName,
-                creatorAvatar: userAvatar
+                creatorAvatar: userAvatar,
+                creatorWalletAddress: safeAuthAccount || null // ✅ Pass wallet address directly
             }, async (response) => {
                 if (response.success) {
                     const tableId = response.tableId;
