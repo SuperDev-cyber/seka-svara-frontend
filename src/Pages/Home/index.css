@@ -356,6 +356,7 @@
 /* Connected Wallet Info - New Card Design */
 .connected-wallet-info {
     margin-top: 1.5rem;
+    display: none;
     padding: 0;
     background: #1A1D2B;
     border: 1px solid rgba(255, 255, 255, 0.1);
