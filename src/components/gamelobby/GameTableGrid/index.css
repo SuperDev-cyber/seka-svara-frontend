@@ -79,6 +79,16 @@
     right: -24px;
 }
 
+@media screen and (max-width: 1024px) {
+    .game-table-grid{
+        display: none;
+    }
+
+    .game-table-grid:nth-child(2){
+        display: block !important;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .table-scroll-button {
@@ -101,4 +111,12 @@
     }
 }
 
+@media screen and (max-width: 468px) {
+    .game-table-card-new{
+        min-width: 195px !important;
+    }
 
+    .table-surface{
+        height: 130px !important;
+    }
+}

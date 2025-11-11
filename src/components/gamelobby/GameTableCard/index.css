@@ -41,7 +41,7 @@
     border-color: #ffa100;
     /* box-shadow: 0 16px 44px #ffba0847, 0 6px 26px #0000008c, inset 0 1px #ffffff1f; */
     z-index: 2;
-    margin: 6px 30px;
+    margin: 10px 30px;
 }
 
 .game-table-card-new::before {
@@ -222,7 +222,6 @@
   transition: all 0.4s ease;
   /* Make hover highlight follow the oval */
   /* border-radius: 140px/70px; */
-  overflow: hidden;
   top:17px
 }
 
@@ -251,13 +250,13 @@
   font-weight: 700;
   color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-  margin-bottom: 1.7rem;
+  margin-bottom: 2.7rem;
   z-index: 2;
 }
 
 .seats-container {
     position: absolute;
-    top: 0px !important;
+    top: -8px !important;
     right: 0;
     bottom: 0;
     left: 0;
