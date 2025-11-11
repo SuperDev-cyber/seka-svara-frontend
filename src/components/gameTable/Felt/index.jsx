@@ -35,6 +35,11 @@ const Seat = ({
   const [shouldAnimateFlip, setShouldAnimateFlip] = useState(false);
 
   if (isEmpty) {
+    // Map visual seat positions to clockwise numbering starting from bottom-center as 1
+    // Visual positions: 3 (bottom-center), 2 (bottom-right), 1 (right-top), 0 (top-center), 5 (left-top), 4 (bottom-left)
+    const clockwiseOrder = [3, 2, 1, 0, 5, 4];
+    const seatNumber = Math.max(1, clockwiseOrder.indexOf(seatVisualClass) + 1);
+    const isBottomCenter = seatVisualClass === 3;
     return (
       <div
         className={`seat seat-${seatVisualClass} empty-seat`}
@@ -51,34 +56,36 @@ const Seat = ({
             minHeight: "120px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "8px",
-              opacity: 0.5,
-            }}
-          >
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#888"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
+          {!isBottomCenter && (
             <div
-              className="player-name"
-              style={{ color: "#888", fontSize: "12px", fontWeight: "600" }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
+                opacity: 0.5,
+              }}
             >
-              {index + 1} SIT
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#888"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              <div
+                className="player-name"
+                style={{ color: "#888", fontSize: "12px", fontWeight: "600" }}
+              >
+                {seatNumber} SIT
+              </div>
             </div>
-          </div>
+          )}
           {/* Hide deck visuals for empty seats to avoid showing cards when seat is empty */}
         </div>
       </div>

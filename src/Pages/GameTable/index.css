@@ -620,34 +620,34 @@
 /* Seat positions around oval */
 .seat-0 {
   border-radius: 12px;
-  top: -78px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .seat-1 {
-  top: -6px;
+  top: 20px;
   right: 0;
 }
 
 .seat-2 {
-  bottom: 12px;
+  bottom: 30px;
   right: 0;
 }
 
 .seat-3 {
-  bottom: -91px;
+  bottom: -30px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .seat-4 {
-  bottom: 12px;
+  bottom: 30px;
   left: -18px;
 }
 
 .seat-5 {
-  top: -6px;
+  top: 20px;
   left: -18px;
 }
 
