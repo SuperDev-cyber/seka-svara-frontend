@@ -379,13 +379,13 @@ const Header = () => {
                                 <line x1="12" y1="8" x2="12" y2="12" />
                                 <line x1="12" y1="16" x2="12.01" y2="16" />
                             </svg>
-                            <span>USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)}</span>
+                            <span>USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)} | BNB: {parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</span>
                         </div>
                     )}
 
-                    {safeAuthLoggedIn && safeAuthAccount && isAuthenticated ? (
+                    {/* Show user avatar when wallet is connected (WalletConnect handles auto-authentication) */}
+                    {safeAuthLoggedIn && safeAuthAccount ? (
                         <>
-                            {/* Show user avatar when wallet is connected and user is authenticated */}
                             <div className='user-menu-container'>
                             <button className='user-menu-trigger' onClick={toggleUserMenu}>
                                 <div className='user-avatar'>
@@ -393,7 +393,9 @@ const Header = () => {
                                         <img src={user.avatar} alt={user.username} />
                                     ) : (
                                         <span className='user-avatar-initial'>
-                                            {user?.username ? user.username.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                                            {user?.username ? user.username.charAt(0).toUpperCase() : 
+                                             user?.email ? user.email.charAt(0).toUpperCase() : 
+                                             safeAuthAccount ? safeAuthAccount.charAt(2).toUpperCase() : 'U'}
                                         </span>
                                     )}
                                 </div>
@@ -406,9 +408,13 @@ const Header = () => {
                             {showUserMenu && (
                                 <div className='user-menu-dropdown'>
                                     <div className='user-info'>
-                                        <div className='user-email'>{user?.email}</div>
+                                        <div className='user-email'>{user?.email || safeAuthAccount || 'Web3Auth User'}</div>
                                         <div className='user-balance'>
-                                            USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                                            {safeAuthLoggedIn ? (
+                                                <>USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)} | BNB: {parseFloat(safeAuthBNBBalance || '0').toFixed(4)}</>
+                                            ) : (
+                                                <>USDT: {Number(user?.platformScore || 0).toFixed(2)}</>
+                                            )}
                                         </div>
                                     </div>
                                     <div className='user-menu-divider'></div>
@@ -502,22 +508,22 @@ const Header = () => {
 
                         {/* Mobile Utility Links */}
                         <div className='mobile-utility-links'>
-                            {isAuthenticated ? (
+                            {safeAuthLoggedIn && safeAuthAccount ? (
                                 <div className='mobile-user-info'>
                                     <div className='mobile-user-avatar'>
                                         {user?.avatar ? (
                                             <img src={user.avatar} alt={user.username} />
                                         ) : (
                                             <span className='user-avatar-initial'>
-                                                {user?.username ? user.username.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                                                {user?.username ? user.username.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : safeAuthAccount?.charAt(2).toUpperCase() || 'U'}
                                             </span>
                                         )}
                                     </div>
                                     <div className='mobile-user-details'>
-                                        <div className='mobile-user-name'>{cleanUsername(user?.username)}</div>
-                                        <div className='mobile-user-email'>{user?.email}</div>
+                                        <div className='mobile-user-name'>{user?.username ? cleanUsername(user.username) : user?.email?.split('@')[0] || safeAuthAccount?.substring(0, 6) + '...' || 'User'}</div>
+                                        <div className='mobile-user-email'>{user?.email || safeAuthAccount || 'Web3Auth User'}</div>
                                         <div className='mobile-user-balance'>
-                                            USDT: {safeAuthLoggedIn ? parseFloat(safeAuthUSDTBalance || '0').toFixed(2) : Number(user?.platformScore || 0).toFixed(2)}
+                                            USDT: {parseFloat(safeAuthUSDTBalance || '0').toFixed(2)} | BNB: {parseFloat(safeAuthBNBBalance || '0').toFixed(4)}
                                         </div>
                                     </div>
                                 </div>
@@ -566,26 +572,18 @@ const Header = () => {
                                 </div>
                             )}
 
-                            {isAuthenticated ? (
+                            {/* Show Profile and Logout when wallet is connected (WalletConnect handles auto-authentication) */}
+                            {safeAuthLoggedIn && safeAuthAccount ? (
                                 <>
                                     <Link to="/profile" className='mobile-connect-wallet-btn' onClick={closeMobileMenu}>
                                         {t('profile')}
                                     </Link>
-                                    {/* <button className='mobile-deposit-btn' onClick={() => { setShowDepositModal(true); closeMobileMenu(); }}>
-                                        {t('deposit')}
-                                    </button> */}
-                                    {/* <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
-                                        {t('playNow')}
-                                    </button> */}
                                     <button className='mobile-logout-btn' onClick={() => { handleLogout(); closeMobileMenu(); }}>
                                         {t('logout')}
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    {/* <button className='mobile-play-now-btn' onClick={() => { handlePlayNow(); closeMobileMenu(); }}>
-                                        {t('playNow')}
-                                    </button> */}
                                 </>
                             )}
                         </div>
