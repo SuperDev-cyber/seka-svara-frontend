@@ -260,19 +260,24 @@ const Header = () => {
 
     const handleLogout = async () => {
         try {
-            // Logout from Web3Auth first (if connected)
+            // Step 1: Logout from backend first (to clear server session)
+            try {
+                await logout();
+            } catch (error) {
+                console.error('Backend logout error:', error);
+            }
+            
+            // Step 2: Logout from Web3Auth (clears wallet connection)
             if (safeAuthLoggedIn) {
                 try {
                     await safeAuthLogout();
+                    console.log('✅ Web3Auth logged out successfully');
                 } catch (error) {
                     console.error('Web3Auth logout error:', error);
                 }
             }
             
-            // Then logout from backend and clear auth state
-            await logout();
-            
-            // Clear all state and navigate
+            // Step 3: Clear all state and navigate
             navigate('/');
             setShowUserMenu(false);
             
@@ -369,7 +374,22 @@ const Header = () => {
                     </span>
                 </button>
 
-                {/* Desktop Utility Links */}
+                
+
+                {/* Desktop Action Buttons */}
+              
+                <div className='language-selector'>
+                        <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                        <select value={lang} onChange={(e) => setLang(e.target.value)} className='lang-select'>
+                            <option value="en">{t('english')}</option>
+                            <option value="ru">{t('russian')}</option>
+                        </select>
+                    </div>
+                    {/* Desktop Utility Links */}
                 <div className='utility-links desktop-utility'>
                     {/* Balance Display - Styled like language selector */}
                     {safeAuthLoggedIn && safeAuthAccount && (
@@ -462,20 +482,6 @@ const Header = () => {
                         </>
                     )}
                 </div>
-
-                {/* Desktop Action Buttons */}
-              
-                <div className='language-selector'>
-                        <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="2" y1="12" x2="22" y2="12" />
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                        <select value={lang} onChange={(e) => setLang(e.target.value)} className='lang-select'>
-                            <option value="en">{t('english')}</option>
-                            <option value="ru">{t('russian')}</option>
-                        </select>
-                    </div>
 
                 {/* Mobile Menu Overlay */}
                 <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`} onClick={closeMobileMenu}></div>

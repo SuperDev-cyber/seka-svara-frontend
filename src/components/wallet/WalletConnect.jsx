@@ -21,6 +21,9 @@ const WalletConnect = () => {
   // Auto-authenticate if Web3Auth is already connected but AuthContext is not authenticated
   // ✅ WALLET CONNECTION = IMMEDIATE AUTHENTICATION
   useEffect(() => {
+    let isMounted = true;
+    let retryTimeout = null;
+    
     const autoAuth = async () => {
       if (safeAuthLoggedIn && safeAuthAccount && !isAuthenticated && !loading && !safeAuthLoading) {
         console.log('🔄 Web3Auth connected, authenticating immediately...');
@@ -29,8 +32,34 @@ const WalletConnect = () => {
           const email = userInfo?.email;
           const name = userInfo?.name;
           
-          // ✅ IMMEDIATE AUTHENTICATION - Create user object from wallet
-          const walletUser = {
+          // ✅ STEP 1: Register/login on backend FIRST (blocking)
+          // This ensures user is stored in database before frontend authentication
+          console.log('📡 Registering/authenticating with backend...');
+          let authResponse;
+          let retryCount = 0;
+          const maxRetries = 3;
+          
+          while (retryCount < maxRetries && isMounted) {
+            try {
+              authResponse = await apiService.loginWithWeb3Auth(safeAuthAccount, email, name);
+              console.log('✅ Backend registration successful:', authResponse);
+              break; // Success, exit retry loop
+            } catch (error) {
+              retryCount++;
+              console.error(`❌ Backend registration failed (attempt ${retryCount}/${maxRetries}):`, error);
+              
+              if (retryCount < maxRetries) {
+                // Wait before retry (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+              } else {
+                // All retries failed, but continue with temporary authentication
+                console.error('❌ Backend registration failed after all retries, using temporary auth');
+              }
+            }
+          }
+          
+          // ✅ STEP 2: Authenticate frontend with backend user data (if available) or wallet data
+          const userData = authResponse?.user || {
             id: safeAuthAccount,
             username: email ? email.split('@')[0] + '_web3' : 'user_' + safeAuthAccount.substring(2, 10),
             email: email || `${safeAuthAccount}@web3auth.local`,
@@ -40,32 +69,27 @@ const WalletConnect = () => {
             role: 'USER',
           };
 
-          // Authenticate immediately via wallet connection
-          await login({
-            walletAddress: safeAuthAccount,
-            email,
-            name,
-            isWeb3Auth: true,
-            user: walletUser
-          });
-
-          console.log('✅ User authenticated immediately via wallet connection');
-
-          // Register/login on backend in background (non-blocking)
-          apiService.loginWithWeb3Auth(safeAuthAccount, email, name)
-            .then((authResponse) => {
-              console.log('✅ Backend registration successful:', authResponse);
-              refreshUserProfile().catch(err => console.error('Profile refresh failed:', err));
-            })
-            .catch((error) => {
-              console.error('❌ Backend registration failed (non-blocking):', error);
-              // Retry in background
-              setTimeout(() => {
-                apiService.loginWithWeb3Auth(safeAuthAccount, email, name)
-                  .then(() => refreshUserProfile())
-                  .catch(err => console.error('Retry failed:', err));
-              }, 10000);
+          if (isMounted) {
+            await login({
+              walletAddress: safeAuthAccount,
+              email,
+              name,
+              isWeb3Auth: true,
+              user: userData
             });
+
+            console.log('✅ User authenticated via wallet connection');
+
+            // ✅ STEP 3: Refresh user profile to get latest data from backend
+            if (authResponse) {
+              try {
+                await refreshUserProfile();
+                console.log('✅ User profile refreshed from backend');
+              } catch (err) {
+                console.error('⚠️ Profile refresh failed (non-critical):', err);
+              }
+            }
+          }
         } catch (error) {
           console.error('❌ Auto-authentication failed:', error);
         }
@@ -73,6 +97,11 @@ const WalletConnect = () => {
     };
 
     autoAuth();
+    
+    return () => {
+      isMounted = false;
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, [safeAuthLoggedIn, safeAuthAccount, isAuthenticated, safeAuthUser, loading, safeAuthLoading, login, refreshUserProfile]);
 
   // Handle Web3Auth wallet connection - WALLET CONNECTION = IMMEDIATE AUTHENTICATION
@@ -101,9 +130,34 @@ const WalletConnect = () => {
 
       console.log('✅ Web3Auth connected:', { walletAddress, email, name });
 
-      // ✅ WALLET CONNECTION = IMMEDIATE AUTHENTICATION
-      // Create a minimal user object from wallet info for immediate authentication
-      const walletUser = {
+      // Step 2: Register/login user on backend FIRST (blocking)
+      // This ensures user is stored in database before frontend authentication
+      console.log('📡 Registering/authenticating with backend...');
+      let authResponse;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          authResponse = await apiService.loginWithWeb3Auth(walletAddress, email, name);
+          console.log('✅ Backend authentication successful:', authResponse);
+          break; // Success, exit retry loop
+        } catch (authError) {
+          retryCount++;
+          console.error(`❌ Backend authentication error (attempt ${retryCount}/${maxRetries}):`, authError);
+          
+          if (retryCount < maxRetries) {
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+          } else {
+            // All retries failed, but continue with temporary authentication
+            console.error('❌ Backend authentication failed after all retries, using temporary auth');
+          }
+        }
+      }
+      
+      // Step 3: Authenticate frontend with backend user data (if available) or create wallet user
+      const userData = authResponse?.user || {
         id: walletAddress, // Use wallet address as temporary ID
         username: email ? email.split('@')[0] + '_web3' : 'user_' + walletAddress.substring(2, 10),
         email: email || `${walletAddress}@web3auth.local`,
@@ -112,43 +166,30 @@ const WalletConnect = () => {
         balance: 0,
         role: 'USER',
       };
-
-      // Immediately authenticate user via AuthContext (this updates global auth state)
-      // Use the login function which properly updates the context
+      
       await login({
         walletAddress,
         email,
         name,
         isWeb3Auth: true,
-        user: walletUser
+        user: userData
       });
 
-      console.log('✅ User authenticated immediately via wallet connection');
+      console.log('✅ User authenticated via wallet connection');
 
       if (window.showToast) {
         window.showToast('Wallet connected! You are now authenticated.', 'success', 3000);
       }
 
-      // Step 2: Register/login user on backend in the background (non-blocking)
-      // This happens asynchronously and doesn't block the user experience
-      apiService.loginWithWeb3Auth(walletAddress, email, name)
-        .then((authResponse) => {
-          console.log('✅ Backend authentication successful:', authResponse);
-          // Update with real user data from backend
-          refreshUserProfile().catch(err => {
-            console.error('Failed to refresh profile:', err);
-          });
-        })
-        .catch((authError) => {
-          console.error('❌ Backend authentication error (non-blocking):', authError);
-          // Backend auth failed, but user is still authenticated via wallet
-          // We'll retry in the background
-          setTimeout(() => {
-            apiService.loginWithWeb3Auth(walletAddress, email, name)
-              .then(() => refreshUserProfile())
-              .catch(err => console.error('Retry failed:', err));
-          }, 5000);
-        });
+      // Step 4: Refresh user profile to get latest data from backend
+      if (authResponse) {
+        try {
+          await refreshUserProfile();
+          console.log('✅ User profile refreshed from backend');
+        } catch (err) {
+          console.error('⚠️ Profile refresh failed (non-critical):', err);
+        }
+      }
 
     } catch (err) {
       console.error('Wallet connection error:', err);
@@ -194,7 +235,7 @@ const WalletConnect = () => {
             <div className="wallet-address">
               {safeAuthAccount.substring(0, 6)}...{safeAuthAccount.substring(safeAuthAccount.length - 4)}
             </div>
-          </div>
+            </div>
         </div>
 
         <div className="wallet-actions">
@@ -233,18 +274,18 @@ const WalletConnect = () => {
         </div>
       )}
 
-      <button
-        className="connect-btn"
+        <button
+          className="connect-btn"
         onClick={handleConnectWallet}
         disabled={loading || safeAuthLoading || !!safeAuthInitError}
-      >
-        <svg className='wallet-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-          <line x1="10" y1="9" x2="14" y2="9" />
-        </svg>
+        >
+          <svg className='wallet-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+            <line x1="10" y1="9" x2="14" y2="9" />
+          </svg>
         {loading || safeAuthLoading ? 'Connecting...' : 'Connect Wallet'}
-      </button>
+              </button>
 
       {error && (
         <div className="error-message">
