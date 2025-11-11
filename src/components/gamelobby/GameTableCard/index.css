@@ -432,6 +432,29 @@
   height: 16px;
 }
 
+.preview-table-btn {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 186, 8, 0.35);
+  background: rgba(18, 21, 31, 0.8);
+  color: #ffba08;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 0.65rem;
+}
+
+.preview-table-btn:hover {
+  background: rgba(255, 186, 8, 0.12);
+  border-color: #ffba08;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(255, 186, 8, 0.25);
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
   .game-table-card-new {

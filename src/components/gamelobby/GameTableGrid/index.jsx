@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import GameTableCard from '../GameTableCard';
 import './index.css';
 
-const GameTableGrid = ({ gameTables, onJoinTable, onInviteFriends }) => {
+const GameTableGrid = ({ gameTables, onJoinTable, onPreviewTable, onInviteFriends }) => {
     const scrollContainerRef = useRef(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(true);
@@ -87,6 +87,7 @@ const GameTableGrid = ({ gameTables, onJoinTable, onInviteFriends }) => {
                         key={table.id || index} 
                         table={table} 
                         onJoinTable={onJoinTable}
+                        onPreviewTable={onPreviewTable}
                         onInviteFriends={onInviteFriends}
                         isCenter={index === centerIndex}
                     />

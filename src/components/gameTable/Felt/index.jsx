@@ -25,6 +25,8 @@ const Seat = ({
   isCurrentTurn = false,
   cardViewers,
   setCardViewers,
+  onSit,
+  isPreview,
 }) => {
   // ✅ index = Physical DOM position (unique per player, based on join order)
   // ✅ visualPosition = Visual CSS position (where they appear on screen)
@@ -36,10 +38,11 @@ const Seat = ({
 
   if (isEmpty) {
     // Map visual seat positions to clockwise numbering starting from bottom-center as 1
-    // Visual positions: 3 (bottom-center), 2 (bottom-right), 1 (right-top), 0 (top-center), 5 (left-top), 4 (bottom-left)
+    // Visual positions: 3 (bottom-center), 2 (bottom-right), 1 (top-right), 0 (top-center), 5 (top-left), 4 (bottom-left)
     const clockwiseOrder = [3, 2, 1, 0, 5, 4];
     const seatNumber = Math.max(1, clockwiseOrder.indexOf(seatVisualClass) + 1);
     const isBottomCenter = seatVisualClass === 3;
+    const canDisplaySit = isPreview || !isBottomCenter;
     return (
       <div
         className={`seat seat-${seatVisualClass} empty-seat`}
@@ -56,7 +59,7 @@ const Seat = ({
             minHeight: "120px",
           }}
         >
-          {!isBottomCenter && (
+          {canDisplaySit && (
             <div
               style={{
                 display: "flex",
@@ -84,6 +87,26 @@ const Seat = ({
               >
                 {seatNumber} SIT
               </div>
+              {isPreview && (
+                <button
+                  style={{
+                    marginTop: "6px",
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    border: "1px solid rgba(255, 186, 8, 0.5)",
+                    background: "linear-gradient(135deg, rgba(255,186,8,0.2), rgba(255,186,8,0.05))",
+                    color: "#ffba08",
+                    fontWeight: "700",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px"
+                  }}
+                  onClick={() => onSit && onSit(seatVisualClass)}
+                >
+                  Sit
+                </button>
+              )}
             </div>
           )}
           {/* Hide deck visuals for empty seats to avoid showing cards when seat is empty */}
@@ -729,6 +752,8 @@ const Felt = ({
   cardViewers = [],
   setCardViewers = () => {},
   onDealingComplete,
+  isPreview = false,
+  onSitRequest = () => {},
 }) => {
   // Load avatars from assets/images/users using Vite's glob importer
   const avatarModules = import.meta.glob(
@@ -770,11 +795,11 @@ const Felt = ({
 
   // Seat layout based on maxPlayers
   const seatLayout = {
-    2: { bottomCenter: 3, othersAt: [0] },
-    3: { bottomCenter: 3, othersAt: [5, 1] },
-    4: { bottomCenter: 3, othersAt: [5, 0, 1] },
-    5: { bottomCenter: 3, othersAt: [4, 5, 0, 1] },
-    6: { bottomCenter: 3, othersAt: [4, 5, 0, 1, 2] },
+    2: { bottomCenter: 3, othersAt: [2] },
+    3: { bottomCenter: 3, othersAt: [2, 1] },
+    4: { bottomCenter: 3, othersAt: [2, 1, 0] },
+    5: { bottomCenter: 3, othersAt: [2, 1, 0, 5] },
+    6: { bottomCenter: 3, othersAt: [2, 1, 0, 5, 4] },
   };
 
   const layout = seatLayout[maxPlayers] || seatLayout[6];
@@ -979,6 +1004,8 @@ const Felt = ({
                 }
                 cardViewers={cardViewers}
                 setCardViewers={setCardViewers}
+                onSit={(seatPosition) => onSitRequest(seatPosition)}
+                isPreview={isPreview}
               />
             );
           })}

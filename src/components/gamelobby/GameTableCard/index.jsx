@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './index.css';
 
-const GameTableCard = ({ table, onJoinTable, onInviteFriends, isCenter = false }) => {
+const GameTableCard = ({ table, onJoinTable, onPreviewTable, onInviteFriends, isCenter = false }) => {
     const navigate = useNavigate();
 
     // Generate table name from ID (e.g., "SOFIA #89")
@@ -132,6 +132,15 @@ const GameTableCard = ({ table, onJoinTable, onInviteFriends, isCenter = false }
                 </svg>
                 Join Table
             </button>
+
+            {onPreviewTable && (
+                <button
+                    className='preview-table-btn'
+                    onClick={() => onPreviewTable(table)}
+                >
+                    Preview
+                </button>
+            )}
         </div>
     );
 };

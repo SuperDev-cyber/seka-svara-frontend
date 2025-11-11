@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './index.css';
 import {
     GameLobbyHeader,
@@ -20,6 +21,7 @@ import apiService from '../../services/api';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const GameLobby = () => {
+    const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
     const { socket, isConnected } = useSocket(); // Use shared socket
     const { isConnected: walletConnected, currentNetwork, getBalance } = useWallet(); // Wallet context for SEKA balance
@@ -194,7 +196,7 @@ const GameLobby = () => {
             socket.emit('get_table_details', { tableId: savedTableId }, (detailsResponse) => {
                 if (detailsResponse.success) {
                     const gameUrl = `/game/${savedTableId}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(savedTableName || savedTableId)}`;
-                    window.location.href = gameUrl;
+                    navigate(gameUrl);
                     return;
                 } else {
                     sessionStorage.removeItem('seka_currentTableId');
@@ -227,7 +229,7 @@ const GameLobby = () => {
             socket.off('table_updated', handleTableUpdated);
             socket.off('table_removed', handleTableRemoved);
         };
-    }, [socket, userId, userEmail, userName, userAvatar, isConnected]);
+    }, [socket, userId, userEmail, userName, userAvatar, isConnected, navigate]);
 
     const filteredGameTables = useMemo(() => {
         let tables = availableTables;
@@ -302,10 +304,11 @@ const GameLobby = () => {
             alert('❌ Please connect your wallet first!\n\nYou need to connect your Web3Auth wallet to play.');
             return;
         }
-        if (usdtBalance < entryFeeNum) {
+        const requiredBalance = entryFeeNum * 2;
+        if (usdtBalance < requiredBalance) {
             setInsufficientBalanceModal({
                 isOpen: true,
-                requiredAmount: entryFeeNum,
+                requiredAmount: requiredBalance,
                 currentBalance: usdtBalance
             });
             return;
@@ -333,11 +336,21 @@ const GameLobby = () => {
                 sessionStorage.setItem('seka_currentTableId', table.id);
                 sessionStorage.setItem('seka_currentTableName', table.tableName || table.id);
                 const gameUrl = `/game/${table.id}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(table.tableName || table.id)}`;
-                window.location.href = gameUrl;
+                navigate(gameUrl);
             } else {
                 alert(`❌ Failed to join table: ${response.message}`);
             }
         });
+    };
+
+    const handlePreviewTable = (table) => {
+        if (!table) {
+            return;
+        }
+        sessionStorage.removeItem('seka_currentTableId');
+        sessionStorage.removeItem('seka_currentTableName');
+        sessionStorage.removeItem('seka_tableStatus');
+        navigate(`/game/${table.id}?preview=true`, { state: { table, preview: true } });
     };
 
     const handleCreateTableSubmit = async (tableData) => {
@@ -351,10 +364,11 @@ const GameLobby = () => {
                 alert('❌ Please connect your wallet first!\n\nYou need to connect your Web3Auth wallet to create and join a game.');
                 return;
             }
-            if (usdtBalance < entryFeeNum) {
+            const requiredBalance = entryFeeNum * 2;
+            if (usdtBalance < requiredBalance) {
                 setInsufficientBalanceModal({
                     isOpen: true,
-                    requiredAmount: entryFeeNum,
+                    requiredAmount: requiredBalance,
                     currentBalance: usdtBalance
                 });
                 return;
@@ -392,7 +406,7 @@ const GameLobby = () => {
                     }, (joinResponse) => {
                         if (joinResponse.success) {
                             const gameUrl = `/game/${tableId}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(tableData.tableName)}`;
-                            window.location.href = gameUrl;
+                            navigate(gameUrl);
                         } else {
                             alert(`❌ Failed to join your own table: ${joinResponse.message}`);
                         }
@@ -456,6 +470,7 @@ const GameLobby = () => {
                         <GameTableGrid 
                             gameTables={filteredGameTables} 
                             onJoinTable={handleJoinTable}
+                            onPreviewTable={handlePreviewTable}
                             onInviteFriends={handleInviteFriends}
                         />
                     </>

@@ -26,13 +26,22 @@ const GameTablePage = () => {
     const { isConnected, getBalance, currentNetwork } = useWallet();
     const { user, isAuthenticated } = useAuth();
     const { socket, isConnected: socketConnected } = useSocket(); // Use shared socket
-    const { getPrivateKey: safeAuthGetPrivateKey } = useSafeAuth(); // ✅ Get private key for USDT transfers
+    const {
+        loggedIn: safeAuthLoggedIn,
+        account: safeAuthAccount,
+        getUSDTBalance: safeAuthGetUSDTBalance,
+        getPrivateKey: safeAuthGetPrivateKey
+    } = useSafeAuth(); // ✅ Web3Auth helpers for joining/preview
     
     // Dynamic table data from in-memory storage
     const [tableData, setTableData] = useState(null);
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isPreview, setIsPreview] = useState(() => {
+        const params = new URLSearchParams(location.search);
+        return location?.state?.preview === true || params.get('preview') === 'true';
+    });
     
     // ✅ Read invitation table settings from sessionStorage
     const [invitationSettings, setInvitationSettings] = useState(null);
@@ -331,79 +340,159 @@ const GameTablePage = () => {
 
     // JOIN TABLE ONCE when component mounts (use ref to prevent multiple calls!)
     const hasJoinedTable = useRef(false);
-    
-    useEffect(() => {
+
+    const joinTableRequest = useCallback(async () => {
         if (!socket || !socketConnected) {
             console.log('⏳ Waiting for shared socket connection...');
-            return;
+            return { success: false, pending: true };
         }
-        
-        // ✅ FIX: Check if already joined to prevent duplicate calls
+
         if (hasJoinedTable.current) {
             console.log('⏭️ Already joined table, skipping duplicate call');
+            return { success: true, already: true };
+        }
+
+        console.log('🔗 Joining table to ensure it exists...');
+
+        const actualEntryFee = invitationSettings?.entryFee || table?.entryFee || 10;
+        const actualTableName = invitationSettings?.tableName || table?.tableName || 'Invited Game';
+
+        console.log('📊 Join Table Settings:');
+        console.log('   Entry Fee:', actualEntryFee);
+        console.log('   Table Name:', actualTableName);
+        console.log('   Invitation Settings:', invitationSettings);
+
+        let privateKey = null;
+        if (safeAuthGetPrivateKey && safeAuthLoggedIn && safeAuthAccount) {
+            try {
+                privateKey = await safeAuthGetPrivateKey();
+                console.log('✅ Private key retrieved for joining table');
+            } catch (error) {
+                console.error('❌ Failed to get private key:', error);
+            }
+        }
+
+        hasJoinedTable.current = true;
+
+        return await new Promise((resolve) => {
+            socket.emit('join_table', {
+                tableId: tableId,
+                userId: userId,
+                userEmail: userEmail,
+                username: userName,
+                avatar: userAvatar,
+                tableName: actualTableName,
+                entryFee: actualEntryFee,
+                privateKey: privateKey
+            }, (joinResponse) => {
+                if (joinResponse && joinResponse.success) {
+                    console.log('✅ Successfully joined/created table');
+
+                    if (joinResponse.players && joinResponse.players.length > 0) {
+                        console.log('👥 Setting initial player list from join response:', joinResponse.players);
+                        const formattedPlayers = joinResponse.players.map(player => ({
+                            ...player,
+                            username: player.username || player.email?.split('@')[0] || 'Player',
+                            avatar: player.avatar || null,
+                            balance: player.balance || 0
+                        }));
+                        setPlayers(formattedPlayers);
+                        console.log('✅ Player list initialized:', formattedPlayers.length, 'player(s)');
+                    } else {
+                        console.log('⚠️ No player list in join response');
+                    }
+                } else {
+                    console.warn('⚠️ Join table response:', joinResponse);
+                    hasJoinedTable.current = false;
+                }
+
+                resolve(joinResponse || { success: false });
+            });
+        });
+    }, [socket, socketConnected, tableId, userId, userEmail, userName, userAvatar, invitationSettings, table, safeAuthGetPrivateKey, safeAuthLoggedIn, safeAuthAccount]);
+
+    useEffect(() => {
+        if (isPreview) {
+            console.log('👀 Preview mode active - skipping automatic join');
             return;
         }
-        
-        hasJoinedTable.current = true; // Set flag BEFORE emitting to prevent duplicates
 
-        const joinTableAsync = async () => {
-            console.log('🔗 Joining table to ensure it exists...');
-            
-            // ✅ Use actual entry fee from invitation settings or fallback
-            const actualEntryFee = invitationSettings?.entryFee || table?.entryFee || 10;
-            const actualTableName = invitationSettings?.tableName || table?.tableName || 'Invited Game';
-            
-            console.log('📊 Join Table Settings:');
-            console.log('   Entry Fee:', actualEntryFee);
-            console.log('   Table Name:', actualTableName);
-            console.log('   Invitation Settings:', invitationSettings);
-            
-            // ✅ Get private key for entry fee transfer
-            let privateKey = null;
-            if (safeAuthGetPrivateKey) {
-                try {
-                    privateKey = await safeAuthGetPrivateKey();
-                    console.log('✅ Private key retrieved for joining table');
-                } catch (error) {
-                    console.error('❌ Failed to get private key:', error);
+        joinTableRequest();
+    }, [isPreview, joinTableRequest]);
+
+    const handleSeatSit = useCallback(async () => {
+        const requiredEntryFee = (invitationSettings?.entryFee || table?.entryFee || 10) * 2;
+
+        if (!safeAuthLoggedIn || !safeAuthAccount) {
+            alert('❌ Please connect your Web3Auth wallet before joining the table.');
+            return;
+        }
+
+        if (safeAuthGetUSDTBalance) {
+            try {
+                const balanceStr = await safeAuthGetUSDTBalance();
+                const balanceNum = parseFloat(balanceStr) || 0;
+                if (balanceNum < requiredEntryFee) {
+                    alert(`❌ Insufficient USDT balance.\n\nYou need at least ${requiredEntryFee} USDT to sit at this table.\nCurrent balance: ${balanceNum.toFixed(2)} USDT.`);
+                    return;
                 }
+            } catch (error) {
+                console.error('❌ Failed to fetch USDT balance:', error);
             }
-            
-            socket.emit('join_table', {
-            tableId: tableId,
-            userId: userId,
-            userEmail: userEmail,
-            username: userName,
-            avatar: userAvatar,
-            tableName: actualTableName,
-            entryFee: actualEntryFee,
-            privateKey: privateKey // ✅ Send private key for entry fee transfer
-        }, (joinResponse) => {
-            if (joinResponse && joinResponse.success) {
-                console.log('✅ Successfully joined/created table');
-                
-                // ✅ FIX: Set initial player list from join response for immediate sync
-                if (joinResponse.players && joinResponse.players.length > 0) {
-                    console.log('👥 Setting initial player list from join response:', joinResponse.players);
-                    const formattedPlayers = joinResponse.players.map(player => ({
+        }
+
+        const joinResponse = await joinTableRequest();
+        if (joinResponse?.success || joinResponse?.already) {
+            setIsPreview(false);
+            sessionStorage.setItem('seka_currentTableId', tableId);
+            sessionStorage.setItem('seka_currentTableName', table?.tableName || tableId);
+            sessionStorage.setItem('seka_tableStatus', 'waiting');
+            navigate(`/game/${tableId}`, { replace: true, state: { table } });
+        } else if (joinResponse?.message) {
+            alert(`❌ Failed to join table: ${joinResponse.message}`);
+        }
+    }, [
+        invitationSettings,
+        table,
+        safeAuthLoggedIn,
+        safeAuthAccount,
+        safeAuthGetUSDTBalance,
+        joinTableRequest,
+        tableId,
+        navigate
+    ]);
+
+    useEffect(() => {
+        if (!isPreview || !socket || !socketConnected) {
+            return;
+        }
+
+        let isActive = true;
+
+        socket.emit('watch_table', { tableId }, (response) => {
+            if (!isActive) return;
+            if (response?.success) {
+                if (response.players && response.players.length > 0) {
+                    const formattedPlayers = response.players.map(player => ({
                         ...player,
                         username: player.username || player.email?.split('@')[0] || 'Player',
                         avatar: player.avatar || null,
                         balance: player.balance || 0
                     }));
                     setPlayers(formattedPlayers);
-                    console.log('✅ Player list initialized:', formattedPlayers.length, 'player(s)');
-                } else {
-                    console.log('⚠️ No player list in join response');
                 }
-            } else {
-                console.warn('⚠️ Join table response:', joinResponse);
+            } else if (response?.message) {
+                console.warn('⚠️ watch_table response:', response.message);
             }
         });
-        };
 
-        joinTableAsync();
-    }, [socket, socketConnected, tableId, userId, userEmail, userName, userAvatar, invitationSettings, table, safeAuthGetPrivateKey]); // ✅ Added invitationSettings and table
+        return () => {
+            isActive = false;
+            if (socket && socket.connected) {
+                socket.emit('unwatch_table', { tableId });
+            }
+        };
+    }, [isPreview, socket, socketConnected, tableId]);
 
     // Fetch SEKA balance from connected wallet (real-time)
     useEffect(() => {
@@ -1564,6 +1653,8 @@ const GameTablePage = () => {
                 isDealingCards={isDealingCards}
                 cardViewers={cardViewers}
                 setCardViewers={setCardViewers}
+                isPreview={isPreview}
+                onSitRequest={handleSeatSit}
                 onDealingComplete={() => {
                     console.log('🎴 Card dealing animation in Felt complete!');
                     // Animation done, cards will now be visible
