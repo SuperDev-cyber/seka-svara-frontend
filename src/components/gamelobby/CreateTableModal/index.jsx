@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import './index.css';
-import InviteFriendsModal from '../InviteFriendsModal';
 
 const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
     const [tableName, setTableName] = useState('');
     const [privacy, setPrivacy] = useState('public');
-    const [entryFee, setEntryFee] = useState(1); // Default 10 SEKA
+    const [entryFee, setEntryFee] = useState(1); // Default 1 USDT
     const maxPlayers = 6; // Always 6 players - hardcoded
     const [selectedNetwork, setSelectedNetwork] = useState('BEP20');
-    const [showInviteModal, setShowInviteModal] = useState(false);
 
     const networks = [
         { value: 'BEP20', label: 'BEP20 (BSC)' }
@@ -16,30 +14,15 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('🎯 CreateTableModal: Form submitted, showing invite modal...');
-        // Just show the invite modal, don't create table yet
-        setShowInviteModal(true);
-        console.log('✅ showInviteModal set to true');
-    };
-
-    const handleInviteBack = () => {
-        setShowInviteModal(false);
-    };
-
-    // This function will be called from InviteFriendsModal when CREATE is clicked
-    const handleCreateTableWithInvites = async (tableDataWithCreator) => {
-        // Call the parent's onCreateTable function with the table data
-        const result = await onCreateTable({
+        console.log('🎯 CreateTableModal: Form submitted, creating table immediately...');
+        // Create table immediately without invitation flow
+        onCreateTable({
             tableName,
             privacy,
             entryFee,
             maxPlayers,
-            network: selectedNetwork,
-            ...tableDataWithCreator
+            network: selectedNetwork
         });
-        
-        // Return the created table so InviteFriendsModal can send invites
-        return result;
     };
 
     const totalPot = entryFee * 6;
@@ -54,10 +37,8 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
     if (!isOpen) return null;
 
     return (
-        <>
-            {!showInviteModal && (
-                <div className="modal-overlay" onClick={handleOverlayClick}>
-                    <div className="create-table-modal">
+        <div className="modal-overlay" onClick={handleOverlayClick}>
+            <div className="create-table-modal">
                 <div className="modal-header" style={{paddingRight:'75px'}}>
                     <h2 className="modal-title">Create New Table</h2>
                     <p className="modal-subtitle">Set up your game table with custom settings</p>
@@ -197,33 +178,12 @@ const CreateTableModal = ({ isOpen, onClose, onCreateTable }) => {
                             Cancel
                         </button>
                         <button type="submit" className="next-button">
-                            Next
+                            Create Table
                         </button>
                     </div>
                 </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Invite Friends Modal */}
-            {showInviteModal && console.log('🎨 Rendering InviteFriendsModal, isOpen:', showInviteModal)}
-            <InviteFriendsModal
-                isOpen={showInviteModal}
-                onClose={() => {
-                    console.log('🔙 Closing InviteFriendsModal');
-                    setShowInviteModal(false);
-                    onClose(); // Also close parent modal
-                }}
-                onCreateTable={handleCreateTableWithInvites}
-                tableData={{
-                    tableName,
-                    privacy,
-                    entryFee,
-                    maxPlayers,
-                    network: selectedNetwork
-                }}
-            />
-        </>
+            </div>
+        </div>
     );
 };
 

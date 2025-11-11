@@ -387,30 +387,10 @@ const GameLobby = () => {
                 if (response.success) {
                     const tableId = response.tableId;
                     setIsCreateModalOpen(false);
-
-                    let creatorPrivateKey = null;
-                    if (safeAuthGetPrivateKey) {
-                        try {
-                            creatorPrivateKey = await safeAuthGetPrivateKey();
-                        } catch (error) {}
-                    }
-                    socket.emit('join_table', {
-                        tableId: tableId,
-                        userId: userId,
-                        userEmail: userEmail,
-                        username: userName,
-                        avatar: userAvatar,
-                        tableName: tableData.tableName || 'Game Table',
-                        entryFee: tableData.entryFee || 10,
-                        privateKey: creatorPrivateKey
-                    }, (joinResponse) => {
-                        if (joinResponse.success) {
-                            const gameUrl = `/game/${tableId}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(tableData.tableName)}`;
-                            navigate(gameUrl);
-                        } else {
-                            alert(`❌ Failed to join your own table: ${joinResponse.message}`);
-                        }
-                    });
+                    
+                    // Creator is already auto-joined by backend, navigate directly to game
+                    const gameUrl = `/game/${tableId}?userId=${userId}&email=${encodeURIComponent(userEmail)}&tableName=${encodeURIComponent(tableData.tableName)}`;
+                    navigate(gameUrl);
                 } else {
                     alert(`❌ Failed to create table: ${response.message}`);
                 }
