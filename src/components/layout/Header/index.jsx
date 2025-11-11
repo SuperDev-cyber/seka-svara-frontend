@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useWallet } from '../../../contexts/WalletContext';
 import { useSafeAuth } from '../../../contexts/SafeAuthContext';
-import WalletConnect from '../../wallet/WalletConnect';
 import DepositModal from '../../wallet/DepositModal';
 import apiService from '../../../services/api';
 import { cleanUsername } from '../../../utils/username';
@@ -551,47 +550,47 @@ const Header = () => {
 
                         {/* Mobile Action Buttons */}
                         <div className='mobile-action-buttons'>
-                            {/* Hide Connect Wallet when SafeAuth is connected (Web3Auth handles wallet) */}
-                            {!safeAuthLoggedIn && !isConnected && (
-                                <div className='mobile-wallet-connect'>
-                                    <WalletConnect />
-                                </div>
+                            {/* Show Connect Wallet button when wallet is not connected */}
+                            {!safeAuthLoggedIn && (
+                                <button 
+                                    className='mobile-connect-wallet-btn'
+                                    onClick={async () => {
+                                        // Close mobile menu when opening Web3Auth modal
+                                        closeMobileMenu();
+                                        // Small delay to allow menu to close before modal opens
+                                        await new Promise(resolve => setTimeout(resolve, 100));
+                                        handleConnectWalletClick();
+                                    }}
+                                >
+                                    <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                        <line x1="10" y1="9" x2="14" y2="9" />
+                                    </svg>
+                                    Connect Wallet
+                                </button>
                             )}
 
-                            {/* Show balances when connected */}
-                            {isConnected && (
-                                <div style={{ width: '100%', marginBottom: '10px' }}>
-                                    {/* <button className='mobile-my-wallet-btn' title='Wallet Balance (not used for games)' style={{ opacity: 0.7, marginBottom: '5px' }}>
-                                        💼 Wallet: {getDisplayBalance()}
-                                    </button> */}
-                                    {/* <button
-                                        className='mobile-my-wallet-btn'
-                                        title='SEKA Points - Used for ALL games'
-                                        style={{
-                                            background: 'linear-gradient(135deg, rgb(248 145 32) 0%, rgb(223 254 52) 100%)',
-                                            border: '2px solid #ffd700',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        🎮 SEKA: {Number(platformScore || 0).toFixed(0)}
-                                    </button> */}
-                                </div>
-                            )}
-
-                            {/* Show Profile and Logout when wallet is connected (WalletConnect handles auto-authentication) */}
+                            {/* Show Profile and Logout when wallet is connected */}
                             {safeAuthLoggedIn && safeAuthAccount ? (
                                 <>
                                     <Link to="/profile" className='mobile-connect-wallet-btn' onClick={closeMobileMenu}>
+                                        <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                            <circle cx="12" cy="7" r="4" />
+                                        </svg>
                                         {t('profile')}
                                     </Link>
                                     <button className='mobile-logout-btn' onClick={() => { handleLogout(); closeMobileMenu(); }}>
+                                        <svg className='utility-icon' width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                            <polyline points="16 17 21 12 16 7" />
+                                            <line x1="21" y1="12" x2="9" y2="12" />
+                                        </svg>
                                         {t('logout')}
                                     </button>
                                 </>
-                            ) : (
-                                <>
-                                </>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 </div>
