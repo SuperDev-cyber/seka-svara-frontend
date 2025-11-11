@@ -34,6 +34,45 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         }
     }, [isOpen]);
 
+    // Utility: ensure we have a valid creatorId saved in backend (for Web3Auth-only sessions)
+    const getCreatorIdentity = async () => {
+        // Prefer existing backend user id
+        const creatorId = user?.id || user?.userId;
+        if (creatorId) {
+            return {
+                creatorId,
+                creatorEmail: user?.email,
+                creatorUsername: user?.username || user?.name || user?.email?.split('@')[0],
+                creatorAvatar: user?.avatar
+            };
+        }
+        // Fallback: register/login via Web3Auth to create DB user, then use returned ID
+        try {
+            const email = safeAuthUser?.email || `${safeAuthAccount}@web3auth.local`;
+            const name = safeAuthUser?.name || email.split('@')[0];
+            console.log('🔐 Obtaining creator identity via Web3Auth loginWithWeb3Auth...', { safeAuthAccount, email, name });
+            const authResponse = await apiService.loginWithWeb3Auth(safeAuthAccount, email, name);
+            const backendUser = authResponse?.user;
+            if (backendUser?.id) {
+                return {
+                    creatorId: backendUser.id,
+                    creatorEmail: backendUser.email,
+                    creatorUsername: backendUser.username || backendUser.email?.split('@')[0],
+                    creatorAvatar: backendUser.avatar || null
+                };
+            }
+        } catch (e) {
+            console.error('❌ Failed to obtain creator identity from backend:', e);
+        }
+        // Final fallback: use wallet address as temporary id (backend will reject DB queries if truly required)
+        return {
+            creatorId: safeAuthAccount,
+            creatorEmail: safeAuthUser?.email || `${safeAuthAccount}@web3auth.local`,
+            creatorUsername: safeAuthUser?.name || (safeAuthUser?.email?.split('@')[0]) || `user_${safeAuthAccount?.substring(2,10)}`,
+            creatorAvatar: null
+        };
+    };
+
     // Fetch online users when modal opens
     useEffect(() => {
         if (isOpen && socket) {
@@ -123,20 +162,26 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                 
                 // Create table via create_table event
                 const createTablePromise = new Promise((resolve, reject) => {
-                    socket.emit('create_table', {
-                        tableName: tableData.tableName || 'Email Invitation Game',
-                        entryFee: tableData.entryFee || 10,
-                        maxPlayers: tableData.maxPlayers || 6,
-                        privacy: tableData.privacy || 'public',
-                        network: tableData.network || 'BEP20',
-                        creatorId: user?.id || user?.userId,
-                    }, (response) => {
-                        if (response && response.success) {
-                            resolve(response.tableId);
-                        } else {
-                            reject(new Error(response?.message || 'Failed to create table'));
-                        }
-                    });
+                    (async () => {
+                        const identity = await getCreatorIdentity();
+                        socket.emit('create_table', {
+                            tableName: tableData.tableName || 'Email Invitation Game',
+                            entryFee: tableData.entryFee || 10,
+                            maxPlayers: tableData.maxPlayers || 6,
+                            privacy: tableData.privacy || 'public',
+                            network: tableData.network || 'BEP20',
+                            creatorId: identity.creatorId,
+                            creatorEmail: identity.creatorEmail,
+                            creatorUsername: identity.creatorUsername,
+                            creatorAvatar: identity.creatorAvatar
+                        }, (response) => {
+                            if (response && response.success) {
+                                resolve(response.tableId);
+                            } else {
+                                reject(new Error(response?.message || 'Failed to create table'));
+                            }
+                        });
+                    })();
                 });
                 
                 tableId = await createTablePromise;

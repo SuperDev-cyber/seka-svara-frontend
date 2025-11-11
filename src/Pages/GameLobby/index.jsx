@@ -15,6 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { useWallet } from '../../contexts/WalletContext';
 import { useSafeAuth } from '../../contexts/SafeAuthContext';
+import apiService from '../../services/api';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -77,6 +78,29 @@ const GameLobby = () => {
             }
         }
     }, [isAuthenticated, user]);
+
+    // Connectivity diagnostics (console output)
+    useEffect(() => {
+        (async () => {
+            try {
+                console.log('🩺 [Diagnostics] Starting connectivity checks from GameLobby...');
+                try {
+                    const health = await apiService.makeRequest('/health');
+                    console.log('✅ [Diagnostics] Backend reachable (/api/v1/health):', health);
+                } catch (e) {
+                    console.error('❌ [Diagnostics] Backend /health failed:', e?.message || e);
+                }
+                try {
+                    const tables = await apiService.getGameTables();
+                    console.log('✅ [Diagnostics] Database query ok (tables):', Array.isArray(tables) ? tables.length : tables);
+                } catch (e) {
+                    console.error('❌ [Diagnostics] Database query failed (tables):', e?.message || e);
+                }
+            } catch (e) {
+                console.error('❌ [Diagnostics] Unexpected error:', e?.message || e);
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         const fetchUSDTBalance = async () => {
