@@ -798,7 +798,7 @@
 
 .dropdown-icon {
     position: absolute;
-    right: 1rem;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -962,6 +962,11 @@
 
 .amount-input::placeholder {
     color: #94A3B8;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .available-balance {

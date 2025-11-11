@@ -24,6 +24,24 @@ const Header = () => {
     const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, getUSDTBalance: safeAuthGetUSDTBalance, getBNBBalance: safeAuthGetBNBBalance, logout: safeAuthLogout, loginWithWallet: safeAuthLoginWallet } = useSafeAuth();
     const [safeAuthUSDTBalance, setSafeAuthUSDTBalance] = useState('0');
     const [safeAuthBNBBalance, setSafeAuthBNBBalance] = useState('0');
+    const userMenuRef = React.useRef(null);
+
+    // Close user menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setShowUserMenu(false);
+            }
+        };
+
+        if (showUserMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showUserMenu]);
 
     // Fetch SafeAuth wallet USDT and BNB balances when connected
     useEffect(() => {
@@ -405,7 +423,7 @@ const Header = () => {
                     {/* Show user avatar when wallet is connected (WalletConnect handles auto-authentication) */}
                     {safeAuthLoggedIn && safeAuthAccount ? (
                         <>
-                            <div className='user-menu-container'>
+                            <div className='user-menu-container' ref={userMenuRef}>
                             <button className='user-menu-trigger' onClick={toggleUserMenu}>
                                 <div className='user-avatar'>
                                     {user?.avatar ? (

@@ -416,78 +416,160 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                         )}
                     </div>
 
-                    {/* Balance Information */}
+                    {/* Balance Information - Redesigned */}
                     <div className="info-box" style={{
-                        background: 'linear-gradient(135deg, #22c55e15 0%, #16a34a15 100%)',
-                        border: '2px solid #22c55e',
-                        padding: '15px',
+                        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 163, 74, 0.08) 100%)',
+                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                        padding: '20px',
                         borderRadius: '12px',
-                        marginBottom: '20px'
+                        marginBottom: '20px',
+                        boxShadow: '0 4px 12px rgba(34, 197, 94, 0.1)'
                     }}>
-                        <h4 style={{ marginBottom: '12px', color: '#22c55e', fontSize: '16px' }}>
-                            💰 Withdrawal Information
-                        </h4>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '10px', 
+                            marginBottom: '16px',
+                            color: '#22c55e',
+                            fontSize: '16px',
+                            fontWeight: '600'
+                        }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                            </svg>
+                            <span>Withdrawal Information</span>
+                        </div>
                         {loading ? (
-                            <div>Loading stats...</div>
+                            <div style={{ 
+                                padding: '20px', 
+                                textAlign: 'center', 
+                                color: '#888',
+                                fontSize: '14px'
+                            }}>
+                                <div style={{ 
+                                    display: 'inline-block',
+                                    width: '20px',
+                                    height: '20px',
+                                    border: '3px solid rgba(34, 197, 94, 0.3)',
+                                    borderTopColor: '#22c55e',
+                                    borderRadius: '50%',
+                                    animation: 'spin 1s linear infinite',
+                                    marginRight: '10px'
+                                }}></div>
+                                Loading stats...
+                            </div>
                         ) : (
-                            <>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 <div style={{
-                                    background: 'rgba(34, 197, 94, 0.1)',
-                                    padding: '10px',
-                                    borderRadius: '6px',
-                                    marginBottom: '12px',
-                                    fontSize: '12px',
-                                    lineHeight: '1.6',
+                                    background: 'rgba(34, 197, 94, 0.15)',
+                                    padding: '14px',
+                                    borderRadius: '8px',
                                     border: '1px solid rgba(34, 197, 94, 0.3)',
+                                    fontSize: '13px',
+                                    lineHeight: '1.6',
                                     color: '#4ade80'
                                 }}>
-                                    <strong>✅ You can withdraw your full balance!</strong><br/>
-                                    All funds in your account are available for withdrawal with no restrictions.
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                            <polyline points="22 4 12 14.01 9 11.01" />
+                                        </svg>
+                                        <strong>Full Balance Available</strong>
+                                    </div>
+                                    You can withdraw your entire Web3Auth wallet USDT balance with no restrictions.
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Current Web3Auth Wallet Balance:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize:'12px' }}>
-                                        {maxWithdrawable.toFixed(2)} USDT
-                                    </span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{fontSize:'12px'}}>Max Withdrawable:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#ffd700', fontSize:'12px' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '12px',
+                                    background: 'rgba(0, 0, 0, 0.2)',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                                }}>
+                                    <span style={{ fontSize: '14px', color: '#ccc' }}>Available Balance:</span>
+                                    <span style={{ fontWeight: 'bold', color: '#22c55e', fontSize: '16px' }}>
                                         {maxWithdrawable.toFixed(2)} USDT
                                     </span>
                                 </div>
                                 {totalWagered > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', opacity: 0.7 }}>
-                                        <span style={{fontSize:'12px'}}>Total Game Activity (Info Only):</span>
-                                        <span style={{ fontWeight: 'bold', color: '#60a5fa', fontSize:'12px' }}>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        padding: '8px 12px',
+                                        fontSize: '12px',
+                                        opacity: 0.7,
+                                        color: '#888'
+                                    }}>
+                                        <span>Total Game Activity (Info Only):</span>
+                                        <span style={{ fontWeight: '500', color: '#60a5fa' }}>
                                             {totalWagered.toFixed(0)} Platform Score
                                         </span>
                                     </div>
                                 )}
-                            </>
+                            </div>
                         )}
                     </div>
 
-                    <div className="form-group">
-                        <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <label className="form-label">Amount (USDT)</label>
+                    {/* Amount Input - Redesigned */}
+                    <div className="form-group" style={{
+                        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+                        border: '1px solid rgba(102, 126, 234, 0.3)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        marginBottom: '20px',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.1)'
+                    }}>
+                        <div className="label-row" style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '12px' 
+                        }}>
+                            <label className="form-label" style={{ 
+                                fontSize: '16px', 
+                                fontWeight: '600',
+                                color: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                </svg>
+                                Amount (USDT)
+                            </label>
                             <button 
                                 type="button"
                                 className="max-button" 
                                 onClick={handleMaxAmount}
-                                disabled={isProcessing || loading || maxWithdrawable <= 0}
+                                disabled={isProcessing || maxWithdrawable <= 0}
                                 style={{
-                                    background: (isProcessing || loading || maxWithdrawable <= 0) 
-                                        ? '#444' 
+                                    background: (isProcessing || maxWithdrawable <= 0) 
+                                        ? 'rgba(68, 68, 68, 0.5)' 
                                         : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                     color: '#fff',
                                     border: 'none',
-                                    padding: '6px 12px',
-                                    borderRadius: '6px',
-                                    cursor: (isProcessing || loading || maxWithdrawable <= 0) ? 'not-allowed' : 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: 'bold',
-                                    opacity: (isProcessing || loading || maxWithdrawable <= 0) ? 0.6 : 1
+                                    padding: '8px 16px',
+                                    borderRadius: '8px',
+                                    cursor: (isProcessing || maxWithdrawable <= 0) ? 'not-allowed' : 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    opacity: (isProcessing || maxWithdrawable <= 0) ? 0.5 : 1,
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: (isProcessing || maxWithdrawable <= 0) ? 'none' : '0 2px 8px rgba(102, 126, 234, 0.3)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isProcessing && maxWithdrawable > 0) {
+                                        e.target.style.transform = 'translateY(-1px)';
+                                        e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isProcessing && maxWithdrawable > 0) {
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+                                    }
                                 }}
                             >
                                 MAX
@@ -501,10 +583,45 @@ const WithdrawModal = ({ isOpen, onClose, onWithdrawSuccess }) => {
                             className="amount-input"
                             min="0"
                             step="0.01"
-                            disabled={isProcessing || loading || maxWithdrawable <= 0}
+                            max={maxWithdrawable}
+                            disabled={isProcessing}
+                            style={{
+                                width: '100%',
+                                padding: '14px 16px',
+                                background: '#1a1a1a',
+                                border: '2px solid rgba(102, 126, 234, 0.5)',
+                                borderRadius: '8px',
+                                color: '#fff',
+                                fontSize: '16px',
+                                fontWeight: '500',
+                                transition: 'all 0.3s ease',
+                                outline: 'none'
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = '#667eea';
+                                e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                                e.target.style.boxShadow = 'none';
+                            }}
                         />
-                        <div style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-                            Available Balance: {maxWithdrawable.toFixed(2)} USDT
+                        <div style={{ 
+                            color: '#888', 
+                            fontSize: '13px', 
+                            marginTop: '10px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <span>Available Balance:</span>
+                            <span style={{ 
+                                fontWeight: '600', 
+                                color: '#22c55e',
+                                fontSize: '14px'
+                            }}>
+                                {maxWithdrawable.toFixed(2)} USDT
+                            </span>
                         </div>
                     </div>
 
