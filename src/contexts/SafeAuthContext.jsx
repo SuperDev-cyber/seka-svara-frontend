@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Web3Auth } from '@web3auth/modal';
 import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, WALLET_ADAPTERS } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ethers } from 'ethers';
 // TronWeb will be dynamically imported when needed to avoid constructor issues in ESM
+import apiService from '../services/api';
 
 const SafeAuthContext = createContext();
 
@@ -25,6 +26,7 @@ export const SafeAuthProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [chainId, setChainId] = useState(null);
   const [initError, setInitError] = useState(null);
+  const registrationInFlightRef = useRef(false);
 
   // Web3Auth Client ID from project settings
   const clientId = 'BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q';
@@ -188,6 +190,28 @@ export const SafeAuthProvider = ({ children }) => {
 
     init();
   }, []);
+
+  // Auto-register/update user in backend as soon as Web3Auth session is confirmed
+  useEffect(() => {
+    const upsertWeb3AuthUser = async () => {
+      if (loading) return;
+      if (!loggedIn || !account) return;
+      if (registrationInFlightRef.current) return;
+      registrationInFlightRef.current = true;
+      try {
+        const email = user?.email || `${account}@web3auth.local`;
+        const name = user?.name || (user?.email ? user.email.split('@')[0] : `user_${account.substring(2, 10)}`);
+        console.log('🔐 SafeAuthContext: Upserting Web3Auth user to backend...', { account, email, name });
+        const res = await apiService.loginWithWeb3Auth(account, email, name);
+        console.log('✅ SafeAuthContext: Backend upsert complete:', !!res?.user ? res.user.id : res);
+      } catch (e) {
+        console.error('❌ SafeAuthContext: Backend upsert failed:', e);
+      } finally {
+        registrationInFlightRef.current = false;
+      }
+    };
+    upsertWeb3AuthUser();
+  }, [loading, loggedIn, account, user]);
 
   // Login with Google
   const loginWithGoogle = useCallback(async () => {
