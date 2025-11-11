@@ -21,7 +21,7 @@
   border: 1px solid rgba(255, 186, 8, 0.2);
   border-radius: 20px;
   padding: 1.75rem;
-  min-width: 300px;
+  min-width: 280px;
   max-width: 280px;
   flex-shrink: 0;
   display: flex;
@@ -36,12 +36,12 @@
 
 /* Center (focused) card - slightly larger and highlighted */
 .game-table-card-new.center-card {
-  transform: scale(1.06);
-  border-color: rgba(255, 186, 8, 0.45);
-  box-shadow: 0 16px 44px rgba(255, 186, 8, 0.28), 0 6px 26px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  z-index: 2;
-  margin:6px 30px;
+
+    transform: scale(1.06);
+    border-color: #ffa100;
+    /* box-shadow: 0 16px 44px #ffba0847, 0 6px 26px #0000008c, inset 0 1px #ffffff1f; */
+    z-index: 2;
+    margin: 6px 30px;
 }
 
 .game-table-card-new::before {
@@ -210,8 +210,8 @@
 .table-surface {
   position: relative;
   width: 100%;
-  max-width: 340px;
-  height: 175px;
+  max-width: 300px;
+  height: 160px;
   background-image: url(/assets/table-game-background-CTTXVCPK.png);
   background-size: contain;
   background-repeat: no-repeat;
@@ -257,7 +257,7 @@
 
 .seats-container {
     position: absolute;
-    top: -11px !important;
+    top: 0px !important;
     right: 0;
     bottom: 0;
     left: 0;
@@ -295,7 +295,7 @@
 }
 .seat-indicator:nth-child(4) { /* top center */
   left: 50%;
-  top: 8%;
+  top: 10%;
   transform: translate(-50%, -50%);
 }
 .seat-indicator:nth-child(5) { /* upper-right, mirror of seat 3 */
