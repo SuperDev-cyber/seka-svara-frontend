@@ -14,11 +14,11 @@
     overflow-x: auto;
     overflow-y: hidden;
     scroll-behavior: smooth;
-    padding: 1rem 0;
+    padding: 6rem 0;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 186, 8, 0.3) transparent;
     -webkit-overflow-scrolling: touch;
-    max-width: 1060px; /* ~ 3 cards (300px) + gaps */
+    justify-content: center; /* ~ 3 cards (300px) + gaps */
 }
 
 .game-table-grid::-webkit-scrollbar {
