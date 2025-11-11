@@ -6,6 +6,7 @@ const GameTableGrid = ({ gameTables, onJoinTable, onInviteFriends }) => {
     const scrollContainerRef = useRef(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(true);
+    const [centerIndex, setCenterIndex] = useState(0);
 
     // Check scroll position to show/hide arrows
     const checkScrollPosition = () => {
@@ -13,7 +14,30 @@ const GameTableGrid = ({ gameTables, onJoinTable, onInviteFriends }) => {
             const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
             setShowLeftArrow(scrollLeft > 0);
             setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+            updateCenterIndex();
         }
+    };
+
+    // Determine which card is visually centered in the viewport
+    const updateCenterIndex = () => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+        const cards = Array.from(container.children);
+        if (!cards.length) return;
+        const containerRect = container.getBoundingClientRect();
+        const containerCenterX = containerRect.left + containerRect.width / 2;
+        let bestIdx = 0;
+        let bestDist = Number.POSITIVE_INFINITY;
+        cards.forEach((el, idx) => {
+            const r = el.getBoundingClientRect();
+            const cardCenterX = r.left + r.width / 2;
+            const dist = Math.abs(cardCenterX - containerCenterX);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestIdx = idx;
+            }
+        });
+        setCenterIndex(bestIdx);
     };
 
     useEffect(() => {
@@ -31,13 +55,13 @@ const GameTableGrid = ({ gameTables, onJoinTable, onInviteFriends }) => {
 
     const scrollLeft = () => {
         if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+            scrollContainerRef.current.scrollBy({ left: -360, behavior: 'smooth' });
         }
     };
 
     const scrollRight = () => {
         if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+            scrollContainerRef.current.scrollBy({ left: 360, behavior: 'smooth' });
         }
     };
 
@@ -64,6 +88,7 @@ const GameTableGrid = ({ gameTables, onJoinTable, onInviteFriends }) => {
                         table={table} 
                         onJoinTable={onJoinTable}
                         onInviteFriends={onInviteFriends}
+                        isCenter={index === centerIndex}
                     />
                 ))}
             </div>

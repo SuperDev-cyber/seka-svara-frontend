@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './index.css';
 
-const GameTableCard = ({ table, onJoinTable, onInviteFriends }) => {
+const GameTableCard = ({ table, onJoinTable, onInviteFriends, isCenter = false }) => {
     const navigate = useNavigate();
 
     // Generate table name from ID (e.g., "SOFIA #89")
@@ -59,7 +59,7 @@ const GameTableCard = ({ table, onJoinTable, onInviteFriends }) => {
     }));
 
     return (
-        <div className='game-table-card-new'>
+        <div className={`game-table-card-new ${isCenter ? 'center-card' : ''}`} data-center={isCenter ? 'true' : 'false'}>
             {/* Table ID */}
             <div className='table-card-header'>
                 <h3 className='table-name'>{tableName}</h3>
@@ -73,7 +73,7 @@ const GameTableCard = ({ table, onJoinTable, onInviteFriends }) => {
 
             {/* Participation Fee */}
             <div className='participation-fee-section'>
-                <span className='min-sum-label'>Min. sum</span>
+                <span className='min-sum-label'>Entry Fee</span>
                 <div className='fee-amount'>
                     <span className='chip-icon'>🪙</span>
                     <span className='fee-value'>{entryFee}</span>
@@ -86,7 +86,7 @@ const GameTableCard = ({ table, onJoinTable, onInviteFriends }) => {
             {/* Visual Poker Table with Seats */}
             <div className='poker-table-visual'>
                 <div className='table-surface'>
-                    <span className='game-type-text'>3 CARD POKER</span>
+                    <span className='game-type-text'>SEKA SVARA</span>
                     <div className='seats-container'>
                         {seats.map((seat) => (
                             <div
