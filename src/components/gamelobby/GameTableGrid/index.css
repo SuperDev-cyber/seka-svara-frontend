@@ -11,13 +11,15 @@
 .game-table-grid {
     display: flex;
     gap: 1.25rem;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
     scroll-behavior: smooth;
     padding: 6rem 0;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 186, 8, 0.3) transparent;
     -webkit-overflow-scrolling: touch;
+    max-width: 1250px;
+    margin: 0 auto;
     justify-content: center; /* ~ 3 cards (300px) + gaps */
 }
 
