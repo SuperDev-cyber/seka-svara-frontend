@@ -27,6 +27,8 @@ export const SafeAuthProvider = ({ children }) => {
   const [chainId, setChainId] = useState(null);
   const [initError, setInitError] = useState(null);
   const registrationInFlightRef = useRef(false);
+  const usdtCacheRef = useRef({ value: '0', at: 0, inflight: null });
+  const bnbCacheRef = useRef({ value: '0', at: 0, inflight: null });
 
   // Web3Auth Client ID from project settings
   const clientId = 'BDYU7Pkurgm7StMwMbJl3upFOo6-0Xgm6e0-VIsVSjjmWP7_j583kzMx4Op0dIP2tlmOw1yhHA7rmBOni8fCb0Q';
@@ -399,6 +401,16 @@ export const SafeAuthProvider = ({ children }) => {
     }
 
     try {
+      // Serve from cache if fetched recently (10s)
+      const now = Date.now();
+      if (usdtCacheRef.current.inflight) {
+        return await usdtCacheRef.current.inflight;
+      }
+      if (now - usdtCacheRef.current.at < 10000 && usdtCacheRef.current.value !== undefined) {
+        return usdtCacheRef.current.value;
+      }
+      // De-duplicate concurrent calls
+      usdtCacheRef.current.inflight = (async () => {
       const ethersProvider = getProvider();
       if (!ethersProvider) {
         console.error('❌ getUSDTBalance: Failed to get ethers provider');
@@ -449,9 +461,13 @@ export const SafeAuthProvider = ({ children }) => {
       // Use ethers v5 formatUnits (with utils namespace)
       const formattedBalance = ethers.utils.formatUnits(balance, decimals);
       const finalBalance = parseFloat(formattedBalance).toFixed(2);
-      
+      // cache
+      usdtCacheRef.current = { value: finalBalance, at: Date.now(), inflight: null };
       console.log('✅ USDT Balance formatted:', finalBalance);
       return finalBalance;
+      })();
+      const result = await usdtCacheRef.current.inflight;
+      return result;
     } catch (error) {
       console.error('❌ Error fetching USDT balance from Web3Auth wallet:', error);
       console.error('Error details:', {
@@ -461,6 +477,8 @@ export const SafeAuthProvider = ({ children }) => {
         hasProvider: !!provider
       });
       return '0';
+    } finally {
+      usdtCacheRef.current.inflight = null;
     }
   }, [provider, account, getProvider]);
 
@@ -471,6 +489,14 @@ export const SafeAuthProvider = ({ children }) => {
     }
 
     try {
+      const now = Date.now();
+      if (bnbCacheRef.current.inflight) {
+        return await bnbCacheRef.current.inflight;
+      }
+      if (now - bnbCacheRef.current.at < 10000 && bnbCacheRef.current.value !== undefined) {
+        return bnbCacheRef.current.value;
+      }
+      bnbCacheRef.current.inflight = (async () => {
       const ethersProvider = getProvider();
       if (!ethersProvider) {
         return '0';
@@ -478,10 +504,17 @@ export const SafeAuthProvider = ({ children }) => {
 
       const bnbBalance = await ethersProvider.getBalance(account);
       const formattedBalance = ethers.utils.formatEther(bnbBalance);
-      return parseFloat(formattedBalance).toFixed(4);
+      const result = parseFloat(formattedBalance).toFixed(4);
+      bnbCacheRef.current = { value: result, at: Date.now(), inflight: null };
+      return result;
+      })();
+      const res = await bnbCacheRef.current.inflight;
+      return res;
     } catch (error) {
       console.error('Error fetching BNB balance from Web3Auth wallet:', error);
       return '0';
+    } finally {
+      bnbCacheRef.current.inflight = null;
     }
   }, [provider, account, getProvider]);
 
