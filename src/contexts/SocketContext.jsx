@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { useSafeAuth } from './SafeAuthContext';
 import io from 'socket.io-client';
 
 const SocketContext = createContext();
@@ -16,11 +17,24 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const { user, isAuthenticated, updatePlatformScore } = useAuth();
+  const { loggedIn: safeAuthLoggedIn, account: safeAuthAccount, user: safeAuthUser } = useSafeAuth();
 
   useEffect(() => {
-    console.log('🔌 SocketContext: useEffect triggered, isAuthenticated:', isAuthenticated, 'user:', user);
-    
-    if (isAuthenticated && user) {
+    console.log('🔌 SocketContext: useEffect triggered, isAuthenticated:', isAuthenticated, 'user:', user, 'safeAuthLoggedIn:', safeAuthLoggedIn, 'safeAuthAccount:', safeAuthAccount);
+
+    // Consider wallet connection as authentication for sockets too
+    const hasWalletAuth = safeAuthLoggedIn && safeAuthAccount;
+    const effectiveUser = user || (hasWalletAuth
+      ? {
+          id: safeAuthAccount,
+          userId: safeAuthAccount,
+          email: safeAuthUser?.email || `${safeAuthAccount}@web3auth.local`,
+          username: safeAuthUser?.name || safeAuthUser?.email?.split('@')[0] || `user_${safeAuthAccount.substring(2, 10)}`,
+          avatar: null,
+        }
+      : null);
+
+    if ((isAuthenticated && user) || hasWalletAuth) {
       console.log('🔌 Connecting to game server...');
       
       // Use VITE_API_URL or default to localhost:8000 (backend port)
@@ -46,10 +60,10 @@ export const SocketProvider = ({ children }) => {
         
         // Join lobby and authenticate
         newSocket.emit('user_online', {
-          userId: user.id || user.userId,
-          email: user.email,
-          username: user.username || user.name,
-          avatar: user.avatar || user.profilePicture
+          userId: effectiveUser.id || effectiveUser.userId,
+          email: effectiveUser.email,
+          username: effectiveUser.username || effectiveUser.name,
+          avatar: effectiveUser.avatar || effectiveUser.profilePicture
         });
       });
 
@@ -97,7 +111,7 @@ export const SocketProvider = ({ children }) => {
         setIsConnected(false);
       }
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, safeAuthLoggedIn, safeAuthAccount, safeAuthUser]);
 
   const value = {
     socket,
