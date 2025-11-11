@@ -260,6 +260,8 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
         try {
             // ✅ FIX: Let invite_request handle BOTH table creation AND invitation sending
             // This prevents duplicate table creation!
+            // Ensure creator identity is present (Web3Auth-only sessions fallback)
+            const identity = await getCreatorIdentity();
             const requestPayload = {
                 targetUserId: friendUser.userId,
                 existingTableId: tableData.id || null, // ✅ Send existing table ID if available
@@ -271,10 +273,10 @@ const InviteFriendsModal = ({ isOpen, onClose, tableData, onCreateTable }) => {
                     network: tableData.network || 'BEP20'
                 },
                 creator: {
-                    userId: user?.id || user?.userId,
-                    email: user?.email,
-                    username: user?.username || user?.name || user?.email?.split('@')[0],
-                    avatar: user?.avatar
+                    userId: identity.creatorId,
+                    email: identity.creatorEmail,
+                    username: identity.creatorUsername,
+                    avatar: identity.creatorAvatar
                 }
             };
 
