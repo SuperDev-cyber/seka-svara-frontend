@@ -92,7 +92,7 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Mobile route - static UI only */}
+          {/* Mobile route - static UI only, isolated from providers */}
           <Route path="/mobile" element={<MobileApp />} />
           <Route path="/mob" element={<MobileApp />} />
           

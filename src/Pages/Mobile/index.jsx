@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 
-// Minimal mobile app - no complex dependencies
+// Completely isolated mobile app - no dependencies on any context or providers
 function MobileApp() {
   const [language, setLanguage] = useState('en');
   const [activeTab, setActiveTab] = useState('home');
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#070A0D', paddingBottom: '80px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#070A0D', 
+      paddingBottom: '80px',
+      margin: 0,
+      paddingTop: 0
+    }}>
       {/* Simple Header */}
       <header style={{ 
         position: 'sticky', 
@@ -19,7 +25,14 @@ function MobileApp() {
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <div style={{ fontSize: '20px', fontWeight: 'bold', background: 'linear-gradient(to right, #F5C451, #2ECC71)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <div style={{ 
+          fontSize: '20px', 
+          fontWeight: 'bold', 
+          background: 'linear-gradient(to right, #F5C451, #2ECC71)', 
+          WebkitBackgroundClip: 'text', 
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
           Seka Svara
         </div>
         <select 
@@ -30,7 +43,8 @@ function MobileApp() {
             color: '#fff', 
             border: '1px solid hsl(220, 10%, 18%)', 
             borderRadius: '8px', 
-            padding: '8px 12px'
+            padding: '8px 12px',
+            cursor: 'pointer'
           }}
         >
           <option value="en">English</option>
@@ -56,37 +70,49 @@ function MobileApp() {
               <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#2ECC71' }}>0.045 BNB</div>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '20px' }}>
-                <button style={{ 
-                  padding: '16px', 
-                  backgroundColor: 'rgba(46, 204, 113, 0.2)', 
-                  border: '2px solid rgba(46, 204, 113, 0.4)', 
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '14px',
-                  fontWeight: 600
-                }}>
+                <button 
+                  onClick={() => console.log('Deposit')}
+                  style={{ 
+                    padding: '16px', 
+                    backgroundColor: 'rgba(46, 204, 113, 0.2)', 
+                    border: '2px solid rgba(46, 204, 113, 0.4)', 
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
                   Deposit
                 </button>
-                <button style={{ 
-                  padding: '16px', 
-                  backgroundColor: 'rgba(245, 196, 81, 0.2)', 
-                  border: '2px solid rgba(245, 196, 81, 0.4)', 
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '14px',
-                  fontWeight: 600
-                }}>
+                <button 
+                  onClick={() => console.log('Withdraw')}
+                  style={{ 
+                    padding: '16px', 
+                    backgroundColor: 'rgba(245, 196, 81, 0.2)', 
+                    border: '2px solid rgba(245, 196, 81, 0.4)', 
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
                   Withdraw
                 </button>
-                <button style={{ 
-                  padding: '16px', 
-                  backgroundColor: 'rgba(249, 115, 22, 0.2)', 
-                  border: '2px solid rgba(249, 115, 22, 0.4)', 
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '14px',
-                  fontWeight: 600
-                }}>
+                <button 
+                  onClick={() => console.log('Buy Gas')}
+                  style={{ 
+                    padding: '16px', 
+                    backgroundColor: 'rgba(249, 115, 22, 0.2)', 
+                    border: '2px solid rgba(249, 115, 22, 0.4)', 
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
                   Buy Gas
                 </button>
               </div>
@@ -111,15 +137,20 @@ function MobileApp() {
                   }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#F5C451', marginBottom: '8px' }}>{stake} USDT</div>
                     <div style={{ fontSize: '12px', color: '#999', marginBottom: '12px' }}>2/4 Players</div>
-                    <button style={{ 
-                      width: '100%', 
-                      padding: '8px', 
-                      backgroundColor: '#F5C451', 
-                      color: '#0B0F14', 
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      fontSize: '14px'
-                    }}>
+                    <button 
+                      onClick={() => console.log('Join table', i)}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px', 
+                        backgroundColor: '#F5C451', 
+                        color: '#0B0F14', 
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
                       Join
                     </button>
                   </div>
@@ -169,7 +200,12 @@ function MobileApp() {
               cursor: 'pointer'
             }}
           >
-            <div style={{ width: '20px', height: '20px', backgroundColor: activeTab === tab.id ? '#F5C451' : '#666', borderRadius: '4px' }} />
+            <div style={{ 
+              width: '20px', 
+              height: '20px', 
+              backgroundColor: activeTab === tab.id ? '#F5C451' : '#666', 
+              borderRadius: '4px' 
+            }} />
             <span>{tab.label}</span>
           </button>
         ))}
