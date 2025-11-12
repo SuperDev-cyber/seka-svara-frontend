@@ -1,4 +1,4 @@
-import { spawnSync } from 'child_process';
+import { spawnSync, execSync } from 'child_process';
 import { existsSync, mkdirSync, cpSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -13,17 +13,37 @@ const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
-// Cross-platform exec function - use spawnSync without shell wrapping
+// Cross-platform exec function - find npm in PATH
+const findNpm = () => {
+  if (platform() === 'win32') {
+    // On Windows, try to find npm.cmd or npm
+    try {
+      const { execSync } = require('child_process');
+      // Try to find npm.cmd
+      const result = execSync('where npm.cmd', { encoding: 'utf8', stdio: 'pipe' });
+      if (result.trim()) {
+        return result.trim().split('\n')[0];
+      }
+    } catch (e) {
+      // Fall through
+    }
+    // Fallback to npm (which should work)
+    return 'npm';
+  }
+  return 'npm';
+};
+
 const runCommand = (command, cwd) => {
-  const isWindows = platform() === 'win32';
-  const npmCommand = isWindows ? 'npm.cmd' : 'npm';
-  const args = command.replace(/^npm /, '').split(' ');
+  const npmCommand = findNpm();
+  const args = command.replace(/^npm /, '').split(' ').filter(Boolean);
+  
+  console.log(`Running: ${npmCommand} ${args.join(' ')} in ${cwd}`);
   
   const result = spawnSync(npmCommand, args, {
     cwd,
     stdio: 'inherit',
     env: { ...process.env },
-    windowsVerbatimArguments: false
+    shell: false
   });
   
   if (result.error) {
