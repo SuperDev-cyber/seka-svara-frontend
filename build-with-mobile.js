@@ -13,20 +13,12 @@ const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
-// Windows-compatible exec options
-// Use PowerShell on Windows if available, otherwise use default shell
-const getShell = () => {
-  if (platform() === 'win32') {
-    // Try PowerShell first, then cmd.exe
-    const powershell = process.env.PSModulePath ? 'powershell.exe' : null;
-    return powershell || process.env.ComSpec || 'cmd.exe';
-  }
-  return true; // Use default shell on Unix
-};
-
+// Cross-platform exec options
+// Use shell: true to let Node.js choose the appropriate shell
 const execOptions = {
   stdio: 'inherit',
-  shell: getShell()
+  shell: true,
+  env: { ...process.env }
 };
 
 console.log('🏗️  Building desktop app...');
