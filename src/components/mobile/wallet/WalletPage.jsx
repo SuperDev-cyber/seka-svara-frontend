@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Wallet, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Wallet, TrendingUp } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function WalletPage({ language, onBack }) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Gamepad2, Wallet, User, Settings } from 'lucide-react';
+import { Home, Gamepad2, Wallet, User, Settings } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function BottomNav({ language, activeTab, onTabChange }) {

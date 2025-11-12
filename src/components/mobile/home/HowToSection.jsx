@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, ArrowDownToLine, PlayCircle, HelpCircle } from 'lucide-react';
+import { Wallet, ArrowDownToLine, PlayCircle, HelpCircle } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function HowToSection({ language, onHelpClick }) {

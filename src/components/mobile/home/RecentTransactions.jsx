@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownToLine, ArrowUpFromLine, RotateCcw, ExternalLink } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, RotateCcw, ExternalLink } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function RecentTransactions({ language, transactions = [], onViewAll }) {

@@ -6,7 +6,7 @@ import { CreateTableCallout } from './CreateTableCallout';
 import { HowToSection } from './HowToSection';
 import { PromoBanner } from './PromoBanner';
 import { RecentTransactions } from './RecentTransactions';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from '../lib/icons';
 
 export function HomePage({ language }) {
   const t = useTranslation(language);

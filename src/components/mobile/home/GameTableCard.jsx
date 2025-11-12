@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Wifi, Eye } from 'lucide-react';
+import { Users, Wifi, Eye } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function GameTableCard({ language, stake, currentPlayers, maxPlayers, ping, onJoin, onSpectate }) {

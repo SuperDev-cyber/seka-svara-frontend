@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function CreateTableCallout({ language, onCreate }) {

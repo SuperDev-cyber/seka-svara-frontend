@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function LobbyPage({ language, onBack }) {

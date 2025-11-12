@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownToLine, ArrowUpFromLine, Fuel } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Fuel } from '../lib/icons';
 import { useTranslation } from '../lib/i18n';
 
 export function BalanceCard({ language, usdtBalance, bnbBalance, onDeposit, onWithdraw, onBuyGas }) {
