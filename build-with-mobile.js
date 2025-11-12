@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const desktopDir = __dirname;
-const mobileDir = join(__dirname, '..', 'mobile');
+const mobileDir = join(__dirname, 'mobile');
 const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
