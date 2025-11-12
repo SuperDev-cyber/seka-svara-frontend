@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm cache clean --force && npm install --no-audit --no-fund --legacy-peer-deps --prefer-online --registry=https://registry.npmjs.org/ --fetch-retries=10 || npm cache clean --force && npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts",
-  "buildCommand": "npm install --no-audit --no-fund --legacy-peer-deps && npm run build:all",
+  "installCommand": "npm cache clean --force && npm install --no-audit --no-fund --legacy-peer-deps --prefer-online --registry=https://registry.npmjs.org/ --fetch-retries=10 && cd mobile && npm install --no-audit --no-fund --legacy-peer-deps && cd .. || npm cache clean --force && npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts && cd mobile && npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts && cd ..",
+  "buildCommand": "npm run build:all",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
