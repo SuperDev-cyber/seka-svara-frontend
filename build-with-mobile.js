@@ -13,36 +13,25 @@ const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
-// Cross-platform exec function - find npm in PATH
-const findNpm = () => {
-  if (platform() === 'win32') {
-    // On Windows, try to find npm.cmd or npm
-    try {
-      // Try to find npm.cmd using where command
-      const result = execSync('where npm.cmd', { encoding: 'utf8', stdio: 'pipe' });
-      if (result.trim()) {
-        return result.trim().split('\r\n')[0].trim();
-      }
-    } catch (e) {
-      // Fall through
-    }
-    // Fallback to npm (which should work via PATH)
-    return 'npm';
-  }
-  return 'npm';
-};
-
+// Cross-platform exec function - use shell to resolve npm
 const runCommand = (command, cwd) => {
-  const npmCommand = findNpm();
-  const args = command.replace(/^npm /, '').split(' ').filter(Boolean);
+  const isWindows = platform() === 'win32';
+  const args = command.split(' ').filter(Boolean);
   
-  console.log(`Running: ${npmCommand} ${args.join(' ')} in ${cwd}`);
+  // On Windows, use PowerShell to run npm (which will resolve npm.cmd automatically)
+  // On Unix, use sh
+  const shell = isWindows ? 'powershell.exe' : '/bin/sh';
+  const shellCommand = isWindows 
+    ? args.join(' ')
+    : args.join(' ');
   
-  const result = spawnSync(npmCommand, args, {
+  console.log(`Running: ${command} in ${cwd}`);
+  
+  const result = spawnSync(shellCommand, {
     cwd,
     stdio: 'inherit',
     env: { ...process.env },
-    shell: false
+    shell: shell
   });
   
   if (result.error) {
