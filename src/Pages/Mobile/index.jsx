@@ -6,7 +6,7 @@ function MobileApp() {
   const [activeTab, setActiveTab] = useState('home');
 
   return (
-    <div className="min-h-screen bg-game-dark" style={{ paddingBottom: '80px' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#070A0D', paddingBottom: '80px' }}>
       {/* Simple Header */}
       <header style={{ 
         position: 'sticky', 
