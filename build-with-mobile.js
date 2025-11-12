@@ -13,19 +13,25 @@ const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
-// Cross-platform exec options
-// Use shell: true to let Node.js choose the appropriate shell
-const execOptions = {
-  stdio: 'inherit',
-  shell: true,
-  env: { ...process.env }
+// Cross-platform exec function
+const runCommand = (command, cwd) => {
+  const isWindows = platform() === 'win32';
+  const npmCommand = isWindows ? 'npm.cmd' : 'npm';
+  const fullCommand = command.replace(/^npm /, `${npmCommand} `);
+  
+  execSync(fullCommand, {
+    cwd,
+    stdio: 'inherit',
+    shell: true,
+    env: { ...process.env }
+  });
 };
 
 console.log('🏗️  Building desktop app...');
-execSync('npm run build', { ...execOptions, cwd: desktopDir });
+runCommand('npm run build', desktopDir);
 
 console.log('📱 Building mobile app...');
-execSync('npm run build', { ...execOptions, cwd: mobileDir });
+runCommand('npm run build', mobileDir);
 
 if (!existsSync(desktopDist)) {
   console.error('❌ Desktop dist folder not found!');
