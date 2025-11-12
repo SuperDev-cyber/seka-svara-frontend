@@ -3,14 +3,23 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "workspaces": [
+    ".",
+    "mobile"
+  ],
   "engines": {
     "node": "20.x"
   },
   "scripts": {
     "dev": "vite",
+    "dev:mobile": "npm run dev --workspace=mobile",
     "build": "vite build",
+    "build:mobile": "npm run build --workspace=mobile",
     "build:with-mobile": "node build-with-mobile.js",
+    "build:all": "npm run build && npm run build:mobile && node build-with-mobile.js",
+    "install:all": "npm install && npm install --workspace=mobile",
     "lint": "eslint .",
+    "lint:mobile": "npm run lint --workspace=mobile",
     "preview": "vite preview"
   },
   "dependencies": {
