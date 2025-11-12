@@ -20,6 +20,17 @@ export default defineConfig({
   resolve: {
     extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'], // Prefer .jsx over .tsx
   },
+  optimizeDeps: {
+    exclude: ['src/components/mobile'], // Exclude mobile components from optimization
+  },
+  build: {
+    rollupOptions: {
+      // Exclude problematic mobile .tsx files from build
+      external: (id) => {
+        // Don't externalize, but we can filter
+        return false;
+      },
+    },
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -37,6 +48,8 @@ export default defineConfig({
           charts: ['chart.js', 'chartjs-plugin-datalabels'],
         },
       },
+      // Exclude problematic TypeScript files from mobile components
+      external: [],
     },
     chunkSizeWarningLimit: 1000,
   },

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import '../../styles/mobile.css';
 
 // Minimal mobile app - no complex dependencies
 function MobileApp() {
