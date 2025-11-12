@@ -14,9 +14,19 @@ const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
 // Windows-compatible exec options
+// Use PowerShell on Windows if available, otherwise use default shell
+const getShell = () => {
+  if (platform() === 'win32') {
+    // Try PowerShell first, then cmd.exe
+    const powershell = process.env.PSModulePath ? 'powershell.exe' : null;
+    return powershell || process.env.ComSpec || 'cmd.exe';
+  }
+  return true; // Use default shell on Unix
+};
+
 const execOptions = {
   stdio: 'inherit',
-  shell: platform() === 'win32' ? (process.env.ComSpec || 'cmd.exe') : true
+  shell: getShell()
 };
 
 console.log('🏗️  Building desktop app...');
