@@ -16,18 +16,15 @@ const mobileTarget = join(desktopDist, 'mobile');
 // Cross-platform exec function - use shell to resolve npm
 const runCommand = (command, cwd) => {
   const isWindows = platform() === 'win32';
-  const args = command.split(' ').filter(Boolean);
   
   // On Windows, use PowerShell to run npm (which will resolve npm.cmd automatically)
   // On Unix, use sh
   const shell = isWindows ? 'powershell.exe' : '/bin/sh';
-  const shellCommand = isWindows 
-    ? args.join(' ')
-    : args.join(' ');
   
   console.log(`Running: ${command} in ${cwd}`);
   
-  const result = spawnSync(shellCommand, {
+  // When using shell, pass command as first argument (string)
+  const result = spawnSync(command, {
     cwd,
     stdio: 'inherit',
     env: { ...process.env },
