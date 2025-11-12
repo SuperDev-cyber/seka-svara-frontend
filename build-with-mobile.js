@@ -46,13 +46,8 @@ console.log('🏗️  Building desktop app...');
 runCommand('npm run build', desktopDir);
 
 console.log('📱 Building mobile app...');
-// Use workspace command if available, otherwise direct build
-try {
-  runCommand('npm run build:mobile', desktopDir);
-} catch (e) {
-  // Fallback to direct build
-  runCommand('npm run build', mobileDir);
-}
+// Build mobile app directly in its directory
+runCommand('npm run build', mobileDir);
 
 if (!existsSync(desktopDist)) {
   console.error('❌ Desktop dist folder not found!');
