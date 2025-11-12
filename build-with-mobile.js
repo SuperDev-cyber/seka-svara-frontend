@@ -16,8 +16,7 @@ const mobileTarget = join(desktopDist, 'mobile');
 // Windows-compatible exec options
 const execOptions = {
   stdio: 'inherit',
-  shell: true,
-  ...(platform() === 'win32' && { shell: process.env.ComSpec || 'cmd.exe' })
+  shell: platform() === 'win32' ? (process.env.ComSpec || 'cmd.exe') : true
 };
 
 console.log('🏗️  Building desktop app...');
