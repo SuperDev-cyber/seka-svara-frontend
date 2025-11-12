@@ -4,6 +4,35 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var MOBILE_REDIRECT_PATH = '/mobile/';
+          var DISABLE_KEY = 'seka-force-desktop';
+          if (window.location.pathname.startsWith(MOBILE_REDIRECT_PATH)) {
+            return;
+          }
+          if (window.localStorage && window.localStorage.getItem(DISABLE_KEY) === 'true') {
+            return;
+          }
+          var ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+          var isMobileUA = /android|iphone|ipod|ipad|iemobile|wpdesktop|opera mini|mobile/.test(ua);
+          var viewportWidth = Math.max(
+            document.documentElement ? document.documentElement.clientWidth : 0,
+            window.innerWidth || 0
+          );
+          var prefersMobileViewport = viewportWidth > 0 && viewportWidth <= 820;
+          if (isMobileUA || prefersMobileViewport) {
+            var search = window.location.search || '';
+            var hash = window.location.hash || '';
+            var targetUrl = window.location.origin + MOBILE_REDIRECT_PATH + search + hash;
+            window.location.replace(targetUrl);
+          }
+        } catch (err) {
+          console.error('Mobile redirect detection failed:', err);
+        }
+      })();
+    </script>
     <title>Seka Svara</title>
   </head>
   <body>
