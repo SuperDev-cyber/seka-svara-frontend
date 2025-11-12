@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { existsSync, mkdirSync, cpSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -13,18 +13,28 @@ const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
-// Cross-platform exec function
+// Cross-platform exec function - use spawnSync without shell wrapping
 const runCommand = (command, cwd) => {
   const isWindows = platform() === 'win32';
   const npmCommand = isWindows ? 'npm.cmd' : 'npm';
-  const fullCommand = command.replace(/^npm /, `${npmCommand} `);
+  const args = command.replace(/^npm /, '').split(' ');
   
-  execSync(fullCommand, {
+  const result = spawnSync(npmCommand, args, {
     cwd,
     stdio: 'inherit',
-    shell: true,
-    env: { ...process.env }
+    env: { ...process.env },
+    windowsVerbatimArguments: false
   });
+  
+  if (result.error) {
+    console.error(`Error running command: ${result.error.message}`);
+    process.exit(1);
+  }
+  
+  if (result.status !== 0) {
+    console.error(`Command failed with exit code ${result.status}`);
+    process.exit(result.status || 1);
+  }
 };
 
 console.log('🏗️  Building desktop app...');
