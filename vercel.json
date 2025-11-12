@@ -5,6 +5,14 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/mob",
+      "destination": "/mobile/"
+    },
+    {
+      "source": "/mob/(.*)",
+      "destination": "/mobile/$1"
+    },
+    {
       "source": "/mobile/(.*)",
       "destination": "/mobile/index.html"
     },

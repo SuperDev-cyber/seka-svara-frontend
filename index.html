@@ -10,6 +10,14 @@
           var MOBILE_REDIRECT_PATH = '/mobile/';
           var DISABLE_KEY = 'seka-force-desktop';
           
+          // Redirect /mob to /mobile/ (common typo/abbreviation)
+          if (window.location.pathname === '/mob' || window.location.pathname === '/mob/') {
+            var search = window.location.search || '';
+            var hash = window.location.hash || '';
+            window.location.replace(window.location.origin + MOBILE_REDIRECT_PATH + search + hash);
+            return;
+          }
+          
           // Skip if already on mobile path
           if (window.location.pathname.startsWith(MOBILE_REDIRECT_PATH)) {
             return;
