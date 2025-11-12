@@ -18,16 +18,15 @@ const findNpm = () => {
   if (platform() === 'win32') {
     // On Windows, try to find npm.cmd or npm
     try {
-      const { execSync } = require('child_process');
-      // Try to find npm.cmd
+      // Try to find npm.cmd using where command
       const result = execSync('where npm.cmd', { encoding: 'utf8', stdio: 'pipe' });
       if (result.trim()) {
-        return result.trim().split('\n')[0];
+        return result.trim().split('\r\n')[0].trim();
       }
     } catch (e) {
       // Fall through
     }
-    // Fallback to npm (which should work)
+    // Fallback to npm (which should work via PATH)
     return 'npm';
   }
   return 'npm';
