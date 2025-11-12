@@ -29,6 +29,7 @@ import Support from './Pages/Support/index.jsx';
 import GameTable from './Pages/GameTable/index.jsx';
 import Admin from './Pages/Admin/index.jsx';
 import AdminLogin from './Pages/Admin/Login/index.jsx';
+import MobileApp from './Pages/Mobile/index.jsx';
 
 function App() {
   // Use environment variable with fallback for development
@@ -90,6 +91,10 @@ function App() {
               <Admin />
             </ProtectedRoute>
           } />
+          
+          {/* Mobile route - static UI only */}
+          <Route path="/mobile" element={<MobileApp />} />
+          <Route path="/mob" element={<MobileApp />} />
           
           {/* Public home route */}
           <Route path="/" element={<><Header /><Home /><Footer /></>} />
