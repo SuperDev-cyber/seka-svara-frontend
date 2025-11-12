@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import { existsSync, mkdirSync, cpSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { platform } from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,11 +13,18 @@ const desktopDist = join(desktopDir, 'dist');
 const mobileDist = join(mobileDir, 'dist');
 const mobileTarget = join(desktopDist, 'mobile');
 
+// Windows-compatible exec options
+const execOptions = {
+  stdio: 'inherit',
+  shell: true,
+  ...(platform() === 'win32' && { shell: process.env.ComSpec || 'cmd.exe' })
+};
+
 console.log('🏗️  Building desktop app...');
-execSync('npm run build', { cwd: desktopDir, stdio: 'inherit' });
+execSync('npm run build', { ...execOptions, cwd: desktopDir });
 
 console.log('📱 Building mobile app...');
-execSync('npm run build', { cwd: mobileDir, stdio: 'inherit' });
+execSync('npm run build', { ...execOptions, cwd: mobileDir });
 
 if (!existsSync(desktopDist)) {
   console.error('❌ Desktop dist folder not found!');
