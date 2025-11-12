@@ -1,13 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Stub file - Supabase removed, use backend API instead
+// This file exists to prevent import errors in components that haven't been updated yet
 
 export type Video = {
   id: string;
@@ -48,3 +40,10 @@ export type UserProfile = {
   avatar_url: string | null;
   bio: string | null;
 };
+
+// Stub supabase client - throws error if used
+export const supabase = new Proxy({} as any, {
+  get() {
+    throw new Error('Supabase has been removed. Please use the backend API instead via apiService.');
+  }
+});

@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
-import { supabase, UserProfile } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { apiService } from '@/lib/api';
+
+export type UserProfile = {
+  id: string;
+  username: string | null;
+  email: string;
+  wallet_address: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+};
+
+export type User = {
+  id: string;
+  email?: string;
+  name?: string;
+  walletAddress?: string;
+};
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -8,57 +23,39 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        loadProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        loadProfile(session.user.id);
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    // Check for existing auth token
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      loadProfile();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const loadProfile = async (userId: string) => {
+  const loadProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
+      const data = await apiService.getUserProfile();
       setProfile(data);
+      setUser({
+        id: data.id,
+        email: data.email,
+        name: data.username || undefined,
+        walletAddress: data.wallet_address || undefined,
+      });
     } catch (error) {
       console.error('Error loading profile:', error);
+      // Clear invalid token
+      localStorage.removeItem('authToken');
+      setUser(null);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
   };
 
   const signInWithOtp = async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-      },
-    });
-    if (error) throw error;
+    // TODO: Implement OTP via backend API
+    throw new Error('OTP sign-in not yet implemented');
   };
 
   const verifyOtpAndSetPassword = async (
@@ -66,44 +63,25 @@ export function useAuth() {
     token: string,
     password?: string
   ) => {
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email',
-    });
-    if (error) throw error;
-
-    if (password) {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password,
-      });
-      if (updateError) throw updateError;
-    }
+    // TODO: Implement OTP verification via backend API
+    throw new Error('OTP verification not yet implemented');
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
+    // TODO: Implement email/password sign-in via backend API
+    throw new Error('Email/password sign-in not yet implemented');
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    localStorage.removeItem('authToken');
+    setUser(null);
+    setProfile(null);
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
-
-    const { error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('id', user.id);
-
-    if (error) throw error;
-    await loadProfile(user.id);
+    // TODO: Implement profile update via backend API
+    throw new Error('Profile update not yet implemented');
   };
 
   return {
