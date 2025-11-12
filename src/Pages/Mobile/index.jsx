@@ -7,7 +7,7 @@ import { LobbyPage as MobileLobbyPage } from '../../components/mobile/lobby/Lobb
 import { WalletPage as MobileWalletPage } from '../../components/mobile/wallet/WalletPage';
 import { ProfilePage as MobileProfilePage } from '../../components/mobile/profile/ProfilePage';
 import { SettingsPage as MobileSettingsPage } from '../../components/mobile/settings/SettingsPage';
-import { Toaster } from '../../components/mobile/ui/toaster';
+import { Toaster } from '../../components/mobile/ui/toaster.jsx';
 
 function MobileApp() {
   const [language, setLanguage] = useState('en');
