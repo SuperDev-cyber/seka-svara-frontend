@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:with-mobile": "node build-with-mobile.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

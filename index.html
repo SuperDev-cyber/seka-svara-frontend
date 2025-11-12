@@ -9,20 +9,70 @@
         try {
           var MOBILE_REDIRECT_PATH = '/mobile/';
           var DISABLE_KEY = 'seka-force-desktop';
+          
+          // Skip if already on mobile path
           if (window.location.pathname.startsWith(MOBILE_REDIRECT_PATH)) {
             return;
           }
+          
+          // Skip if user explicitly disabled mobile redirect
           if (window.localStorage && window.localStorage.getItem(DISABLE_KEY) === 'true') {
             return;
           }
+          
+          // Enhanced mobile detection
           var ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
-          var isMobileUA = /android|iphone|ipod|ipad|iemobile|wpdesktop|opera mini|mobile/.test(ua);
+          
+          // Check for mobile user agents (including emulators)
+          var mobilePatterns = [
+            /android/i,
+            /iphone/i,
+            /ipod/i,
+            /ipad/i,
+            /iemobile/i,
+            /wpdesktop/i,
+            /opera mini/i,
+            /mobile/i,
+            /tablet/i,
+            /mumuplayer/i,  // MUMUPLAYER emulator
+            /bluestacks/i,  // BlueStacks emulator
+            /nox/i,        // Nox emulator
+            /ldplayer/i,    // LDPlayer emulator
+            /memu/i,       // MEmu emulator
+            /genymotion/i, // Genymotion emulator
+            /android emulator/i,
+            /mobile safari/i
+          ];
+          
+          var isMobileUA = mobilePatterns.some(function(pattern) {
+            return pattern.test(ua);
+          });
+          
+          // Check viewport width (more reliable than user agent)
           var viewportWidth = Math.max(
             document.documentElement ? document.documentElement.clientWidth : 0,
-            window.innerWidth || 0
+            window.innerWidth || 0,
+            screen.width || 0
           );
-          var prefersMobileViewport = viewportWidth > 0 && viewportWidth <= 820;
-          if (isMobileUA || prefersMobileViewport) {
+          
+          // Check screen dimensions (helps catch emulators)
+          var screenWidth = screen.width || 0;
+          var screenHeight = screen.height || 0;
+          var isSmallScreen = (screenWidth > 0 && screenWidth <= 1024) || 
+                              (screenHeight > 0 && screenHeight <= 768);
+          
+          // Check touch capability
+          var hasTouchScreen = 'ontouchstart' in window || 
+                               navigator.maxTouchPoints > 0 || 
+                               navigator.msMaxTouchPoints > 0;
+          
+          // Mobile if: mobile UA OR small viewport OR small screen OR (touch + small viewport)
+          var prefersMobileViewport = viewportWidth > 0 && viewportWidth <= 1024;
+          var isMobile = isMobileUA || prefersMobileViewport || 
+                        (isSmallScreen && hasTouchScreen) ||
+                        (hasTouchScreen && viewportWidth <= 1024);
+          
+          if (isMobile) {
             var search = window.location.search || '';
             var hash = window.location.hash || '';
             var targetUrl = window.location.origin + MOBILE_REDIRECT_PATH + search + hash;
